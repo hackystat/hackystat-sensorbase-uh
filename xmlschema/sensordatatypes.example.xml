@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<SensorDataTypes>
+
+  <SensorDataType Name="UnitTest">
+    <Description>Represents a single unit test invocation.</Description>
+    <RequiredFields>
+      <RequiredField>
+        <Name>Result</Name>
+        <Description>Should be "Passed" or "Failed"</Description>
+      </RequiredField>
+    </RequiredFields>
+    <Properties>
+      <Property>
+        <Key>Version</Key>
+        <Value>2.1</Value>
+      </Property>
+    </Properties>
+  </SensorDataType>
+  
+  <SensorDataType Name="Commit">
+    <Description>Represents a single CM commit.</Description>
+    <RequiredFields>
+      <RequiredField>
+        <Name>Version</Name>
+        <Description>The version ID assigned to this commit"</Description>
+      </RequiredField>
+    </RequiredFields>
+    <Properties/>
+  </SensorDataType>
+
+</SensorDataTypes>
