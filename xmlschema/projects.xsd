@@ -2,28 +2,38 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <!-- Primitive elements and attributes -->
   <xs:element name="Description" type="xs:string"/>
-  <xs:element name="Name" type="xs:string"/>
   <xs:element name="Key" type="xs:string"/>
   <xs:element name="Value" type="xs:string"/>
+  <xs:element name="StartDay" type="xs:date"/>
+  <xs:element name="EndDay" type="xs:date"/>
+  <xs:element name="UriPattern" type="xs:string"/>
   <xs:attribute name="Name" type="xs:string"/>
   <xs:attribute name="href" type="xs:anyURI"/>
+  <xs:attribute name="UserKey" type="xs:string"/>
 
-  <xs:element name="RequiredField">
+  <xs:element name="UserRef">
+    <xs:complexType>
+      <xs:attribute ref="UserKey"/>
+      <xs:attribute ref="href"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Users">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="Name"/>
-        <xs:element ref="Description"/>
+        <xs:element ref="UserRef" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="UriPatterns">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="UriPattern" minOccurs="1" maxOccurs="unbounded"/>
      </xs:sequence>
     </xs:complexType>
   </xs:element>
 
-  <xs:element name="RequiredFields">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="RequiredField" minOccurs="1" maxOccurs="unbounded"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
 
   <xs:element name="Property">
     <xs:complexType>
@@ -43,36 +53,31 @@
   </xs:element>
 
 
-  <xs:element name="SensorDataType">
+  <xs:element name="Project">
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="Description"/>
-        <xs:element ref="RequiredFields"/>
+        <xs:element ref="StartDay"/>
+        <xs:element ref="EndDay"/>
+        <xs:element ref="Users"/>
+        <xs:element ref="UriPatterns"/>
         <xs:element ref="Properties" minOccurs="0" maxOccurs="1"/>
       </xs:sequence>
       <xs:attribute ref="Name"/>
     </xs:complexType>
   </xs:element>
 
-  <xs:element name="SensorDataTypes">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element ref="SensorDataType" minOccurs="1" maxOccurs="unbounded"/>
-      </xs:sequence>
-  </xs:complexType>
-  </xs:element>
-
-  <xs:element name="SensorDataTypeRef">
+  <xs:element name="ProjectRef">
     <xs:complexType>
       <xs:attribute ref="Name"/>
       <xs:attribute ref="href"/>
     </xs:complexType>
   </xs:element>
 
-  <xs:element name="SensorDataTypeIndex">
+  <xs:element name="ProjectIndex">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="SensorDataTypeRef" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="ProjectRef" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element> 

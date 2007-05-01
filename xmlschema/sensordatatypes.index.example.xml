@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<SensorDataTypeIndex>
+ <SensorDataTypeRef Name="UnitTest" href="http://hackystat.ics.hawaii.edu/hackystat/sensordatatypes/UnitTest"/>
+ <SensorDataTypeRef Name="DevEvent" href="http://hackystat.ics.hawaii.edu/hackystat/sensordatatypes/DevEvent"/>
+</SensorDataTypeIndex>
