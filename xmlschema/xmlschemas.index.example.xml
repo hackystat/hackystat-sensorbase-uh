@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <XmlSchemaIndex>
-  <XmlSchemaRef href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/sensordata.xsd"/>
-  <XmlSchemaRef href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/sensordatatypes.xsd"/>
-  <XmlSchemaRef href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/users.xsd"/>
-  <XmlSchemaRef href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/projects.xsd"/>
+  <XmlSchemaRef Name="SensorData" href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/sensordata.xsd"/>
+  <XmlSchemaRef Name="SensorDataTypes" href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/sensordatatypes.xsd"/>
+  <XmlSchemaRef Name="Users" href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/users.xsd"/>
+  <XmlSchemaRef Name="Projects" href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/projects.xsd"/>
 </XmlSchemaIndex>

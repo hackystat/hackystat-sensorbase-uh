@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:attribute name="Name" type="xs:string"/>
   <xs:attribute name="href" type="xs:anyURI"/>
 
   <xs:element name="XmlSchemaRef">
     <xs:complexType>
+      <xs:attribute ref="Name"/>
       <xs:attribute ref="href"/>
     </xs:complexType>
   </xs:element>
@@ -11,7 +13,7 @@
   <xs:element name="XmlSchemaIndex">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="XmlSchemaRef" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="XmlSchemaRef" minOccurs="1" maxOccurs="unbounded"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element> 
