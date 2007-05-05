@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="var" path="RESTLET_HOME/lib/org.restlet.jar"/>
+	<classpathentry kind="var" path="RESTLET_HOME/lib/com.noelios.restlet.jar"/>
+	<classpathentry kind="var" path="RESTLET_HOME/lib/com.noelios.restlet.ext.simple_3.1.jar"/>
+	<classpathentry kind="var" path="RESTLET_HOME/lib/org.simpleframework_3.1/org.simpleframework.jar"/>
+	<classpathentry kind="var" path="RESTLET_HOME/lib/com.noelios.restlet.ext.net.jar"/>
+	<classpathentry kind="output" path="build"/>
+</classpath>

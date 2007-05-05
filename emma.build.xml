@@ -1,0 +1,87 @@
+<project name="stackyhack.emma" default="emma">
+  <description>
+  Provides the Emma tool and the Hackystat Emma sensor.
+  </description>
+
+  <import file="build.xml"/>
+  <property environment="env"/>
+  <property name="emma.dir" location="${build.dir}/emma" />
+  <property name="junit.dir" location="${build.dir}/junit" />
+
+  <target name="emma" depends="emma.tool, emma.sensor" description="Runs Emma, followed by the Emma sensor."/>
+
+  <target name="emma.tool" depends="clean, compile" 
+    description="Cleans, compiles, instruments byte codes, runs unit tests, generates Emma report.">
+    <!-- Verify that Emma is installed. -->
+    <available file="${env.EMMA_HOME}/lib/emma.jar" property="emma.available"/>
+    <fail unless="emma.available"  message="Error: EMMA_HOME not set or emma.jar not found, indicating Emma is not installed."/>
+    
+    <!-- Define the path and taskdef containing the emma binaries. -->
+    <property name="emma.lib.dir" value="${env.EMMA_HOME}/lib" />
+    <path id="emma.lib.dir" >
+      <pathelement location="${emma.lib.dir}/emma.jar" />
+      <pathelement location="${emma.lib.dir}/emma_ant.jar" />
+    </path>
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib.dir" />
+
+    <!-- Instrument the .class files. -->     
+    <mkdir dir="${emma.dir}" />
+    <emma enabled="true" >
+      <instr instrpath="${build.dir}/classes"
+             destdir="${build.dir}/classes"
+             metadatafile="${emma.dir}/metadata.emma"
+             merge="true" mode="overwrite">
+      </instr>
+    </emma>
+    
+    <!-- Run JUnit with the instrumented class files. --> 
+    <mkdir dir="${junit.dir}" />
+    <junit printsummary="withOutAndErr" fork="yes">
+      <classpath path="${build.dir}/classes;${java.class.path}">
+        <path refid="emma.lib.dir" />
+        <path refid="compile.classpath"/>           
+      </classpath>
+      <sysproperty key="emma.coverage.out.file" value="${build.dir}/emma/coverage.emma" />
+      <sysproperty key="emma.coverage.out.merge" value="true" />
+      <formatter type="xml" />
+      <batchtest todir="${junit.dir}">
+        <fileset dir="${src.dir}">
+          <include name="**/Test*.java" />
+        </fileset>
+      </batchtest>
+    </junit>
+    
+    <!-- Generate Emma reports. -->
+    <emma enabled="true" >
+      <report sourcepath="${src.dir}"
+              sort="+name"
+              metrics="method:70,block:80,line:80,class:100">
+        <fileset dir="${emma.dir}" >
+          <include name="*.emma" />
+        </fileset>
+        <xml outfile="${emma.dir}/coverage.xml" depth="method" />
+        <html outfile="${emma.dir}/coverage.html"
+              depth="method" columns="name,class,method,block,line" />
+      </report>
+    </emma>
+    
+    <!-- Now delete the instrumented .class files. -->
+    <delete dir="${build.dir}/classes" />
+  </target>
+
+  <target name="emma.sensor" description="Sends Emma coverage data to Hackystat using the Emma sensor.">
+    <!-- Define the emma sensor taskdef, failing the build if the sensor is not installed. -->
+    <available classname="org.hackystat.sensor.emma.EmmaSensor" property="emma.sensor.available"/>
+    <fail unless="emma.sensor.available" message="Error: Emma sensor not installed."/>
+    <taskdef name="hacky-emma" classname="org.hackystat.sensor.emma.EmmaSensor"/>
+    
+    <!-- Send Coverage data to Hackystat using the Emma sensor. --> 
+    <hacky-emma verbose="${hackystat.verbose.mode}" emmaReportXmlFile="${emma.dir}/coverage.xml">
+      <fileset dir="${src.dir}" includes="**/*.java" />
+    </hacky-emma>
+  </target>
+  
+</project>
+
+
+

@@ -1,0 +1,69 @@
+<project name="stackyhack.build" default="compile">
+  <description>
+  The basic build file for the StackyHack system. 
+  </description>
+  
+  <!-- Always make environment variables available with the "env." prefix. --> 
+  <property environment="env"/> 
+      
+  <!-- Make sure we're running a Java 5 or better. --> 
+  <condition property="java.5.available">  
+    <or>
+      <contains string="${java.version}" substring="1.5" /> 
+      <contains string="${java.version}" substring="1.6" /> 
+    </or> 
+  </condition>   
+  <fail message="This package requires Java 5 or 6." unless="java.5.available"/> 
+
+   <!-- Make sure we're running Ant 1.7 . --> 
+   <condition property="ant.1.7.available"> 
+     <contains string="${ant.version}" substring="1.7" />
+   </condition>  
+   <fail message="This package requires Ant 1.7." unless="ant.1.7.available"/>
+    
+  <!-- Make sure that JUnit is installed . --> 
+  <available file="${env.JUNIT_HOME}" type="dir" property="junit.available"/>
+  <fail message="This package requires JUnit to be installed and JUNIT_HOME defined" unless="junit.available"/>
+
+  <!-- Basic properties for this system. --> 
+  <property name="system.name" value="hackystat-sensorbase-uh" />
+  <property name="majorVersionNumber" value="8" />
+  <property name="minorVersionNumber" value="0" />
+  <tstamp><format property="DAYSTAMP" pattern="Mdd" /></tstamp>
+  <property name="version" value="${majorVersionNumber}.${minorVersionNumber}.${DAYSTAMP}" />
+
+  <!-- Hackystat sensor configuration information. -->
+  <property name="hackystat.verbose.mode" value="true" />
+
+  <!-- Basic directory structure. --> 
+  <property name="src.dir" location="${basedir}/src" />
+  <property name="lib.dir" location="${basedir}/lib" />
+  <property name="build.dir" location="${basedir}/build" />
+
+  <!-- The compile classpath is useful to many tools. -->
+  <path id="compile.classpath">
+    <fileset file="${env.JUNIT_HOME}/junit*.jar"/>
+  </path> 
+
+  <target name="compile" description="Compiles the code.">
+    <!-- Now compile the code into build/classes -->   
+    <mkdir dir="${build.dir}/classes"/>
+    <javac srcdir="${src.dir}" destdir="${build.dir}/classes" source="1.5" debug="on" includeAntRuntime="no">
+      <classpath refid="compile.classpath" />
+    </javac>
+  </target>
+
+  <target name="clean" description="Delete build/ directory.">
+    <delete dir="${build.dir}" />
+  </target>
+
+  <target name="convertLineEndings" description="Makes line endings compatible with host platform.">
+    <fixcrlf srcdir="${basedir}" includes="*.build.xml"/>
+  </target>
+
+</project>
+
+
+
+
+
