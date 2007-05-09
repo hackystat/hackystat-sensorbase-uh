@@ -6,7 +6,7 @@
   <import file="build.xml"/>
   <property name="junit.dir" location="${build.dir}/junit" />
 
-  <target name="junit" depends="junit.tool, junit.report, junit.sensor" description="Runs JUnit, JunitReport, and the sensor."/>
+  <target name="junit" depends="junit.tool, junit.report" description="Runs JUnit, JunitReport"/>
 
   <target name="junit.tool" depends="compile" description="Run JUnit tests.">
     <mkdir dir="${junit.dir}" />

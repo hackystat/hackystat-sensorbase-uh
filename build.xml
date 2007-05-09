@@ -25,6 +25,14 @@
   <available file="${env.JUNIT_HOME}" type="dir" property="junit.available"/>
   <fail message="This package requires JUnit to be installed and JUNIT_HOME defined" unless="junit.available"/>
 
+  <!-- Make sure that Restlet is installed . --> 
+  <available file="${env.RESTLET_HOME}/lib/org.restlet.jar" type="file" property="restlet.available"/>
+  <fail message="This package requires the Restlet Framework to be downloaded and RESTLET_HOME defined" unless="restlet.available"/>
+
+  <!-- Make sure that the JAXB library is available . --> 
+  <available file="${env.JAXB_HOME}/lib/jaxb-xjc.jar" type="file" property="jaxb.available"/>
+  <fail message="This package requires JAXB to be installed and JAXB_HOME defined" unless="jaxb.available"/>
+    
   <!-- Basic properties for this system. --> 
   <property name="system.name" value="hackystat-sensorbase-uh" />
   <property name="majorVersionNumber" value="8" />
@@ -42,7 +50,16 @@
 
   <!-- The compile classpath is useful to many tools. -->
   <path id="compile.classpath">
-    <fileset file="${env.JUNIT_HOME}/junit*.jar"/>
+    <fileset file="${env.JUNIT_HOME}/junit-4.1.jar"/>
+    <fileset file="${env.RESTLET_HOME}/lib/org.restlet.jar"/> 
+    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar"/> 
+    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar"/> 
+    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar.jar"/> 
+    <fileset file="${env.RESTLET_HOME}/lib/org.simpleframework.jar"/> 
+    <fileset file="${env.JAXB_HOME}/lib/activation.jar"/> 
+    <fileset file="${env.JAXB_HOME}/lib/jaxb-api.jar"/> 
+    <fileset file="${env.JAXB_HOME}/lib/jaxb-impl.jar"/> 
+    <fileset file="${env.JAXB_HOME}/lib/jsr173_1.0_api.jar"/> 
   </path> 
 
   <target name="compile" description="Compiles the code.">

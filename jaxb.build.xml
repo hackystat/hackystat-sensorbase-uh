@@ -1,0 +1,21 @@
+<project name="jaxb" default="jaxb">
+  <description>
+  Supports JAXB binding process (creation of Java classes from the XmlSchema documents.)
+  </description>
+
+  <import file="build.xml"/>
+  <property environment="env"/>
+    
+  <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
+    <classpath>
+      <fileset dir="${env.JAXB_HOME}/lib" includes="*.jar" />
+    </classpath>
+  </taskdef>   
+
+  <target name="jaxb" description="Runs the XJC compiler.">
+    <xjc schema="${basedir}/xml/schema/sensordatatypes.xsd" destdir="src" package="org.hackystat.sensorbase.resource.sensordatatypes.jaxb"/>
+    <xjc schema="${basedir}/xml/schema/users.xsd" destdir="src" package="org.hackystat.sensorbase.resource.users.jaxb"/>
+    <xjc schema="${basedir}/xml/schema/sensordata.xsd" destdir="src" package="org.hackystat.sensorbase.resource.sensordata.jaxb"/>
+    <xjc schema="${basedir}/xml/schema/projects.xsd" destdir="src" package="org.hackystat.sensorbase.resource.projects.jaxb"/>
+  </target>
+</project>

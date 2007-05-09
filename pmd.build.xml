@@ -9,10 +9,10 @@
   <import file="build.xml"/>
   <property environment="env"/>
   <property name="pmd.dir" location="${build.dir}/pmd" />
-  <property name="pmd.version" value="3.7"/>
+  <property name="pmd.version" value="3.9"/>
   <property name="pmd.jar" value="pmd-${pmd.version}.jar"/>
 
-  <target name="pmd" depends="pmd.tool, pmd.report, pmd.sensor" description="Runs the PMD tool, report, and sensor."/>
+  <target name="pmd" depends="pmd.tool, pmd.report" description="Runs the PMD tool, report, and sensor."/>
 
   <target name="pmd.tool" description="Runs PMD over the source code to check for problems.">
     <!-- Fail this target if PMD is not installed. -->
@@ -28,7 +28,7 @@
     <mkdir dir="${pmd.dir}"/>
     <pmd rulesetfiles="basic,braces,clone,codesize,coupling,design,imports,junit,naming,strings" 
          shortFilenames="true" 
-         targetjdk="1.4" 
+         targetjdk="1.5" 
          failuresPropertyName="pmd.failure.count"
          failonerror="${pmd.failonerror}"
          failOnRuleViolation="${pmd.failonerror}" >

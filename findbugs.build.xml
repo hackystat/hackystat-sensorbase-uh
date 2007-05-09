@@ -25,6 +25,11 @@
         outputFile="${findbugs.dir}/findbugs.xml" >
       <auxClasspath>
         <fileset file="${env.JUNIT_HOME}/junit-4.1.jar"/>
+        <fileset file="${env.RESTLET_HOME}/lib/org.restlet.jar"/> 
+        <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar"/> 
+        <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar"/> 
+        <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar.jar"/> 
+        <fileset file="${env.RESTLET_HOME}/lib/org.simpleframework.jar"/> 
       </auxClasspath>
       <sourcePath>
         <fileset dir="${src.dir}">
