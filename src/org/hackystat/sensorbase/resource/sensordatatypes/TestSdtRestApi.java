@@ -3,6 +3,7 @@ package org.hackystat.sensorbase.resource.sensordatatypes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.restlet.Client;
 import org.restlet.data.Method;
@@ -22,6 +23,7 @@ public class TestSdtRestApi {
   /**
    * Test that GET host/hackystat/sensordatatypes returns an appropriate value.
    */
+  @Ignore("Server not yet implemented") 
   @Test public void getSdtIndex() {
     // Set up the call.
     Method method = Method.GET;
