@@ -1,0 +1,108 @@
+<HTML>
+<BODY BGCOLOR="white">
+<PRE>
+<FONT color="green">001</FONT>    package org.hackystat.sensorbase.resource.sensordatatypes;<a name="line.1"></a>
+<FONT color="green">002</FONT>    <a name="line.2"></a>
+<FONT color="green">003</FONT>    import static org.junit.Assert.assertEquals;<a name="line.3"></a>
+<FONT color="green">004</FONT>    import static org.junit.Assert.assertTrue;<a name="line.4"></a>
+<FONT color="green">005</FONT>    <a name="line.5"></a>
+<FONT color="green">006</FONT>    import org.junit.Test;<a name="line.6"></a>
+<FONT color="green">007</FONT>    import org.restlet.Client;<a name="line.7"></a>
+<FONT color="green">008</FONT>    import org.restlet.data.Method;<a name="line.8"></a>
+<FONT color="green">009</FONT>    import org.restlet.data.Protocol;<a name="line.9"></a>
+<FONT color="green">010</FONT>    import org.restlet.data.Reference;<a name="line.10"></a>
+<FONT color="green">011</FONT>    import org.restlet.data.Request;<a name="line.11"></a>
+<FONT color="green">012</FONT>    import org.restlet.data.Response;<a name="line.12"></a>
+<FONT color="green">013</FONT>    import org.restlet.resource.XmlRepresentation;<a name="line.13"></a>
+<FONT color="green">014</FONT>    <a name="line.14"></a>
+<FONT color="green">015</FONT>    /**<a name="line.15"></a>
+<FONT color="green">016</FONT>     * Tests the SensorBase REST API for the SensorDataType resource.<a name="line.16"></a>
+<FONT color="green">017</FONT>     *<a name="line.17"></a>
+<FONT color="green">018</FONT>     * @author Philip M. Johnson<a name="line.18"></a>
+<FONT color="green">019</FONT>     */<a name="line.19"></a>
+<FONT color="green">020</FONT>    public class TestSdtRestApi {<a name="line.20"></a>
+<FONT color="green">021</FONT>    <a name="line.21"></a>
+<FONT color="green">022</FONT>      /**<a name="line.22"></a>
+<FONT color="green">023</FONT>       * Test that GET host/hackystat/sensordatatypes returns an appropriate value.<a name="line.23"></a>
+<FONT color="green">024</FONT>       */<a name="line.24"></a>
+<FONT color="green">025</FONT>      @Test public void getSdtIndex() {<a name="line.25"></a>
+<FONT color="green">026</FONT>        // Set up the call.<a name="line.26"></a>
+<FONT color="green">027</FONT>        Method method = Method.GET;<a name="line.27"></a>
+<FONT color="green">028</FONT>        Reference reference = new Reference("http://localhost:9090/hackystat/sensordatatypes");<a name="line.28"></a>
+<FONT color="green">029</FONT>        Request request = new Request(method, reference);<a name="line.29"></a>
+<FONT color="green">030</FONT>    <a name="line.30"></a>
+<FONT color="green">031</FONT>        // Make the call.<a name="line.31"></a>
+<FONT color="green">032</FONT>        Client client = new Client(Protocol.HTTP);<a name="line.32"></a>
+<FONT color="green">033</FONT>        Response response = client.handle(request);<a name="line.33"></a>
+<FONT color="green">034</FONT>    <a name="line.34"></a>
+<FONT color="green">035</FONT>        // Test that the request was received and processed by the server OK. <a name="line.35"></a>
+<FONT color="green">036</FONT>        assertTrue("Testing for successful status", response.getStatus().isSuccess());<a name="line.36"></a>
+<FONT color="green">037</FONT>    <a name="line.37"></a>
+<FONT color="green">038</FONT>        // Now test that the response is OK.<a name="line.38"></a>
+<FONT color="green">039</FONT>        XmlRepresentation data = response.getEntityAsSax();<a name="line.39"></a>
+<FONT color="green">040</FONT>        assertEquals("Checking SDT", "SampleSDT", data.getText("SensorDataTypes/SensorDataType/@Name"));<a name="line.40"></a>
+<FONT color="green">041</FONT>        }<a name="line.41"></a>
+<FONT color="green">042</FONT>    }<a name="line.42"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</PRE>
+</BODY>
+</HTML>

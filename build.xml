@@ -37,7 +37,9 @@
   <property name="system.name" value="hackystat-sensorbase-uh" />
   <property name="majorVersionNumber" value="8" />
   <property name="minorVersionNumber" value="0" />
-  <tstamp><format property="DAYSTAMP" pattern="Mdd" /></tstamp>
+  <tstamp>
+    <format property="DAYSTAMP" pattern="Mdd" />
+  </tstamp>
   <property name="version" value="${majorVersionNumber}.${minorVersionNumber}.${DAYSTAMP}" />
 
   <!-- Hackystat sensor configuration information. -->

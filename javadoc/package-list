@@ -1,0 +1,7 @@
+org.hackystat.sensorbase.logger
+org.hackystat.sensorbase.resource.projects.jaxb
+org.hackystat.sensorbase.resource.sensordata.jaxb
+org.hackystat.sensorbase.resource.sensordatatypes
+org.hackystat.sensorbase.resource.sensordatatypes.jaxb
+org.hackystat.sensorbase.resource.users.jaxb
+org.hackystat.sensorbase.server

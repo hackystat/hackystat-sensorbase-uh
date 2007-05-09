@@ -1,0 +1,35 @@
+<body>
+SensorBase-UH is the University of Hawaii "reference implementation" of the SensorBase service 
+for Hackystat Version 8.0.  
+<p>
+Hackystat 8.0 implements a web service architecture in which individual services communicate
+using REST principles.  For more information, see the 
+<a href="http://code.google.com/p/hackystat/">Hackystat Version 8 Home Page</a>.  For access
+to code, documentation, and other project materials on SensorBase-UH, please consult the 
+<a href="http://code.google.com/p/hackystat-sensorbase-uh/">SensorBase-UH Home Page</a>.
+<p>
+The "SensorBase" is a low-level service in this architecture, which is responsible for:
+<ul>
+<li> Receiving low-level sensor data from "Sensor" services that are attached to various
+tools in the developer environment. 
+<li> Management of three forms of sensor "meta-data": Projects, Users, and SensorDataTypes.
+<li> Persisting both data and meta-data in a database.
+<li> Responding to requests for subsets of this sensor data and meta-data from higher level 
+services. The <a href="http://code.google.com/p/hackystat-sensorbase-uh/wiki/RestApiSpecification">
+SensorBase REST API Specification</a> provides details on the form of 
+web service requests and associated responses supported by this SensorBase.
+</ul>
+<p>
+To accomplish these tasks, the SensorBase is organized into the following subpackages:
+<ul>
+<li> org.hackystat.sensorbase.resource, containing subpackages for the four
+core resources in this system: SensorData, SensorDataTypes, Projects, and Users.
+<li> org.hackystat.sensorbase.server, which implements the HTTP services for GET, PUT, POST,
+and DELETE of the resources.
+<li>org.hackystat.sensorbase.db, which implements the persistency layer.
+<li>org.hackystat.sensorbase.logger, which implements a simple logging service. 
+</ul>
+<p>
+This SensorBase uses the <a href="http://www.restlet.org/">Restlet</a> framework to support
+its REST architectural style.
+</body>

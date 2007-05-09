@@ -1,4 +1,4 @@
-<project name="hackystat-sensorbase-uh.checkstyle" default="checkstyle">
+<project name="checkstyle" default="checkstyle">
   <description>
   Provides the Checkstyle tool and the Hackystat Checkstyle sensor. 
   Note: The error message "Unable to create a Checker" indicates you have an old version of Checkstyle in ant/lib.
