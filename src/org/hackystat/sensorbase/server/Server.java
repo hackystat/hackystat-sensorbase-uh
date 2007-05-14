@@ -16,6 +16,7 @@ public class Server extends Application {
   /**
    * Starts up the SensorBase web service.  Control-c to exit. 
    * @param args Ignored. 
+   * @throws Exception if problems occur.
    */
   public static void main(String[] args) throws Exception {
     System.out.println("Starting SensorBase server on port 9876.");
@@ -27,6 +28,7 @@ public class Server extends Application {
 
   /**
    * Dispatch to the Projects, SensorData, SensorDataTypes, or Users Resource depending on the URL.
+   * @return The router Restlet.
    */
   @Override
   public Restlet createRoot() {
