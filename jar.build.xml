@@ -21,7 +21,7 @@
     <unjar src="${env.JAXB_HOME}/lib/jaxb-api.jar" dest="${tmp.dir}"/>
     <unjar src="${env.JAXB_HOME}/lib/jaxb-impl.jar" dest="${tmp.dir}"/>
     <unjar src="${env.JAXB_HOME}/lib/jsr173_1.0_api.jar" dest="${tmp.dir}"/>
-    <!-- The following black magic deletion allows activation.jar to be packaged in an uber-jar --> 
+    <!-- The following magic deletion allows activation.jar to be packaged in sensorbase.jar without creating runtime errors. --> 
     <!-- See http://jira.codehaus.org/browse/MASSEMBLY-64 for details. --> 
     <delete>
      <fileset dir="${tmp.dir}/META-INF" includes="*.RSA,*.DSA,*.SF,*.rsa,*.dsa,*.sf"/>

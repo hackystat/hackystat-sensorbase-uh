@@ -1,4 +1,4 @@
-<project name="stackyhack.build" default="compile">
+<project name="build" default="compile">
   <description>
   The basic build file for the StackyHack system. 
   </description>

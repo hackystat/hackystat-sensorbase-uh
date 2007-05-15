@@ -1,4 +1,4 @@
-<project name="stackyhack.findbugs" default="findbugs">
+<project name="findbugs" default="findbugs">
   <description>
   Provides the FindBugs tool and the Hackystat FindBugs sensor.
   </description>
@@ -7,7 +7,8 @@
   <property environment="env"/>
   <property name="findbugs.dir" location="${build.dir}/findbugs" />
 
-  <target name="findbugs" depends="findbugs.tool, findbugs.report, findbugs.sensor" description="Runs the FindBugs tool, report, and sensor."/>
+  <target name="findbugs" depends="findbugs.tool, findbugs.report" 
+    description="Runs the FindBugs tool, report, and sensor."/>
 
   <target name="findbugs.tool" depends="compile" description="Runs FindBugs over the byte code to check for problems.">
     <!-- Fail this target if FindBugs is not installed. -->

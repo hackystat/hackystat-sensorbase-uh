@@ -1,4 +1,4 @@
-<project name="stackyhack.pmd" default="pmd">
+<project name="pmd" default="pmd">
   <description>
   Provides the PMD tool and the Hackystat PMD sensor.
 

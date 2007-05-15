@@ -1,4 +1,4 @@
-<project name="stackyhack.dist" default="dist">
+<project name="dist" default="dist">
   <description>
   Provides the target for building a distribution of the StackyHack system.
   </description>

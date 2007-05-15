@@ -1,4 +1,4 @@
-<project name="checkstyle" default="checkstyle">
+<project name="checkstyle" default="checkstyle.tool">
   <description>
   Provides the Checkstyle tool and the Hackystat Checkstyle sensor. 
   Note: The error message "Unable to create a Checker" indicates you have an old version of Checkstyle in ant/lib.
@@ -9,8 +9,6 @@
   <property name="checkstyle.dir" location="${build.dir}/checkstyle" />
   <property name="checkstyle.version" value="4.3"/>
   <property name="checkstyle.jar" value="checkstyle-all-${checkstyle.version}.jar"/>
-
-  <target name="checkstyle" depends="checkstyle.tool" description="Runs Checkstyle, followed by the Checkstyle sensor."/>
 
   <target name="checkstyle.tool" description="Checks the style of the sources and reports issues.">
     <!-- Check for the CHECKSTYLE_HOME environment variable, failing the build if it can't be found. -->

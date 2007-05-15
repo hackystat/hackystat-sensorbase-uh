@@ -1,4 +1,4 @@
-<project name="stackyhack.sclc" default="sclc">
+<project name="sclc" default="sclc.tool">
   <description>
   Provides the SLCL tool and the Hackystat SCLC sensor.
   </description>
@@ -6,8 +6,6 @@
   <import file="build.xml"/>
   <property environment="env"/>
   <property name="sclc.dir" location="${build.dir}/sclc" />
-
-  <target name="sclc" depends="sclc.tool, sclc.sensor" description="Runs SCLC, followed by the SCLC sensor."/>
 
   <target name="sclc.tool" depends="compile" description="Compute size data on the source code using SCLC.">
     <!-- Check for the SCLC_HOME environment variable, failing the build if it can't be found. -->

@@ -1,4 +1,4 @@
-<project name="stackyhack.emma" default="emma">
+<project name="emma" default="emma">
   <description>
   Provides the Emma tool and the Hackystat Emma sensor.
   </description>
@@ -8,7 +8,8 @@
   <property name="emma.dir" location="${build.dir}/emma" />
   <property name="junit.dir" location="${build.dir}/junit" />
 
-  <target name="emma" depends="emma.tool, emma.sensor" description="Runs Emma, followed by the Emma sensor."/>
+  <target name="emma" depends="emma.tool" 
+    description="Runs Emma."/>
 
   <target name="emma.tool" depends="clean, compile" 
     description="Cleans, compiles, instruments byte codes, runs unit tests, generates Emma report.">
