@@ -13,7 +13,8 @@
     <!-- Run the tests, which are all classes whose name starts with 'Test'. -->
     <junit printsummary="withOutAndErr" haltonfailure="${junit.haltonfailure}">
      <sysproperty key="hackystat.sensorbase.defaults.sensordatatypes" 
-                  value="${basedir}/xml/defaults/sensordatatypes.defaults.xml"/>   
+                  value="${basedir}/xml/defaults/sensordatatypes.defaults.xml"/>  
+     <sysproperty key="hackystat.sensorbase.port" value="9090"/> 
       <classpath>
         <pathelement location="${build.dir}/classes" />
         <path refid="compile.classpath"/>

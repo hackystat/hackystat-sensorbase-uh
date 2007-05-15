@@ -46,7 +46,7 @@ public class SensorBaseLogger {
           logger.addHandler(fileHandler);
         }
         catch (IOException e) {
-          System.out.println("Could not open the log file for the SensorBase");
+          throw new RuntimeException("Could not open the log file for the SensorBase", e);
         }
 
         // Define a console handler to also write the message to the console.

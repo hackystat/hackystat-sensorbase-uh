@@ -3,6 +3,8 @@ package org.hackystat.sensorbase.resource.sensordatatypes;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import org.hackystat.sensorbase.server.Server;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.restlet.Client;
@@ -19,6 +21,15 @@ import org.restlet.resource.XmlRepresentation;
  * @author Philip M. Johnson
  */
 public class TestSdtRestApi {
+  private static String port = System.getProperty("hackystat.sensorbase.port", "9876");
+  
+  /**
+   * Starts the server going for these tests. 
+   * @throws Exception If problems occur setting up the server. 
+   */
+  @BeforeClass public static void setupServer() throws Exception {
+    Server.newInstance(Integer.valueOf(port));
+  }
 
   /**
    * Test that GET host/hackystat/sensordatatypes returns an appropriate value.

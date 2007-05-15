@@ -1,0 +1,38 @@
+<project name="jar" default="jar">
+  <description>
+  Provides the target for building a jar file of the SensorBase.
+  </description>
+
+  <import file="build.xml"/>
+
+  <target name="jar" depends="compile" description="Create an executable jar file.">
+    <!-- Define the directories and distribution name -->
+    <property name="tmp.dir" location="${basedir}/tmp" />
+    <mkdir dir="${tmp.dir}" />
+    <copy todir="${tmp.dir}">
+      <fileset dir="${basedir}/build/classes"/>
+    </copy>
+    <unjar src="${env.RESTLET_HOME}/lib/org.simpleframework_3.1/org.simpleframework.jar" dest="${tmp.dir}"/>
+    <unjar src="${env.RESTLET_HOME}/lib/org.restlet.jar" dest="${tmp.dir}"/>
+    <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" dest="${tmp.dir}"/>
+    <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar" dest="${tmp.dir}"/>
+    <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar" dest="${tmp.dir}"/>
+    <unjar src="${env.JAXB_HOME}/lib/activation.jar" dest="${tmp.dir}"/>
+    <unjar src="${env.JAXB_HOME}/lib/jaxb-api.jar" dest="${tmp.dir}"/>
+    <unjar src="${env.JAXB_HOME}/lib/jaxb-impl.jar" dest="${tmp.dir}"/>
+    <unjar src="${env.JAXB_HOME}/lib/jsr173_1.0_api.jar" dest="${tmp.dir}"/>
+    <!-- The following black magic deletion allows activation.jar to be packaged in an uber-jar --> 
+    <!-- See http://jira.codehaus.org/browse/MASSEMBLY-64 for details. --> 
+    <delete>
+     <fileset dir="${tmp.dir}/META-INF" includes="*.RSA,*.DSA,*.SF,*.rsa,*.dsa,*.sf"/>
+    </delete>
+
+    <jar destfile="${basedir}/sensorbase.jar" basedir="${tmp.dir}">
+      <manifest>
+        <attribute name="Main-Class" value="org.hackystat.sensorbase.server.Server"/>
+      </manifest>
+    </jar>
+    <delete dir="${tmp.dir}" />
+  </target>    
+</project>
+

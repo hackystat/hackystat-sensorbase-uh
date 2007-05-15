@@ -22,15 +22,15 @@
   <echo>
     Hackystat SensorBase Verification Task
     
-    This task will fail unless all of the following are true:
-      * System compiles without warnings (Java 6 only) or errors.
+    This task fails the build unless all of the following are true:
+      * System compiles without warnings or errors.
       * JavaDocs can be built without warnings or errors. 
       * JUnit test cases all pass.
       * Checkstyle of source code generates no warnings. 
       * PMD generates no warnings. 
       * FindBugs generates no warnings. 
     
-    It also runs the Emma code coverage tool and provides a summary report. 
+    It also runs the Emma code coverage tool and prints a summary report. 
   </echo>
   <target name="verify" 
     depends="clean, compile, javadoc, junit.tool, checkstyle.tool, pmd.tool, findbugs.tool, emma.tool, emma.echo" 

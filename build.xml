@@ -56,8 +56,8 @@
     <fileset file="${env.RESTLET_HOME}/lib/org.restlet.jar"/> 
     <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar"/> 
     <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar"/> 
-    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar.jar"/> 
-    <fileset file="${env.RESTLET_HOME}/lib/org.simpleframework.jar"/> 
+    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar"/> 
+    <fileset file="${env.RESTLET_HOME}/lib/org.simpleframework_3.1/org.simpleframework.jar"/> 
     <fileset file="${env.JAXB_HOME}/lib/activation.jar"/> 
     <fileset file="${env.JAXB_HOME}/lib/jaxb-api.jar"/> 
     <fileset file="${env.JAXB_HOME}/lib/jaxb-impl.jar"/> 
