@@ -69,6 +69,8 @@
     <mkdir dir="${build.dir}/classes"/>
     <javac srcdir="${src.dir}" destdir="${build.dir}/classes" source="1.5" debug="on" includeAntRuntime="no">
       <classpath refid="compile.classpath" />
+      <compilerarg value="-Xlint:all"/>
+      <compilerarg value="-Werror"/>
     </javac>
   </target>
 

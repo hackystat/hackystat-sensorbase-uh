@@ -32,7 +32,6 @@ public class ProjectsResource extends Resource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    Representation result = null;
-    return result; 
+    return null; 
   }
 }

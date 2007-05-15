@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlType;
     "sensorDataTypeRef"
 })
 @XmlRootElement(name = "SensorDataTypeIndex")
+@SuppressWarnings("PMD")
 public class SensorDataTypeIndex {
 
     @XmlElement(name = "SensorDataTypeRef")

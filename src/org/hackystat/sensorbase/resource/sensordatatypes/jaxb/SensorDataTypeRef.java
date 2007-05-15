@@ -37,6 +37,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "")
 @XmlRootElement(name = "SensorDataTypeRef")
+@SuppressWarnings("PMD")
 public class SensorDataTypeRef {
 
     @XmlAttribute(name = "Name")

@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlType;
     "property"
 })
 @XmlRootElement(name = "Properties")
+@SuppressWarnings("PMD")
 public class Properties {
 
     @XmlElement(name = "Property", required = true)

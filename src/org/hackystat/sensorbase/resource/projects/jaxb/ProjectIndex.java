@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlType;
     "projectRef"
 })
 @XmlRootElement(name = "ProjectIndex")
+@SuppressWarnings("PMD")
 public class ProjectIndex {
 
     @XmlElement(name = "ProjectRef")

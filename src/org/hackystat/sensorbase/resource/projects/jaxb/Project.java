@@ -53,6 +53,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "properties"
 })
 @XmlRootElement(name = "Project")
+@SuppressWarnings("PMD")
 public class Project {
 
     @XmlElement(name = "Description", required = true)

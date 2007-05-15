@@ -1,5 +1,6 @@
 package org.hackystat.sensorbase.server;
 
+import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Restlet;
@@ -18,8 +19,8 @@ public class Server extends Application {
    * @param args Ignored. 
    * @throws Exception if problems occur.
    */
-  public static void main(String[] args) throws Exception {
-    System.out.println("Starting SensorBase server on port 9876.");
+  public static void main(final String[] args) throws Exception {
+    SensorBaseLogger.getLogger().warning("Starting SensorBase.");
     Component component = new Component();
     component.getServers().add(Protocol.HTTP, 9876);
     component.getDefaultHost().attach("/sensorbase", new Server() );

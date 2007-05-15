@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlType;
     "userRef"
 })
 @XmlRootElement(name = "Users")
+@SuppressWarnings("PMD")
 public class Users {
 
     @XmlElement(name = "UserRef", required = true)

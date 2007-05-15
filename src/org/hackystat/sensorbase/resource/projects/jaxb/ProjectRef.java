@@ -37,6 +37,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "")
 @XmlRootElement(name = "ProjectRef")
+@SuppressWarnings("PMD")
 public class ProjectRef {
 
     @XmlAttribute(name = "Name")

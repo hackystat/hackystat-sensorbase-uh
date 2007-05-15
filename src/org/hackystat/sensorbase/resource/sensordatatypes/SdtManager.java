@@ -81,7 +81,7 @@ public class SdtManager {
       JAXBContext jaxbContext = 
         JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordatatypes.jaxb");
       Marshaller marshaller = jaxbContext.createMarshaller();
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT , new Boolean(true));
+      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT , Boolean.TRUE);
       StringWriter writer = new StringWriter();
       marshaller.marshal(this.sensorDataTypes, writer);
       sdtString = writer.toString();

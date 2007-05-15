@@ -45,6 +45,7 @@ import javax.xml.bind.annotation.XmlType;
     "properties"
 })
 @XmlRootElement(name = "User")
+@SuppressWarnings("PMD")
 public class User {
 
     @XmlElement(name = "Email", required = true)

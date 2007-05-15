@@ -40,6 +40,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "")
 @XmlRootElement(name = "SensorDataRef")
+@SuppressWarnings("PMD")
 public class SensorDataRef {
 
     @XmlAttribute(name = "UserKey")

@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
  * 
  */
 @XmlRegistry
+@SuppressWarnings("PMD")
 public class ObjectFactory {
 
     private final static QName _Key_QNAME = new QName("", "Key");

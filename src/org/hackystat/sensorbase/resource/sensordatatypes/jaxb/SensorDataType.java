@@ -45,6 +45,7 @@ import javax.xml.bind.annotation.XmlType;
     "properties"
 })
 @XmlRootElement(name = "SensorDataType")
+@SuppressWarnings("PMD")
 public class SensorDataType {
 
     @XmlElement(name = "Description", required = true)

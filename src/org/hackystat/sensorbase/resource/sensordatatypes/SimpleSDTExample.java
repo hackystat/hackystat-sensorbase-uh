@@ -10,13 +10,13 @@ import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypes;
 /**
  * Just some simple code to illustrate JAXB processing with the SensorBase resource jar file.
  * @author Philip Johnson
- *
  */
+@SuppressWarnings("PMD")
 public class SimpleSDTExample {
 
   /**
-   * Illustrate how to do JAXB processing.
-   * @param args ignored. 
+   * Illustrate how to do JAXB processing. 
+   * @param args Ignored. 
    * @throws Exception Ignored.
    */
   public static void main(String[] args) throws Exception {

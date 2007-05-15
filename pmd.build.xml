@@ -26,15 +26,14 @@
 
     <!-- Run PMD -->
     <mkdir dir="${pmd.dir}"/>
-    <pmd rulesetfiles="basic,braces,clone,codesize,coupling,design,imports,junit,naming,strings" 
-         shortFilenames="true" 
+    <pmd rulesetfiles="lib/pmd/hackystat.pmd.xml" 
+         shortFilenames="false" 
          targetjdk="1.5" 
-         failuresPropertyName="pmd.failure.count"
          failonerror="${pmd.failonerror}"
          failOnRuleViolation="${pmd.failonerror}" >
       <formatter type="xml" toFile="${pmd.dir}/pmd.xml"/>
       <formatter type="text" toConsole="true"/>
-      <fileset dir="${src.dir}" includes="**/*.java" />
+      <fileset dir="${src.dir}" includes="**/*.java" excludes="**/jaxb/**"/>
     </pmd>    
   </target>
 

@@ -1,0 +1,5 @@
+<FindBugsFilter>
+  <Match class="~.*\.jaxb\.*" />
+  <Match class="org.hackystat.sensorbase.resource.sensordatatypes.SimpleSDTExample" />
+</FindBugsFilter>
+

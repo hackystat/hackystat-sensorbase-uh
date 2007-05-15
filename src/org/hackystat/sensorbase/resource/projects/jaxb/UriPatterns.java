@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlType;
     "uriPattern"
 })
 @XmlRootElement(name = "UriPatterns")
+@SuppressWarnings("PMD")
 public class UriPatterns {
 
     @XmlElement(name = "UriPattern", required = true)

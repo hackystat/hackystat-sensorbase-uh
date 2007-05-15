@@ -53,6 +53,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "properties"
 })
 @XmlRootElement(name = "SensorData")
+@SuppressWarnings("PMD")
 public class SensorData {
 
     @XmlElement(name = "Timestamp", required = true)

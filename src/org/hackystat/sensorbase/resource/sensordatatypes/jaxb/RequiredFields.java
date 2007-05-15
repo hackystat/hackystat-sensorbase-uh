@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlType;
     "requiredField"
 })
 @XmlRootElement(name = "RequiredFields")
+@SuppressWarnings("PMD")
 public class RequiredFields {
 
     @XmlElement(name = "RequiredField", required = true)

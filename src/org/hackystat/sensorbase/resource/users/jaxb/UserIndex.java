@@ -41,6 +41,7 @@ import javax.xml.bind.annotation.XmlType;
     "userRef"
 })
 @XmlRootElement(name = "UserIndex")
+@SuppressWarnings("PMD")
 public class UserIndex {
 
     @XmlElement(name = "UserRef")
