@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
+import org.hackystat.sensorbase.resource.sensordatatypes.SensorDataTypeResource;
 import org.hackystat.sensorbase.resource.sensordatatypes.SensorDataTypesResource;
 import org.restlet.Application;
 import org.restlet.Component;
@@ -41,9 +42,7 @@ public class Server extends Application {
     SensorBaseLogger.getLogger().warning("Host: " + server.hostName);
     // Save a pointer to this Server instance in this Application's context. 
     Map<String, Object> attributes = server.getContext().getAttributes();
-    attributes.put("org.hackystat.sensorbase.server.Server", server);
-    attributes.put("org.hackystat.sensorbase.resource.sensordatatypes.SdtManager", 
-        new SdtManager(server));
+    attributes.put("SdtManager", new SdtManager(server));
     return server;
   }
   
@@ -64,6 +63,7 @@ public class Server extends Application {
   public Restlet createRoot() {
     Router router = new Router(getContext());
     router.attach("/sensordatatypes", SensorDataTypesResource.class);
+    router.attach("/sensordatatypes/{sensordatatypename}", SensorDataTypeResource.class);
     return router;
   }
 

@@ -10,7 +10,7 @@ import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
 
 /**
- * Implements a Restlet Resource for Hackystat Sensor Data Types. 
+ * Implements a Restlet Resource representing an index of Hackystat Sensor Data Types. 
  * @author Philip Johnson
  */
 public class SensorDataTypesResource extends Resource {
@@ -35,8 +35,7 @@ public class SensorDataTypesResource extends Resource {
   @Override
   public Representation getRepresentation(Variant variant) {
     Representation result = null;
-    SdtManager manager = (SdtManager)getContext().getAttributes()
-    .get("org.hackystat.sensorbase.resource.sensordatatypes.SdtManager");
+    SdtManager manager = (SdtManager)getContext().getAttributes().get("SdtManager");
     if (manager == null) {
       throw new RuntimeException("Failed to find SdtManager");
     }

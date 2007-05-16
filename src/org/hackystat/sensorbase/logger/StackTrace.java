@@ -12,6 +12,12 @@ import java.io.StringWriter;
  * @author Philip Johnson, Takuya Yamashita
  */
 public class StackTrace {
+  
+  /** Disable public constructor. */
+  private StackTrace() {
+    // do nothing
+  }
+  
   /**
    * Converts the Throwable.getStackTrace to a String representation for logging.
    * @param throwable The Throwable exception.

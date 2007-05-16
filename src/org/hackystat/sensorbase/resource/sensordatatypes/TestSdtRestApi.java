@@ -15,7 +15,7 @@ import org.restlet.data.Response;
 import org.restlet.resource.XmlRepresentation;
 
 /**
- * Tests the SensorBase REST API for the SensorDataType resource.
+ * Tests the SensorBase REST API for both the SensorDataTypes and SensorDataType resources.
  *
  * @author Philip M. Johnson
  */
@@ -53,5 +53,28 @@ public class TestSdtRestApi {
     XmlRepresentation data = response.getEntityAsSax();
     assertEquals("Checking SDT", "UnitTest", 
         data.getText("SensorDataTypeIndex/SensorDataTypeRef/@Name"));
+    }
+  
+  /**
+   * Test that GET host/sensorbase/sensordatatypes/UnitTest returns the UnitTest SDT.
+   */
+  @Test public void getIndividualSdt() {
+    // Set up the call.
+    Method method = Method.GET;
+    String hostName = TestSdtRestApi.server.getHostName();
+    Reference reference = new Reference(hostName + "sensorbase/sensordatatypes/UnitTest");
+    Request request = new Request(method, reference);
+
+    // Make the call.
+    Client client = new Client(Protocol.HTTP);
+    Response response = client.handle(request);
+
+    // Test that the request was received and processed by the server OK. 
+    assertTrue("Testing for successful status", response.getStatus().isSuccess());
+
+    // Now test that the response is OK by seeing that the first SDT is UnitTest.
+    // This is kind of brittle, but we can fix it later. 
+    XmlRepresentation data = response.getEntityAsSax();
+    assertEquals("Checking SDT", "UnitTest", data.getText("SensorDataType/@Name"));
     }
 }

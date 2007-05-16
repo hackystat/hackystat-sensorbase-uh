@@ -19,7 +19,7 @@ import org.hackystat.sensorbase.logger.StackTrace;
 import org.w3c.dom.Document;
 
 /**
- * Manages access to the Sensor Data Type resources.
+ * Manages access to both the SensorDataType and SensorDataTypes resources. 
  * Loads default definitions if available. 
  * @author Philip Johnson
  */
@@ -130,4 +130,35 @@ public class SdtManager {
     }
     return doc;
   }
+  
+  /**
+   * Returns the XML representation of the named SDT.
+   * @param name The name of the SDT.
+   * @return The XML representation of that SDT, or null if not found.
+   */
+  public synchronized Document getSensorDataTypeDocument(String name) {
+    // Iterate through all SDTs, break when we find the one we need. 
+    SensorDataType sdt = null; 
+    Document doc = null;
+    for (SensorDataType tempSdt : sensorDataTypes.getSensorDataType()) {
+      if (tempSdt.getName().equals(name)) {
+        sdt = tempSdt;
+        // Now convert it to XML.
+        try {
+          doc = this.documentBuilder.newDocument();
+          this.marshaller.marshal(sdt, doc);
+        } 
+        catch (Exception e ) {
+          String msg = "Failed to marshall the SDT named: " + name;
+          SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
+          throw new RuntimeException(msg, e);
+        }
+        return doc;
+      }
+    }
+    // If we got here, it's not good, since that means we didn't find the SDT. 
+    // Return a null doc.
+    return doc;
+  }
 }
+      

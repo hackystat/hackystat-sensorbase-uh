@@ -9,93 +9,162 @@
 <FONT color="green">006</FONT>    import javax.xml.bind.JAXBContext;<a name="line.6"></a>
 <FONT color="green">007</FONT>    import javax.xml.bind.Marshaller;<a name="line.7"></a>
 <FONT color="green">008</FONT>    import javax.xml.bind.Unmarshaller;<a name="line.8"></a>
-<FONT color="green">009</FONT>    <a name="line.9"></a>
-<FONT color="green">010</FONT>    import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypes;<a name="line.10"></a>
-<FONT color="green">011</FONT>    import org.hackystat.sensorbase.logger.SensorBaseLogger;<a name="line.11"></a>
-<FONT color="green">012</FONT>    import org.hackystat.sensorbase.logger.StackTrace;<a name="line.12"></a>
-<FONT color="green">013</FONT>    <a name="line.13"></a>
-<FONT color="green">014</FONT>    /**<a name="line.14"></a>
-<FONT color="green">015</FONT>     * A singleton, thread-safe class providing access to the Sensor Data Type resources.<a name="line.15"></a>
-<FONT color="green">016</FONT>     * Uses the System property "hackystat.sensorbase.defaults.sensordatatypes" to find the defaults. <a name="line.16"></a>
-<FONT color="green">017</FONT>     * @author Philip Johnson<a name="line.17"></a>
-<FONT color="green">018</FONT>     */<a name="line.18"></a>
-<FONT color="green">019</FONT>    public class SdtManager {<a name="line.19"></a>
+<FONT color="green">009</FONT>    import javax.xml.parsers.DocumentBuilder;<a name="line.9"></a>
+<FONT color="green">010</FONT>    import javax.xml.parsers.DocumentBuilderFactory;<a name="line.10"></a>
+<FONT color="green">011</FONT>    <a name="line.11"></a>
+<FONT color="green">012</FONT>    import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;<a name="line.12"></a>
+<FONT color="green">013</FONT>    import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeIndex;<a name="line.13"></a>
+<FONT color="green">014</FONT>    import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeRef;<a name="line.14"></a>
+<FONT color="green">015</FONT>    import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypes;<a name="line.15"></a>
+<FONT color="green">016</FONT>    import org.hackystat.sensorbase.server.Server;<a name="line.16"></a>
+<FONT color="green">017</FONT>    import org.hackystat.sensorbase.logger.SensorBaseLogger;<a name="line.17"></a>
+<FONT color="green">018</FONT>    import org.hackystat.sensorbase.logger.StackTrace;<a name="line.18"></a>
+<FONT color="green">019</FONT>    import org.w3c.dom.Document;<a name="line.19"></a>
 <FONT color="green">020</FONT>    <a name="line.20"></a>
-<FONT color="green">021</FONT>      /** Set to true once the init() method has been called.   */ <a name="line.21"></a>
-<FONT color="green">022</FONT>      private boolean initialized = false;<a name="line.22"></a>
-<FONT color="green">023</FONT>    <a name="line.23"></a>
-<FONT color="green">024</FONT>      /** The set of defined SensorDataType instances. */<a name="line.24"></a>
-<FONT color="green">025</FONT>      private SensorDataTypes sensorDataTypes = new SensorDataTypes();<a name="line.25"></a>
-<FONT color="green">026</FONT>    <a name="line.26"></a>
-<FONT color="green">027</FONT>      /** The private singleton instance. */<a name="line.27"></a>
-<FONT color="green">028</FONT>      private static SdtManager manager = new SdtManager();<a name="line.28"></a>
-<FONT color="green">029</FONT>    <a name="line.29"></a>
-<FONT color="green">030</FONT>      /** The property name that should resolve to the file containing default SDT definitions. */<a name="line.30"></a>
-<FONT color="green">031</FONT>      private static String sdtDefaultsProperty = "hackystat.sensorbase.defaults.sensordatatypes";<a name="line.31"></a>
-<FONT color="green">032</FONT>    <a name="line.32"></a>
-<FONT color="green">033</FONT>      /** The private constructor of the singleton instance. */<a name="line.33"></a>
-<FONT color="green">034</FONT>      private SdtManager() {<a name="line.34"></a>
-<FONT color="green">035</FONT>      }<a name="line.35"></a>
-<FONT color="green">036</FONT>    <a name="line.36"></a>
-<FONT color="green">037</FONT>    <a name="line.37"></a>
-<FONT color="green">038</FONT>      /**<a name="line.38"></a>
-<FONT color="green">039</FONT>       * Initialize the set of SensorDataTypes by reading in default definitions, if any.<a name="line.39"></a>
-<FONT color="green">040</FONT>       */<a name="line.40"></a>
-<FONT color="green">041</FONT>      private void init() {<a name="line.41"></a>
-<FONT color="green">042</FONT>        // First, see if we can find a file containing default definitions for SDTs.<a name="line.42"></a>
-<FONT color="green">043</FONT>        String sdtDefaultsFileName =  System.getProperty(sdtDefaultsProperty, "");<a name="line.43"></a>
-<FONT color="green">044</FONT>        File defaultsFile = new File(sdtDefaultsFileName);<a name="line.44"></a>
-<FONT color="green">045</FONT>    <a name="line.45"></a>
-<FONT color="green">046</FONT>        // Initialize the SDTs if we've found a default file. <a name="line.46"></a>
-<FONT color="green">047</FONT>        if (defaultsFile.exists()) {<a name="line.47"></a>
-<FONT color="green">048</FONT>          try {<a name="line.48"></a>
-<FONT color="green">049</FONT>            JAXBContext jc = <a name="line.49"></a>
-<FONT color="green">050</FONT>              JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordatatypes.jaxb");<a name="line.50"></a>
-<FONT color="green">051</FONT>            Unmarshaller unmarshaller = jc.createUnmarshaller();<a name="line.51"></a>
-<FONT color="green">052</FONT>            this.sensorDataTypes = (SensorDataTypes) unmarshaller.unmarshal(defaultsFile);<a name="line.52"></a>
-<FONT color="green">053</FONT>          }<a name="line.53"></a>
-<FONT color="green">054</FONT>          catch (Exception e) {<a name="line.54"></a>
-<FONT color="green">055</FONT>            SensorBaseLogger.getLogger().warning("Failed to unmarshall SDTs." + StackTrace.toString(e));<a name="line.55"></a>
-<FONT color="green">056</FONT>            throw new RuntimeException("Failed to unmarshall SDTs", e);<a name="line.56"></a>
-<FONT color="green">057</FONT>          }<a name="line.57"></a>
-<FONT color="green">058</FONT>        }<a name="line.58"></a>
-<FONT color="green">059</FONT>      }<a name="line.59"></a>
-<FONT color="green">060</FONT>    <a name="line.60"></a>
-<FONT color="green">061</FONT>      /**<a name="line.61"></a>
-<FONT color="green">062</FONT>       * Returns the singleton instance of the SDT Manager. <a name="line.62"></a>
-<FONT color="green">063</FONT>       * @return The singleton manager. <a name="line.63"></a>
-<FONT color="green">064</FONT>       */<a name="line.64"></a>
-<FONT color="green">065</FONT>      public static synchronized SdtManager getInstance() {<a name="line.65"></a>
-<FONT color="green">066</FONT>        // invoke the init() method the first time getInstance is called. <a name="line.66"></a>
-<FONT color="green">067</FONT>        if (!SdtManager.manager.initialized) {<a name="line.67"></a>
-<FONT color="green">068</FONT>          SdtManager.manager.initialized = true;<a name="line.68"></a>
-<FONT color="green">069</FONT>          SdtManager.manager.init();<a name="line.69"></a>
-<FONT color="green">070</FONT>        }<a name="line.70"></a>
-<FONT color="green">071</FONT>        return SdtManager.manager;<a name="line.71"></a>
-<FONT color="green">072</FONT>      } <a name="line.72"></a>
-<FONT color="green">073</FONT>    <a name="line.73"></a>
-<FONT color="green">074</FONT>      /**<a name="line.74"></a>
-<FONT color="green">075</FONT>       * Returns the set of SDTs as an XML string.<a name="line.75"></a>
-<FONT color="green">076</FONT>       * @return The set of SDTs as an XML string.<a name="line.76"></a>
-<FONT color="green">077</FONT>       */<a name="line.77"></a>
-<FONT color="green">078</FONT>      public synchronized String getSensorDataTypes() {<a name="line.78"></a>
-<FONT color="green">079</FONT>        String sdtString = "";<a name="line.79"></a>
-<FONT color="green">080</FONT>        try {<a name="line.80"></a>
-<FONT color="green">081</FONT>          JAXBContext jaxbContext = <a name="line.81"></a>
-<FONT color="green">082</FONT>            JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordatatypes.jaxb");<a name="line.82"></a>
-<FONT color="green">083</FONT>          Marshaller marshaller = jaxbContext.createMarshaller();<a name="line.83"></a>
-<FONT color="green">084</FONT>          marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT , new Boolean(true));<a name="line.84"></a>
-<FONT color="green">085</FONT>          StringWriter writer = new StringWriter();<a name="line.85"></a>
-<FONT color="green">086</FONT>          marshaller.marshal(this.sensorDataTypes, writer);<a name="line.86"></a>
-<FONT color="green">087</FONT>          sdtString = writer.toString();<a name="line.87"></a>
-<FONT color="green">088</FONT>        } <a name="line.88"></a>
-<FONT color="green">089</FONT>        catch (Exception e ) {<a name="line.89"></a>
-<FONT color="green">090</FONT>          SensorBaseLogger.getLogger().warning("Failed to marshall SDTs." + StackTrace.toString(e));<a name="line.90"></a>
-<FONT color="green">091</FONT>          throw new RuntimeException("Failed to marshall SDTs", e);<a name="line.91"></a>
-<FONT color="green">092</FONT>        }<a name="line.92"></a>
-<FONT color="green">093</FONT>        return sdtString;<a name="line.93"></a>
-<FONT color="green">094</FONT>      }<a name="line.94"></a>
-<FONT color="green">095</FONT>    }<a name="line.95"></a>
+<FONT color="green">021</FONT>    /**<a name="line.21"></a>
+<FONT color="green">022</FONT>     * Manages access to both the SensorDataType and SensorDataTypes resources. <a name="line.22"></a>
+<FONT color="green">023</FONT>     * Loads default definitions if available. <a name="line.23"></a>
+<FONT color="green">024</FONT>     * @author Philip Johnson<a name="line.24"></a>
+<FONT color="green">025</FONT>     */<a name="line.25"></a>
+<FONT color="green">026</FONT>    public class SdtManager {<a name="line.26"></a>
+<FONT color="green">027</FONT>    <a name="line.27"></a>
+<FONT color="green">028</FONT>      /** The set of defined SensorDataType instances. */<a name="line.28"></a>
+<FONT color="green">029</FONT>      private SensorDataTypes sensorDataTypes = new SensorDataTypes();<a name="line.29"></a>
+<FONT color="green">030</FONT>    <a name="line.30"></a>
+<FONT color="green">031</FONT>      /** The property name that should resolve to the file containing default SDT definitions. */<a name="line.31"></a>
+<FONT color="green">032</FONT>      private static String sdtDefaultsProperty = "hackystat.sensorbase.defaults.sensordatatypes";<a name="line.32"></a>
+<FONT color="green">033</FONT>      <a name="line.33"></a>
+<FONT color="green">034</FONT>      /** The JAXB marshaller for SensorDataTypes. */<a name="line.34"></a>
+<FONT color="green">035</FONT>      private Marshaller marshaller; <a name="line.35"></a>
+<FONT color="green">036</FONT>      <a name="line.36"></a>
+<FONT color="green">037</FONT>      /** The JAXB ummarshaller for SensorDataTypes. */<a name="line.37"></a>
+<FONT color="green">038</FONT>      private Unmarshaller unmarshaller;<a name="line.38"></a>
+<FONT color="green">039</FONT>      <a name="line.39"></a>
+<FONT color="green">040</FONT>      /** The DocumentBuilder for documents. */<a name="line.40"></a>
+<FONT color="green">041</FONT>      private DocumentBuilder documentBuilder; <a name="line.41"></a>
+<FONT color="green">042</FONT>      <a name="line.42"></a>
+<FONT color="green">043</FONT>      /** The Server associated with this SdtManager. */<a name="line.43"></a>
+<FONT color="green">044</FONT>      Server server; <a name="line.44"></a>
+<FONT color="green">045</FONT>      <a name="line.45"></a>
+<FONT color="green">046</FONT>      /** <a name="line.46"></a>
+<FONT color="green">047</FONT>       * The constructor for SdtManagers. <a name="line.47"></a>
+<FONT color="green">048</FONT>       * There is one SdtManager per Server. <a name="line.48"></a>
+<FONT color="green">049</FONT>       * @param server The Server instance associated with this SdtManager. <a name="line.49"></a>
+<FONT color="green">050</FONT>       */<a name="line.50"></a>
+<FONT color="green">051</FONT>      public SdtManager(Server server) {<a name="line.51"></a>
+<FONT color="green">052</FONT>        this.server = server;<a name="line.52"></a>
+<FONT color="green">053</FONT>        File defaultsFile = findDefaultsFile();<a name="line.53"></a>
+<FONT color="green">054</FONT>        // Initialize the SDTs if we've found a default file. <a name="line.54"></a>
+<FONT color="green">055</FONT>        if (defaultsFile.exists()) {<a name="line.55"></a>
+<FONT color="green">056</FONT>          SensorBaseLogger.getLogger().info("Loading SDT defaults from " + defaultsFile.getPath());<a name="line.56"></a>
+<FONT color="green">057</FONT>          try {<a name="line.57"></a>
+<FONT color="green">058</FONT>            JAXBContext jc = <a name="line.58"></a>
+<FONT color="green">059</FONT>              JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordatatypes.jaxb");<a name="line.59"></a>
+<FONT color="green">060</FONT>            this.unmarshaller = jc.createUnmarshaller();<a name="line.60"></a>
+<FONT color="green">061</FONT>            this.marshaller = jc.createMarshaller(); <a name="line.61"></a>
+<FONT color="green">062</FONT>            this.sensorDataTypes = (SensorDataTypes) unmarshaller.unmarshal(defaultsFile);<a name="line.62"></a>
+<FONT color="green">063</FONT>            <a name="line.63"></a>
+<FONT color="green">064</FONT>            // Initialize documentBuilder<a name="line.64"></a>
+<FONT color="green">065</FONT>            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();<a name="line.65"></a>
+<FONT color="green">066</FONT>            dbf.setNamespaceAware(true);<a name="line.66"></a>
+<FONT color="green">067</FONT>            this.documentBuilder = dbf.newDocumentBuilder();<a name="line.67"></a>
+<FONT color="green">068</FONT>          }<a name="line.68"></a>
+<FONT color="green">069</FONT>          catch (Exception e) {<a name="line.69"></a>
+<FONT color="green">070</FONT>            String msg = "Exception during SDT JAXB initialization processing";<a name="line.70"></a>
+<FONT color="green">071</FONT>            SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));<a name="line.71"></a>
+<FONT color="green">072</FONT>            throw new RuntimeException(msg, e);<a name="line.72"></a>
+<FONT color="green">073</FONT>          }<a name="line.73"></a>
+<FONT color="green">074</FONT>        }<a name="line.74"></a>
+<FONT color="green">075</FONT>      }<a name="line.75"></a>
+<FONT color="green">076</FONT>      <a name="line.76"></a>
+<FONT color="green">077</FONT>      /**<a name="line.77"></a>
+<FONT color="green">078</FONT>       * Checks the System property in SdtManager.sdtDefaultsProperty for the file to load.<a name="line.78"></a>
+<FONT color="green">079</FONT>       * If this property is null, returns the File for ./xml/defaults/sensordatatypes.defaults.xml.<a name="line.79"></a>
+<FONT color="green">080</FONT>       * @return The File instance (which might not point to an existing file.)<a name="line.80"></a>
+<FONT color="green">081</FONT>       */<a name="line.81"></a>
+<FONT color="green">082</FONT>      private File findDefaultsFile() {<a name="line.82"></a>
+<FONT color="green">083</FONT>        return (System.getProperties().containsKey(sdtDefaultsProperty)) ?<a name="line.83"></a>
+<FONT color="green">084</FONT>            new File (System.getProperty(sdtDefaultsProperty)) :<a name="line.84"></a>
+<FONT color="green">085</FONT>              new File (System.getProperty("user.dir") + "/xml/defaults/sensordatatypes.defaults.xml");<a name="line.85"></a>
+<FONT color="green">086</FONT>      }<a name="line.86"></a>
+<FONT color="green">087</FONT>    <a name="line.87"></a>
+<FONT color="green">088</FONT>      /**<a name="line.88"></a>
+<FONT color="green">089</FONT>       * Returns the set of SDTs as an XML string.<a name="line.89"></a>
+<FONT color="green">090</FONT>       * @return The set of SDTs as an XML string.<a name="line.90"></a>
+<FONT color="green">091</FONT>       */<a name="line.91"></a>
+<FONT color="green">092</FONT>      public synchronized String getSensorDataTypesString() {<a name="line.92"></a>
+<FONT color="green">093</FONT>        String sdtString = "";<a name="line.93"></a>
+<FONT color="green">094</FONT>        try {<a name="line.94"></a>
+<FONT color="green">095</FONT>          StringWriter writer = new StringWriter();<a name="line.95"></a>
+<FONT color="green">096</FONT>          this.marshaller.marshal(this.sensorDataTypes, writer);<a name="line.96"></a>
+<FONT color="green">097</FONT>          sdtString = writer.toString();<a name="line.97"></a>
+<FONT color="green">098</FONT>        } <a name="line.98"></a>
+<FONT color="green">099</FONT>        catch (Exception e ) {<a name="line.99"></a>
+<FONT color="green">100</FONT>          String msg = "Failed to marshall SDTs into a String";<a name="line.100"></a>
+<FONT color="green">101</FONT>          SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));<a name="line.101"></a>
+<FONT color="green">102</FONT>          throw new RuntimeException(msg, e);<a name="line.102"></a>
+<FONT color="green">103</FONT>        }<a name="line.103"></a>
+<FONT color="green">104</FONT>        return sdtString;<a name="line.104"></a>
+<FONT color="green">105</FONT>      }<a name="line.105"></a>
+<FONT color="green">106</FONT>      <a name="line.106"></a>
+<FONT color="green">107</FONT>      /**<a name="line.107"></a>
+<FONT color="green">108</FONT>       * Returns the XML Index for all current defined SDTs.<a name="line.108"></a>
+<FONT color="green">109</FONT>       * @return The XML Document instance providing an index to all current SDTs.<a name="line.109"></a>
+<FONT color="green">110</FONT>       */<a name="line.110"></a>
+<FONT color="green">111</FONT>      public synchronized Document getSensorDataTypeIndexDocument() {<a name="line.111"></a>
+<FONT color="green">112</FONT>        // First, create the freakin index.<a name="line.112"></a>
+<FONT color="green">113</FONT>        SensorDataTypeIndex index = new SensorDataTypeIndex();<a name="line.113"></a>
+<FONT color="green">114</FONT>        for (SensorDataType sdt : sensorDataTypes.getSensorDataType()) {<a name="line.114"></a>
+<FONT color="green">115</FONT>          SensorDataTypeRef ref = new SensorDataTypeRef();<a name="line.115"></a>
+<FONT color="green">116</FONT>          ref.setName(sdt.getName());<a name="line.116"></a>
+<FONT color="green">117</FONT>          ref.setHref(this.server.getHostName() + "sensorbase/sensordatatypes/" + sdt.getName());<a name="line.117"></a>
+<FONT color="green">118</FONT>          index.getSensorDataTypeRef().add(ref);<a name="line.118"></a>
+<FONT color="green">119</FONT>        }<a name="line.119"></a>
+<FONT color="green">120</FONT>        // Now convert it to XML.<a name="line.120"></a>
+<FONT color="green">121</FONT>        Document doc;<a name="line.121"></a>
+<FONT color="green">122</FONT>        try {<a name="line.122"></a>
+<FONT color="green">123</FONT>          doc = this.documentBuilder.newDocument();<a name="line.123"></a>
+<FONT color="green">124</FONT>          this.marshaller.marshal(index, doc);<a name="line.124"></a>
+<FONT color="green">125</FONT>        } <a name="line.125"></a>
+<FONT color="green">126</FONT>        catch (Exception e ) {<a name="line.126"></a>
+<FONT color="green">127</FONT>          String msg = "Failed to marshall SDTs into an Index";<a name="line.127"></a>
+<FONT color="green">128</FONT>          SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));<a name="line.128"></a>
+<FONT color="green">129</FONT>          throw new RuntimeException(msg, e);<a name="line.129"></a>
+<FONT color="green">130</FONT>        }<a name="line.130"></a>
+<FONT color="green">131</FONT>        return doc;<a name="line.131"></a>
+<FONT color="green">132</FONT>      }<a name="line.132"></a>
+<FONT color="green">133</FONT>      <a name="line.133"></a>
+<FONT color="green">134</FONT>      /**<a name="line.134"></a>
+<FONT color="green">135</FONT>       * Returns the XML representation of the named SDT.<a name="line.135"></a>
+<FONT color="green">136</FONT>       * @param name The name of the SDT.<a name="line.136"></a>
+<FONT color="green">137</FONT>       * @return The XML representation of that SDT, or null if not found.<a name="line.137"></a>
+<FONT color="green">138</FONT>       */<a name="line.138"></a>
+<FONT color="green">139</FONT>      public synchronized Document getSensorDataTypeDocument(String name) {<a name="line.139"></a>
+<FONT color="green">140</FONT>        // Iterate through all SDTs, break when we find the one we need. <a name="line.140"></a>
+<FONT color="green">141</FONT>        SensorDataType sdt = null; <a name="line.141"></a>
+<FONT color="green">142</FONT>        Document doc = null;<a name="line.142"></a>
+<FONT color="green">143</FONT>        for (SensorDataType tempSdt : sensorDataTypes.getSensorDataType()) {<a name="line.143"></a>
+<FONT color="green">144</FONT>          if (tempSdt.getName().equals(name)) {<a name="line.144"></a>
+<FONT color="green">145</FONT>            sdt = tempSdt;<a name="line.145"></a>
+<FONT color="green">146</FONT>            // Now convert it to XML.<a name="line.146"></a>
+<FONT color="green">147</FONT>            try {<a name="line.147"></a>
+<FONT color="green">148</FONT>              doc = this.documentBuilder.newDocument();<a name="line.148"></a>
+<FONT color="green">149</FONT>              this.marshaller.marshal(sdt, doc);<a name="line.149"></a>
+<FONT color="green">150</FONT>            } <a name="line.150"></a>
+<FONT color="green">151</FONT>            catch (Exception e ) {<a name="line.151"></a>
+<FONT color="green">152</FONT>              String msg = "Failed to marshall the SDT named: " + name;<a name="line.152"></a>
+<FONT color="green">153</FONT>              SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));<a name="line.153"></a>
+<FONT color="green">154</FONT>              throw new RuntimeException(msg, e);<a name="line.154"></a>
+<FONT color="green">155</FONT>            }<a name="line.155"></a>
+<FONT color="green">156</FONT>            return doc;<a name="line.156"></a>
+<FONT color="green">157</FONT>          }<a name="line.157"></a>
+<FONT color="green">158</FONT>        }<a name="line.158"></a>
+<FONT color="green">159</FONT>        // If we got here, it's not good, since that means we didn't find the SDT. <a name="line.159"></a>
+<FONT color="green">160</FONT>        // Return a null doc.<a name="line.160"></a>
+<FONT color="green">161</FONT>        return doc;<a name="line.161"></a>
+<FONT color="green">162</FONT>      }<a name="line.162"></a>
+<FONT color="green">163</FONT>    }<a name="line.163"></a>
+<FONT color="green">164</FONT>          <a name="line.164"></a>
 
 
 
