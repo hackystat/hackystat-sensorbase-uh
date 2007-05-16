@@ -30,6 +30,9 @@
     <jar destfile="${basedir}/sensorbase.jar" basedir="${tmp.dir}">
       <manifest>
         <attribute name="Main-Class" value="org.hackystat.sensorbase.server.Server"/>
+        <attribute name="Implementation-Title" value="Hackystat SensorBase-UH"/>
+        <attribute name="Implementation-Version" value="${version}"/>
+        <attribute name="Implementation-Vendor" value="Collaborative Software Development Laboratory, University of Hawaii"/>
       </manifest>
     </jar>
     <delete dir="${tmp.dir}" />

@@ -18,8 +18,8 @@ public class TestSdtManager {
    * the default definitions appear to be there. 
    */
   @Test public void testSdtManager () {
-    SdtManager manager = SdtManager.getInstance();
-    String defaults = manager.getSensorDataTypes();
+    SdtManager manager = new SdtManager(null);
+    String defaults = manager.getSensorDataTypesString();
     assertTrue("Checking nonempty SDTs", (defaults.length() > 0));
     assertTrue("Checking that Commit exists", defaults.contains("Commit"));
   }

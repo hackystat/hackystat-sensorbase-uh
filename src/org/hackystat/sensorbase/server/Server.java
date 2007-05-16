@@ -1,6 +1,10 @@
 package org.hackystat.sensorbase.server;
 
+import java.util.Map;
+
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
+import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
+import org.hackystat.sensorbase.resource.sensordatatypes.SensorDataTypesResource;
 import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Restlet;
@@ -17,6 +21,9 @@ public class Server extends Application {
   /** Holds the Restlet Component associated with this Server. */
   private Component component; 
   
+  /** Holds the host name associated with this Server. */
+  private String hostName;
+  
   /**
    * Creates a new instance of a SensorBase HTTP server, listening on the supplied port.  
    * @param port The port number for this Server. 
@@ -25,14 +32,21 @@ public class Server extends Application {
    */
   public static Server newInstance(int port) throws Exception {
     Server server = new Server();
-    SensorBaseLogger.getLogger().warning("Starting SensorBase.");
+    server.hostName = "http://localhost:" + port + "/";
     server.component = new Component();
     server.component.getServers().add(Protocol.HTTP, port);
     server.component.getDefaultHost().attach("/sensorbase", server);
     server.component.start();
+    SensorBaseLogger.getLogger().warning("Started SensorBase (Version " + getVersion() + ")");
+    SensorBaseLogger.getLogger().warning("Host: " + server.hostName);
+    // Save a pointer to this Server instance in this Application's context. 
+    Map<String, Object> attributes = server.getContext().getAttributes();
+    attributes.put("org.hackystat.sensorbase.server.Server", server);
+    attributes.put("org.hackystat.sensorbase.resource.sensordatatypes.SdtManager", 
+        new SdtManager(server));
     return server;
   }
-
+  
   /**
    * Starts up the SensorBase web service on port 9876.  Control-c to exit. 
    * @param args Ignored. 
@@ -49,18 +63,29 @@ public class Server extends Application {
   @Override
   public Restlet createRoot() {
     Router router = new Router(getContext());
-    // This URI fragment specifies the "file" resource and a specific file name.
-    // The router will dispatch to the FileResource class for URLs with this template 
-    //router.attach("/file/{filename}", FileResource.class);
+    router.attach("/sensordatatypes", SensorDataTypesResource.class);
     return router;
+  }
+
+
+  /**
+   * Returns the version associated with this Package, if available from the jar file manifest.
+   * If not being run from a jar file, then returns "Development". 
+   * @return The version.
+   */
+  public static String getVersion() {
+    String version = 
+      Package.getPackage("org.hackystat.sensorbase.server").getImplementationVersion();
+    return (version == null) ? "Development" : version; 
   }
   
   /**
-   * Stops this server. 
-   * @throws Exception If problems occur stopping the server. 
+   * Returns the host name associated with this server. 
+   * Example: "http://localhost:9876/"
+   * @return The host name. 
    */
-  public void stop() throws Exception {
-    this.component.stop();
+  public String getHostName() {
+    return this.hostName;
   }
 }
 

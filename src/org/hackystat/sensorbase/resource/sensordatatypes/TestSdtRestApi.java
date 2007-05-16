@@ -5,7 +5,6 @@ import static org.junit.Assert.assertTrue;
 
 import org.hackystat.sensorbase.server.Server;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.restlet.Client;
 import org.restlet.data.Method;
@@ -21,24 +20,25 @@ import org.restlet.resource.XmlRepresentation;
  * @author Philip M. Johnson
  */
 public class TestSdtRestApi {
-  private static String port = System.getProperty("hackystat.sensorbase.port", "9876");
   
+  /** The SensorBase server used in these tests. */
+  private static Server server;  
   /**
    * Starts the server going for these tests. 
    * @throws Exception If problems occur setting up the server. 
    */
   @BeforeClass public static void setupServer() throws Exception {
-    Server.newInstance(Integer.valueOf(port));
+    TestSdtRestApi.server = Server.newInstance(9876);
   }
 
   /**
-   * Test that GET host/hackystat/sensordatatypes returns an appropriate value.
+   * Test that GET host/sensorbase/sensordatatypes returns the index.
    */
-  @Ignore("Server not yet implemented") 
   @Test public void getSdtIndex() {
     // Set up the call.
     Method method = Method.GET;
-    Reference reference = new Reference("http://localhost:9090/hackystat/sensordatatypes");
+    String hostName = TestSdtRestApi.server.getHostName();
+    Reference reference = new Reference(hostName + "sensorbase/sensordatatypes");
     Request request = new Request(method, reference);
 
     // Make the call.
@@ -48,8 +48,10 @@ public class TestSdtRestApi {
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful status", response.getStatus().isSuccess());
 
-    // Now test that the response is OK.
+    // Now test that the response is OK by seeing that the first SDT is UnitTest.
+    // This is kind of brittle, but we can fix it later. 
     XmlRepresentation data = response.getEntityAsSax();
-    assertEquals("Checking SDT", "SampleSDT", data.getText("SensorDataTypes/SensorDataType/@Name"));
+    assertEquals("Checking SDT", "UnitTest", 
+        data.getText("SensorDataTypeIndex/SensorDataTypeRef/@Name"));
     }
 }
