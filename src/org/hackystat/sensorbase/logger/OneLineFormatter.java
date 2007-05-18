@@ -27,6 +27,7 @@ class OneLineFormatter extends Formatter {
      * @param record  A log record.
      * @return The message string.
      */
+  @Override
     public String format(LogRecord record) {
       SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd HH:mm:ss", Locale.US);
       StringBuffer buff = new StringBuffer();

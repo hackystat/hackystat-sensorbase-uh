@@ -1,6 +1,7 @@
 package org.hackystat.sensorbase.resource.sensordatatypes;
 
 import java.io.File;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -149,13 +150,14 @@ public class SdtManager {
    * @param sdtDoc The XML Document for this SDT.
    * @return True if the new SDT was successfully created. 
    */
-  public synchronized boolean putSdt(Document sdtDoc) {
+  public synchronized boolean putSdt(String sdtDoc) {
     SensorDataType sdt;
     try {
-      sdt = (SensorDataType) unmarshaller.unmarshal(sdtDoc);
+      sdt = (SensorDataType) unmarshaller.unmarshal(new StringReader(sdtDoc));
       sdtMap.put(sdt.getName(), sdt);
     }
     catch (Exception e) {
+      SensorBaseLogger.getLogger().warning("Error in put: " + StackTrace.toString(e));
       return false;
     }
     return true;

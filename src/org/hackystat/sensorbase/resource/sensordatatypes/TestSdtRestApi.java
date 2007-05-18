@@ -4,13 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.Properties;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.Property;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.RequiredField;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.RequiredFields;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.server.Server;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.restlet.Client;
 import org.restlet.data.MediaType;
@@ -101,7 +101,7 @@ public class TestSdtRestApi {
    * Test that PUT host/sensorbase/sensordatatypes/TestSdt works.
    * @throws Exception If problems occur.
    */
-  @Ignore
+  //@Ignore
   @Test public void putTestSdt() throws Exception {
     // First, create a sample SDT 
     SensorDataType sdt = new SensorDataType();
@@ -110,29 +110,31 @@ public class TestSdtRestApi {
     RequiredFields requiredFields = new RequiredFields();
     RequiredField field = new RequiredField();
     field.setName("AtLeastOneRequiredFieldRequired");
-    requiredFields.getRequiredField().add(new RequiredField());
+    field.setDescription("Required field description");
+    requiredFields.getRequiredField().add(field);
+    sdt.setProperties(new Properties());
     sdt.setRequiredFields(requiredFields);
     
     // Got a Java SDT. Now make it into XML.
     Document doc = SdtManager.getDocument(sdt);
     
     // Now set up the call.
-    Method method = Method.PUT;
     String hostName = TestSdtRestApi.server.getHostName();
     String uri = "sensorbase/sensordatatypes/TestSdt";
     Reference ref = new Reference(hostName + uri);
-    Request request = new Request(method, ref, new DomRepresentation(MediaType.TEXT_XML, doc));
+    Request request = new Request(Method.PUT, ref, new DomRepresentation(MediaType.TEXT_XML, doc));
     
     // Make the call to PUT the new SDT.
     Client client = new Client(Protocol.HTTP);
     Response response = client.handle(request);
 
     // Test that the PUT request was received and processed by the server OK. 
+    System.out.println(response.getStatus());
     assertTrue("Testing for successful status 1", response.getStatus().isSuccess());
     
     // Test to see that we can now retrieve it. 
     ref = new Reference(hostName + "sensorbase/sensordatatypes/TestSdt");
-    request = new Request(method, ref);
+    request = new Request(Method.GET, ref);
     response = client.handle(request); 
     assertTrue("Testing for successful status 2", response.getStatus().isSuccess());
     XmlRepresentation data = response.getEntityAsSax();

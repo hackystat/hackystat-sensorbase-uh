@@ -11,7 +11,6 @@ import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
-import org.w3c.dom.Document;
 
 /**
  * Implements a Restlet Resource for obtaining individual SensorDataType resources. 
@@ -70,21 +69,12 @@ public class SensorDataTypeResource extends Resource {
   @Override
   public void put(Representation entity) {
     try { 
+      String entityString = entity.getText();
       SdtManager manager = (SdtManager)getContext().getAttributes().get("SdtManager");
-      //System.out.println("In put: " + entity.getMediaType());
-      //System.out.println("In put: " + entity.getText());
-      //System.out.println("In put: " + entity.getMediaType());
-      //System.out.println(entity.getMediaType());
-      if (entity.getMediaType().equals(MediaType.TEXT_XML)) {
-        Document sdt = new DomRepresentation(entity).getDocument();
-        Status status = manager.putSdt(sdt)
+        Status status = manager.putSdt(entityString)
         ? Status.SUCCESS_CREATED
             : Status.CLIENT_ERROR_BAD_REQUEST;
         getResponse().setStatus(status);
-      } 
-      else {
-        getResponse().setStatus(Status.CLIENT_ERROR_UNSUPPORTED_MEDIA_TYPE);
-      }
     }
     catch (Exception e) {
       SensorBaseLogger.getLogger().warning("Error in SDT PUT: " + StackTrace.toString(e));
