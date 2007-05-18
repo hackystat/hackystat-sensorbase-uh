@@ -3,6 +3,7 @@ package org.hackystat.sensorbase.resource.sensordatatypes;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.w3c.dom.Document;
 
 /**
  * Very simple testing of the SdtManager implementation.
@@ -20,9 +21,8 @@ public class TestSdtManager {
    */
   @Test public void testSdtManager () {
     SdtManager manager = new SdtManager(null);
-    String defaults = manager.getSensorDataTypesString();
-    assertTrue("Checking nonempty SDTs", (defaults.length() > 0));
-    assertTrue("Checking that UnitTest exists", defaults.contains("UnitTest"));
+    Document defaults = manager.getSensorDataTypeDocument("UnitTest");
+    assertTrue("Checking that UnitTest SDT is defined", (!(defaults == null)));
   }
 
 }

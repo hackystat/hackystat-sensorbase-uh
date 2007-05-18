@@ -27,4 +27,22 @@
     </RequiredFields>
   </SensorDataType>
 
+  <SensorDataType Name="SampleSdt">
+    <Description>Sample SDT used for Testing. Do not remove from your defaults file.</Description>
+    <RequiredFields>
+      <RequiredField>
+        <Name>SampleField</Name>
+        <Description>Sample Field Value</Description>
+      </RequiredField>
+    </RequiredFields>
+    <Properties>
+      <Property>
+        <Key>SampleProperty</Key>
+        <Value>Sample Property Value</Value>
+      </Property>
+    </Properties>
+  </SensorDataType>
+
 </SensorDataTypes>
+
+
