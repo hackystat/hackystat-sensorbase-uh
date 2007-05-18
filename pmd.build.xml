@@ -28,7 +28,7 @@
     <mkdir dir="${pmd.dir}"/>
     <pmd rulesetfiles="lib/pmd/hackystat.pmd.xml" 
          shortFilenames="false" 
-         targetjdk="1.5" 
+         targetjdk="1.6" 
          failonerror="${pmd.failonerror}"
          failOnRuleViolation="${pmd.failonerror}" >
       <formatter type="xml" toFile="${pmd.dir}/pmd.xml"/>

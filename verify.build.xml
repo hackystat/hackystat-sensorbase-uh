@@ -33,8 +33,9 @@
     It also runs the Emma code coverage tool and prints a summary report. 
   </echo>
   <target name="verify" 
-    depends="clean, compile, javadoc, junit.tool, checkstyle.tool, pmd.tool, findbugs.tool, emma.tool, emma.echo" 
+    depends="clean, compile, javadoc, junit.tool, checkstyle.tool, findbugs.tool, emma.tool, pmd.tool, emma.echo" 
     description="Invoke analyzers, fail if any errors found.">
       <fail message="FindBugs reported warnings." if="findbugs.warningsfound"/>
   </target>
+  
 </project>

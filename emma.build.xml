@@ -15,7 +15,7 @@
     description="Cleans, compiles, instruments byte codes, runs unit tests, generates Emma report.">
     <!-- Verify that Emma is installed. -->
     <available file="${env.EMMA_HOME}/lib/emma.jar" property="emma.available"/>
-    <fail unless="emma.available"  message="Error: EMMA_HOME not set or emma.jar not found, indicating Emma is not installed."/>
+    <fail unless="emma.available"  message="Error: EMMA_HOME not set or ${env.EMMA_HOME}/lib/emma.jar not found, indicating Emma is not installed."/>
     
     <!-- Define the path and taskdef containing the emma binaries. -->
     <property name="emma.lib.dir" value="${env.EMMA_HOME}/lib" />

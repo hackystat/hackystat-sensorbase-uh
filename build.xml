@@ -21,9 +21,12 @@
    </condition>  
    <fail message="This package requires Ant 1.7." unless="ant.1.7.available"/>
     
-  <!-- Make sure that JUnit is installed . --> 
-  <available file="${env.JUNIT_HOME}" type="dir" property="junit.available"/>
-  <fail message="This package requires JUnit to be installed and JUNIT_HOME defined" unless="junit.available"/>
+  <!-- Make sure that a compatible version of JUnit is installed. --> 
+  <!-- You can override the version. For example: 'ant -Djunit.version=4.1 -f junit.build.xml' -->
+  <property name="junit.version" value="4.3.1"/>
+  <property name="junit.jar" location="${env.JUNIT_HOME}/junit-${junit.version}.jar"/>
+  <available file="${junit.jar}" type="file" property="junit.available"/>
+  <fail message="This package requires JUNIT_HOME to be defined and ${junit.jar} available" unless="junit.available"/>
 
   <!-- Make sure that Restlet is installed . --> 
   <available file="${env.RESTLET_HOME}/lib/org.restlet.jar" type="file" property="restlet.available"/>
@@ -52,7 +55,7 @@
 
   <!-- The compile classpath is useful to many tools. -->
   <path id="compile.classpath">
-    <fileset file="${env.JUNIT_HOME}/junit-4.1.jar"/>
+    <fileset file="${env.JUNIT_HOME}/junit-${junit.version}.jar"/>
     <fileset file="${env.RESTLET_HOME}/lib/org.restlet.jar"/> 
     <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar"/> 
     <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar"/> 
