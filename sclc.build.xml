@@ -3,11 +3,12 @@
   Provides the SLCL tool and the Hackystat SCLC sensor.
   </description>
 
-  <import file="build.xml"/>
   <property environment="env"/>
+  <property name="build.dir" location="${basedir}/build" />
+  <property name="src.dir" location="${basedir}/src" />
   <property name="sclc.dir" location="${build.dir}/sclc" />
 
-  <target name="sclc.tool" depends="compile" description="Compute size data on the source code using SCLC.">
+  <target name="sclc.tool"  description="Compute size data on the source code using SCLC.">
     <!-- Check for the SCLC_HOME environment variable, failing the build if it can't be found. -->
     <available file="${env.SCLC_HOME}/src/sclc" property="sclc.available"/>
     <fail unless="sclc.available" message="Error: SCLC_HOME not set or file 'sclc' not found, indicating SCLC is not installed."/>
