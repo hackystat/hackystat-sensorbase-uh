@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.resource.sensordatatypes;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -68,17 +69,26 @@ public class SensorDataTypeResource extends Resource {
    */
   @Override
   public void put(Representation entity) {
+    String entityString = null;
+    SensorDataType sdt;
+    // First, we see if the request payload can be made into an SDT.
     try { 
-      String entityString = entity.getText();
-      SdtManager manager = (SdtManager)getContext().getAttributes().get("SdtManager");
-        Status status = manager.putSdt(entityString)
-        ? Status.SUCCESS_CREATED
-            : Status.CLIENT_ERROR_BAD_REQUEST;
-        getResponse().setStatus(status);
+      entityString = entity.getText();
+      sdt = SdtManager.getSensorDataType(entityString);
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Error in SDT PUT: " + StackTrace.toString(e));
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL);
+      SensorBaseLogger.getLogger().warning("Bad Sdt Definition in PUT: " + StackTrace.toString(e));
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad SDT: " + entityString);
+      return;
     }
+    // Now, we see if it already exists. 
+    SdtManager manager = (SdtManager)getContext().getAttributes().get("SdtManager");
+    if (manager.hasSdt(sdt)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "SDT defined: " + sdt.getName());
+      return;
+    }
+    // otherwise we add it to the Manager and return success.
+    manager.putSdt(sdt);      
+    getResponse().setStatus(Status.SUCCESS_CREATED);
   }
 }

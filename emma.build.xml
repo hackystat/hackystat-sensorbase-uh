@@ -48,8 +48,7 @@
         <path refid="compile.classpath"/>           
       </classpath>
       <sysproperty key="hackystat.sensorbase.defaults.sensordatatypes" 
-                   value="${basedir}/xml/defaults/sensordatatypes.defaults.xml"/>  
-      <sysproperty key="hackystat.sensorbase.port" value="9090"/>       
+                   value="${basedir}/xml/defaults/sensordatatypes.defaults.xml"/>       
       <sysproperty key="emma.coverage.out.file" value="${build.dir}/emma/coverage.emma" />
       <sysproperty key="emma.coverage.out.merge" value="true" />
       <formatter type="xml" />

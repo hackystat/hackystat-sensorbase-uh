@@ -27,6 +27,8 @@ import org.w3c.dom.Document;
  */
 public class SdtManager {
   
+  private static String jaxbPackage = "org.hackystat.sensorbase.resource.sensordatatypes.jaxb";
+  
   /** The in-memory repository of sensor data types, keyed by SDT name. */
   private Map<String, SensorDataType> sdtMap = new HashMap<String, SensorDataType>();
 
@@ -58,8 +60,7 @@ public class SdtManager {
       SensorBaseLogger.getLogger().info("Loading SDT defaults from " + defaultsFile.getPath());
       try {
         // Initialize marshaller and unmarshaller. 
-        JAXBContext jc = 
-          JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordatatypes.jaxb");
+        JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
         this.unmarshaller = jc.createUnmarshaller();
         this.marshaller = jc.createMarshaller(); 
         
@@ -146,21 +147,20 @@ public class SdtManager {
   }
   
   /**
-   * Processes an attempt to create a new SDT.
-   * @param sdtDoc The XML Document for this SDT.
-   * @return True if the new SDT was successfully created. 
+   * Updates the Manager with this SDT. Any old definition is overwritten.
+   * @param sdt The SensorDataType.
    */
-  public synchronized boolean putSdt(String sdtDoc) {
-    SensorDataType sdt;
-    try {
-      sdt = (SensorDataType) unmarshaller.unmarshal(new StringReader(sdtDoc));
-      sdtMap.put(sdt.getName(), sdt);
-    }
-    catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Error in put: " + StackTrace.toString(e));
-      return false;
-    }
-    return true;
+  public synchronized void putSdt(SensorDataType sdt) {
+    sdtMap.put(sdt.getName(), sdt);
+  }
+  
+  /**
+   * Returns true if the passed SDT is defined. 
+   * @param sdt A SensorDataType
+   * @return True if a SensorDataType with that name is already known to this SdtManager.
+   */
+  public synchronized boolean hasSdt(SensorDataType sdt) {
+    return sdtMap.containsKey(sdt.getName());
   }
   
   /**
@@ -171,8 +171,7 @@ public class SdtManager {
    * @exception Exception If problems occur marshalling the SDT or building the Document instance. 
    */
   public static Document getDocument(SensorDataType sdt) throws Exception {
-    JAXBContext jc = 
-      JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordatatypes.jaxb");
+    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Marshaller marshaller = jc.createMarshaller(); 
     
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -191,10 +190,23 @@ public class SdtManager {
    * @throws Exception If problems occur during unmarshalling. 
    */
   public static SensorDataType getSensorDataType(Document doc) throws Exception {
-    JAXBContext jc = 
-      JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordatatypes.jaxb");
+    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (SensorDataType) unmarshaller.unmarshal(doc);
+  }
+  
+  /**
+   * Takes a String encoding of a SensorDataType in XML format and converts it to an instance. 
+   * Note that this does not affect the state of any SdtManager instance. 
+   * 
+   * @param xmlString The XML string representing a SensorDataType
+   * @return The corresponding SensorDataType instance. 
+   * @throws Exception If problems occur during unmarshalling.
+   */
+  public static SensorDataType getSensorDataType(String xmlString) throws Exception {
+    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+    Unmarshaller unmarshaller = jc.createUnmarshaller();
+    return (SensorDataType)unmarshaller.unmarshal(new StringReader(xmlString));
   }
 }
       

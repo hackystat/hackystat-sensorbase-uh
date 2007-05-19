@@ -1,13 +1,12 @@
 package org.hackystat.sensorbase.resource.sensordatatypes;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.Properties;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.Property;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.RequiredField;
-import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.RequiredFields;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.server.Server;
 import org.junit.BeforeClass;
@@ -56,7 +55,7 @@ public class TestSdtRestApi {
     Response response = client.handle(request);
 
     // Test that the request was received and processed by the server OK. 
-    assertTrue("Testing for successful status 4", response.getStatus().isSuccess());
+    assertTrue("Testing for successful GET index", response.getStatus().isSuccess());
 
     // Ensure that we can find the SampleSdt definition.
     XmlRepresentation data = response.getEntityAsSax();
@@ -80,7 +79,7 @@ public class TestSdtRestApi {
     Response response = client.handle(request);
 
     // Test that the request was received and processed by the server OK. 
-    assertTrue("Testing for successful status 3", response.getStatus().isSuccess());
+    assertTrue("Testing for successful GET SampleSdt", response.getStatus().isSuccess());
     DomRepresentation data = response.getEntityAsDom();
     assertEquals("Checking SDT", "SampleSdt", data.getText("SensorDataType/@Name"));
     
@@ -102,18 +101,10 @@ public class TestSdtRestApi {
    * @throws Exception If problems occur.
    */
   //@Ignore
-  @Test public void putTestSdt() throws Exception {
-    // First, create a sample SDT 
+  @Test public void putSdt() throws Exception {
+    // First, create a sample SDT. Note that our XmlSchema is too lenient right now. 
     SensorDataType sdt = new SensorDataType();
     sdt.setName("TestSdt");
-    sdt.setDescription("TestSdt is purely for testing");
-    RequiredFields requiredFields = new RequiredFields();
-    RequiredField field = new RequiredField();
-    field.setName("AtLeastOneRequiredFieldRequired");
-    field.setDescription("Required field description");
-    requiredFields.getRequiredField().add(field);
-    sdt.setProperties(new Properties());
-    sdt.setRequiredFields(requiredFields);
     
     // Got a Java SDT. Now make it into XML.
     Document doc = SdtManager.getDocument(sdt);
@@ -130,15 +121,20 @@ public class TestSdtRestApi {
 
     // Test that the PUT request was received and processed by the server OK. 
     System.out.println(response.getStatus());
-    assertTrue("Testing for successful status 1", response.getStatus().isSuccess());
+    assertTrue("Testing for successful PUT TestSdt", response.getStatus().isSuccess());
     
     // Test to see that we can now retrieve it. 
-    ref = new Reference(hostName + "sensorbase/sensordatatypes/TestSdt");
     request = new Request(Method.GET, ref);
     response = client.handle(request); 
-    assertTrue("Testing for successful status 2", response.getStatus().isSuccess());
+    assertTrue("Testing for successful GET TestSdt", response.getStatus().isSuccess());
     XmlRepresentation data = response.getEntityAsSax();
     assertEquals("Checking SDT", "TestSdt", data.getText("SensorDataType/@Name"));
+    
+    // Test that PUTting it again is an error. 
+    request = new Request(Method.PUT, ref, new DomRepresentation(MediaType.TEXT_XML, doc));
+    response = client.handle(request);
+    assertFalse("Testing for unsuccessful PUT TestSdt", response.getStatus().isSuccess());
+    
     
   }
 }
