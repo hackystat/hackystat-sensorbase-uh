@@ -65,13 +65,18 @@ public class SensorDataTypeResource extends Resource {
 
   /**
    * Implement the PUT method that creates a new SDT. 
+   * <ul>
+   * <li> The XML must be marshallable into an SDT instance using the SDT XmlSchema definition.
+   * <li> There must not be an existing SDT with that name.
+   * <li> The SDT name in the URI string must match the SDT name in the XML.
+   * </ul>
    * @param entity The XML representation of the new SDT. 
    */
   @Override
   public void put(Representation entity) {
     String entityString = null;
     SensorDataType sdt;
-    // First, we see if the request payload can be made into an SDT.
+    // Try to make the XML payload into an SDT, return failure if this fails. 
     try { 
       entityString = entity.getText();
       sdt = SdtManager.getSensorDataType(entityString);
@@ -81,14 +86,48 @@ public class SensorDataTypeResource extends Resource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad SDT: " + entityString);
       return;
     }
-    // Now, we see if it already exists. 
+    // Return failure if the payload XML SDT is already defined.  
     SdtManager manager = (SdtManager)getContext().getAttributes().get("SdtManager");
-    if (manager.hasSdt(sdt)) {
+    if (manager.hasSdt(sdt.getName())) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "SDT defined: " + sdt.getName());
       return;
+    }
+    // Return failure if the URI SdtName is not the same as the XML SdtName.
+    if (!(this.sdtName.equals(sdt.getName()))) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "URI/XML name mismatch");
+      return;
+      
     }
     // otherwise we add it to the Manager and return success.
     manager.putSdt(sdt);      
     getResponse().setStatus(Status.SUCCESS_CREATED);
+  }
+  
+  /** 
+   * Indicate the DELETE method is supported. 
+   * @return True.
+   */
+  @Override
+  public boolean allowDelete() {
+      return true;
+  }
+  
+  /**
+   * Implement the DELETE method that deletes an existing SDT given its name.
+   * <ul> 
+   * <li> The SDT must be currently defined in this SdtManager.
+   * </ul>
+   */
+  @Override
+  public void delete() {
+    SdtManager manager = (SdtManager)getContext().getAttributes().get("SdtManager");
+    // Return failure if it doesn't exist.
+    if (!manager.hasSdt(this.sdtName)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Nonexisting SDT: " + this.sdtName);
+      return;
+    }
+    // Otherwise, delete it and return successs.
+    manager.deleteSdt(sdtName);      
+    getResponse().setStatus(Status.SUCCESS_OK);
   }
 }

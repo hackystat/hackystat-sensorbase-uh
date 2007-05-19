@@ -155,12 +155,20 @@ public class SdtManager {
   }
   
   /**
-   * Returns true if the passed SDT is defined. 
-   * @param sdt A SensorDataType
+   * Returns true if the passed SDT name is defined. 
+   * @param sdtName A SensorDataType name
    * @return True if a SensorDataType with that name is already known to this SdtManager.
    */
-  public synchronized boolean hasSdt(SensorDataType sdt) {
-    return sdtMap.containsKey(sdt.getName());
+  public synchronized boolean hasSdt(String sdtName) {
+    return sdtMap.containsKey(sdtName);
+  }
+  
+  /**
+   * Ensures that the passed sdtName is no longer present in this Manager. 
+   * @param sdtName The name of the SDT to remove if currently present.
+   */
+  public synchronized void deleteSdt(String sdtName) {
+    sdtMap.remove(sdtName);
   }
   
   /**

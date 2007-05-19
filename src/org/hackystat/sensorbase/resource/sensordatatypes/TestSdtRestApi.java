@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.restlet.Client;
 import org.restlet.data.MediaType;
 import org.restlet.data.Method;
+import org.restlet.data.Preference;
 import org.restlet.data.Protocol;
 import org.restlet.data.Reference;
 import org.restlet.data.Request;
@@ -49,6 +50,8 @@ public class TestSdtRestApi {
     String hostName = TestSdtRestApi.server.getHostName();
     Reference reference = new Reference(hostName + "sensorbase/sensordatatypes");
     Request request = new Request(method, reference);
+    Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);
+    request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
 
     // Make the call.
     Client client = new Client(Protocol.HTTP);
@@ -73,6 +76,9 @@ public class TestSdtRestApi {
     String hostName = TestSdtRestApi.server.getHostName();
     Reference reference = new Reference(hostName + "sensorbase/sensordatatypes/SampleSdt");
     Request request = new Request(method, reference);
+    Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);
+    request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
+
 
     // Make the call.
     Client client = new Client(Protocol.HTTP);
@@ -93,14 +99,12 @@ public class TestSdtRestApi {
     Property property = sdt.getProperties().getProperty().get(0);
     assertEquals("Checking property key", "SampleProperty", property.getKey());
     assertEquals("Checking property value", "Sample Property Value", property.getValue());
-    
     }
   
   /**
    * Test that PUT host/sensorbase/sensordatatypes/TestSdt works.
    * @throws Exception If problems occur.
    */
-  //@Ignore
   @Test public void putSdt() throws Exception {
     // First, create a sample SDT. Note that our XmlSchema is too lenient right now. 
     SensorDataType sdt = new SensorDataType();
@@ -114,17 +118,19 @@ public class TestSdtRestApi {
     String uri = "sensorbase/sensordatatypes/TestSdt";
     Reference ref = new Reference(hostName + uri);
     Request request = new Request(Method.PUT, ref, new DomRepresentation(MediaType.TEXT_XML, doc));
-    
+    Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);
+    request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
+
     // Make the call to PUT the new SDT.
     Client client = new Client(Protocol.HTTP);
     Response response = client.handle(request);
 
     // Test that the PUT request was received and processed by the server OK. 
-    System.out.println(response.getStatus());
     assertTrue("Testing for successful PUT TestSdt", response.getStatus().isSuccess());
     
     // Test to see that we can now retrieve it. 
     request = new Request(Method.GET, ref);
+    request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
     response = client.handle(request); 
     assertTrue("Testing for successful GET TestSdt", response.getStatus().isSuccess());
     XmlRepresentation data = response.getEntityAsSax();
@@ -132,9 +138,18 @@ public class TestSdtRestApi {
     
     // Test that PUTting it again is an error. 
     request = new Request(Method.PUT, ref, new DomRepresentation(MediaType.TEXT_XML, doc));
+    request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
     response = client.handle(request);
     assertFalse("Testing for unsuccessful PUT TestSdt", response.getStatus().isSuccess());
     
+    // Test that DELETE gets rid of this SDT.
+    request = new Request(Method.DELETE, ref);
+    response = client.handle(request); 
+    assertTrue("Testing for successful DELETE TestSdt", response.getStatus().isSuccess());
     
+    // Test that a second DELETE fails, since da buggah is no longer in there.
+    response = client.handle(request); 
+    assertTrue("Testing for failed second DELETE TestSdt", response.getStatus().isClientError());
+ 
   }
 }
