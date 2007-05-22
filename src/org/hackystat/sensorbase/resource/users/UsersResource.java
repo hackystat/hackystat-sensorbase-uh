@@ -1,4 +1,4 @@
-package org.hackystat.sensorbase.resource.sensordatatypes;
+package org.hackystat.sensorbase.resource.users;
 
 import org.restlet.Context;
 import org.restlet.data.MediaType;
@@ -10,18 +10,17 @@ import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
 
 /**
- * Implements a Restlet Resource representing an index of Hackystat Sensor Data Types. 
+ * Implements a Restlet Resource representing an index of Hackystat Users. 
  * @author Philip Johnson
  */
-public class SensorDataTypesResource extends Resource {
-  
+public class UsersResource extends Resource {
   /**
    * Provides the following representational variants: TEXT_XML.
    * @param context The context.
    * @param request The request object.
    * @param response The response object.
    */
-  public SensorDataTypesResource(Context context, Request request, Response response) {
+  public UsersResource(Context context, Request request, Response response) {
     super(context, request, response);
     getVariants().clear(); // copied from BookmarksResource.java, not sure why needed.
     getVariants().add(new Variant(MediaType.TEXT_XML));
@@ -35,15 +34,13 @@ public class SensorDataTypesResource extends Resource {
   @Override
   public Representation getRepresentation(Variant variant) {
     Representation result = null;
-    SdtManager manager = (SdtManager)getContext().getAttributes().get("SdtManager");
+    UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
     if (manager == null) {
-      throw new RuntimeException("Failed to find SdtManager");
+      throw new RuntimeException("Failed to find UserManager");
     }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      result = new DomRepresentation(MediaType.TEXT_XML, manager.getSensorDataTypeIndexDocument());
+      result = new DomRepresentation(MediaType.TEXT_XML, manager.getUserIndexDocument());
     }
     return result;
   }
-
-  
 }

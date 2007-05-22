@@ -6,6 +6,9 @@ import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
 import org.hackystat.sensorbase.resource.sensordatatypes.SensorDataTypeResource;
 import org.hackystat.sensorbase.resource.sensordatatypes.SensorDataTypesResource;
+import org.hackystat.sensorbase.resource.users.UserManager;
+import org.hackystat.sensorbase.resource.users.UserResource;
+import org.hackystat.sensorbase.resource.users.UsersResource;
 import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Restlet;
@@ -37,12 +40,15 @@ public class Server extends Application {
     server.component = new Component();
     server.component.getServers().add(Protocol.HTTP, port);
     server.component.getDefaultHost().attach("/sensorbase", server);
+    server.component.getLogService().setEnabled(false);
     server.component.start();
     SensorBaseLogger.getLogger().warning("Started SensorBase (Version " + getVersion() + ")");
     SensorBaseLogger.getLogger().warning("Host: " + server.hostName);
+    // Get rid of the Restlet Logger
     // Save a pointer to this Server instance in this Application's context. 
     Map<String, Object> attributes = server.getContext().getAttributes();
     attributes.put("SdtManager", new SdtManager(server));
+    attributes.put("UserManager", new UserManager(server));
     return server;
   }
   
@@ -64,6 +70,8 @@ public class Server extends Application {
     Router router = new Router(getContext());
     router.attach("/sensordatatypes", SensorDataTypesResource.class);
     router.attach("/sensordatatypes/{sensordatatypename}", SensorDataTypeResource.class);
+    router.attach("/users", UsersResource.class);
+    router.attach("/users/{userkey}", UserResource.class);
     return router;
   }
 

@@ -39,6 +39,15 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element name="Users">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="User" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+  </xs:complexType>
+  </xs:element>
+
+
   <xs:element name="UserRef">
     <xs:complexType>
       <xs:attribute ref="UserKey"/>

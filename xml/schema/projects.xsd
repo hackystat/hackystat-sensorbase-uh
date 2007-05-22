@@ -67,6 +67,15 @@
     </xs:complexType>
   </xs:element>
 
+
+  <xs:element name="Projects">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Project" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+  </xs:complexType>
+  </xs:element>
+
   <xs:element name="ProjectRef">
     <xs:complexType>
       <xs:attribute ref="Name"/>

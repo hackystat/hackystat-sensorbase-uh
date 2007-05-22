@@ -47,6 +47,14 @@
     </xs:complexType>
   </xs:element>
 
+  <xs:element name="SensorDatas">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="SensorData" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+  </xs:complexType>
+  </xs:element>
+
   <xs:element name="SensorDataRef">
     <xs:complexType>
       <xs:attribute ref="UserKey"/>

@@ -34,7 +34,6 @@
              merge="true" mode="overwrite">
         <filter excludes="org.hackystat.*.Test*"/>
         <filter excludes="org.hackystat.sensorbase.resource.projects.*"/>
-        <filter excludes="org.hackystat.sensorbase.resource.users.*"/>
         <filter excludes="org.hackystat.sensorbase.resource.sensordata.*"/>
         <filter excludes="org.hackystat.*.jaxb.*"/>
       </instr>
@@ -47,8 +46,6 @@
         <path refid="emma.lib.dir" />
         <path refid="compile.classpath"/>           
       </classpath>
-      <sysproperty key="hackystat.sensorbase.defaults.sensordatatypes" 
-                   value="${basedir}/xml/defaults/sensordatatypes.defaults.xml"/>       
       <sysproperty key="emma.coverage.out.file" value="${build.dir}/emma/coverage.emma" />
       <sysproperty key="emma.coverage.out.merge" value="true" />
       <formatter type="xml" />

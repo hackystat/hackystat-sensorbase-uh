@@ -14,8 +14,6 @@
     <!-- Fork is on until I can figure out how to stop the sensorbase and unbind the port. -->
     <!-- Note that emma is forking in its JUnit as well. --> 
     <junit printsummary="withOutAndErr" haltonfailure="${junit.haltonfailure}" fork="yes">
-     <sysproperty key="hackystat.sensorbase.defaults.sensordatatypes" 
-                  value="${basedir}/xml/defaults/sensordatatypes.defaults.xml"/>  
       <classpath>
         <pathelement location="${build.dir}/classes" />
         <path refid="compile.classpath"/>

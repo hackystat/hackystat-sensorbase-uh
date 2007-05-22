@@ -4,19 +4,33 @@
   </description>
 
   <import file="build.xml"/>
+  <property name="tmp.dir" location="${basedir}/tmp" />
 
-  <target name="jar" depends="compile" description="Create an executable jar file.">
+  <target name="jar" depends="compile" 
+    description="Create sensorbase.java5.jar and sensorbase.java6.jar">
     <!-- Define the directories and distribution name -->
-    <property name="tmp.dir" location="${basedir}/tmp" />
     <mkdir dir="${tmp.dir}" />
     <copy todir="${tmp.dir}">
       <fileset dir="${basedir}/build/classes"/>
     </copy>
+  
+    <!-- First build sensorbase.java6.jar, which does not include JAXB --> 
     <unjar src="${env.RESTLET_HOME}/lib/org.simpleframework_3.1/org.simpleframework.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/org.restlet.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar" dest="${tmp.dir}"/>
+ 
+    <jar destfile="${basedir}/sensorbase.java6.jar" basedir="${tmp.dir}">
+      <manifest>
+        <attribute name="Main-Class" value="org.hackystat.sensorbase.server.Server"/>
+        <attribute name="Implementation-Title" value="Hackystat SensorBase-UH"/>
+        <attribute name="Implementation-Version" value="${version}"/>
+        <attribute name="Implementation-Vendor" value="Collaborative Software Development Laboratory, University of Hawaii"/>
+      </manifest>
+    </jar>
+  
+    <!-- Now build sensorbase.java5.jar, which adds in the JAXB stuff. --> 
     <unjar src="${env.JAXB_HOME}/lib/activation.jar" dest="${tmp.dir}"/>
     <unjar src="${env.JAXB_HOME}/lib/jaxb-api.jar" dest="${tmp.dir}"/>
     <unjar src="${env.JAXB_HOME}/lib/jaxb-impl.jar" dest="${tmp.dir}"/>
@@ -27,7 +41,7 @@
      <fileset dir="${tmp.dir}/META-INF" includes="*.RSA,*.DSA,*.SF,*.rsa,*.dsa,*.sf"/>
     </delete>
 
-    <jar destfile="${basedir}/sensorbase.jar" basedir="${tmp.dir}">
+    <jar destfile="${basedir}/sensorbase.java5.jar" basedir="${tmp.dir}">
       <manifest>
         <attribute name="Main-Class" value="org.hackystat.sensorbase.server.Server"/>
         <attribute name="Implementation-Title" value="Hackystat SensorBase-UH"/>
