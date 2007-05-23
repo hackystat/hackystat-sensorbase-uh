@@ -2,7 +2,6 @@ package org.hackystat.sensorbase.logger;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.junit.Test;
@@ -19,7 +18,7 @@ public class TestSensorBaseLogger {
    */
   @Test public void testLogging () {
     Logger logger = SensorBaseLogger.getLogger();
-    SensorBaseLogger.setLoggingLevel(Level.INFO);
+    SensorBaseLogger.setLoggingLevel("INFO");
     logger.info("(Test message)");
     assertEquals("Checking logger identity", "sensorbase-uh", logger.getName());
   }

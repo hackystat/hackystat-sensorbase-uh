@@ -53,20 +53,28 @@ public class SensorBaseLogger {
         ConsoleHandler consoleHandler = new ConsoleHandler();
         consoleHandler.setFormatter(new OneLineFormatter());
         logger.addHandler(consoleHandler);
-        setLoggingLevel(Level.INFO);
+        setLoggingLevel("INFO");
       }
     return logger;
   }
 
   /**
-   * Sets the logging level to be used for the Hackystat logger. 
+   * Sets the logging level to be used for the Hackystat logger.
+   * If the passed string cannot be parsed into a Level, then INFO is set by default. 
    * @param level The new Level.
    */
-  public static void setLoggingLevel(Level level) {
+  public static void setLoggingLevel(String level) {
     Logger logger = LogManager.getLogManager().getLogger(loggerName);
-    logger.setLevel(level);
-    logger.getHandlers()[0].setLevel(level);
-    logger.getHandlers()[1].setLevel(level);
+    Level newLevel = Level.INFO;
+    try {
+      newLevel = Level.parse(level);
+    }
+    catch (Exception e) {
+      logger.info("Couldn't set Logging level to: " + level);
+    }
+    logger.setLevel(newLevel);
+    logger.getHandlers()[0].setLevel(newLevel);
+    logger.getHandlers()[1].setLevel(newLevel);
   }
 }
 
