@@ -1,9 +1,12 @@
 package org.hackystat.sensorbase.resource.users;
 
+import org.hackystat.sensorbase.logger.SensorBaseLogger;
+import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
+import org.restlet.data.Status;
 import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Resource;
@@ -14,6 +17,10 @@ import org.restlet.resource.Variant;
  * @author Philip Johnson
  */
 public class UsersResource extends Resource {
+  
+  /** The email attribute if supplied in a POST request. */
+  private String email;
+  
   /**
    * Provides the following representational variants: TEXT_XML.
    * @param context The context.
@@ -22,6 +29,7 @@ public class UsersResource extends Resource {
    */
   public UsersResource(Context context, Request request, Response response) {
     super(context, request, response);
+    this.email = (String) request.getAttributes().get("email");
     getVariants().clear(); // copied from BookmarksResource.java, not sure why needed.
     getVariants().add(new Variant(MediaType.TEXT_XML));
   }
@@ -43,4 +51,48 @@ public class UsersResource extends Resource {
     }
     return result;
   }
+  
+  /** 
+   * Indicate the POST method is supported, which enables user registration.
+   * @return True.
+   */
+  @Override
+  public boolean allowPost() {
+    return true;
+  }
+
+  /**
+   * Implement the POST method that registers a new User.
+   * <ul>
+   * <li> There must be an "email" parameter that specifies the email address for this user.
+   * </ul>
+   * @param entity The XML representation of the new User. 
+   */
+  @Override
+  public void post(Representation entity) {
+    UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
+    // Return Badness if we don't have the email attribute.
+    if (this.email == null || "".equals(this.email)) {
+      SensorBaseLogger.getLogger().warning("No email parameter"); 
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Missing email parameter");
+      return;
+    }
+    User user = manager.registerUser(this.email);
+    // Now send the email to the (non-test) user and the hackystat admin.
+    /*
+    Mailer mailer = Mailer.getInstance();
+    boolean success = Mailer.getInstance().send(emailString, emailSubject, getEmailBody(userKey));
+    if (success) {
+      // Don't send the administrator emails about test user registration.
+      if (!newUser.isTestUser()) {
+        Mailer.getInstance().send(serverProperties.getAdminEmail(), 
+          "Hackystat Admin Registration",
+          "User " + emailString + " registered and received key: " + userKey + "\n" + 
+          "for host: " + serverProperties.getHackystatHost());
+      }
+      */
+    SensorBaseLogger.getLogger().warning("Registered: " + user.getUserKey() + " " + this.email); 
+    getResponse().setStatus(Status.SUCCESS_CREATED);
+  }
+  
 }

@@ -109,7 +109,7 @@ public class UserResource extends Resource {
    */
   @Override
   public boolean allowDelete() {
-      return true;
+    return true;
   }
   
   /**

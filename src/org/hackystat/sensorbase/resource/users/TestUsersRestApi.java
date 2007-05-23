@@ -90,4 +90,24 @@ public class TestUsersRestApi {
     assertEquals("Checking name", "TestUser", user.getUserKey());
     assertEquals("Checking email", "testuser@hackystat.org", user.getEmail());
   }
+  
+  /**
+   * Tests the POST method that registers a new user. 
+   * @throws Exception If problems occur.
+   */
+  @Test public void postUser() throws Exception {
+    // Set up the call.
+    Method method = Method.POST;
+    String hostName = TestUsersRestApi.server.getHostName();
+    String testEmail = "TestPost@" + System.getProperty("sensorbase.test.domain");
+    Reference reference = new Reference(hostName + "sensorbase/users?email=" + testEmail);
+    Request request = new Request(method, reference);
+
+    // Make the call.
+    Client client = new Client(Protocol.HTTP);
+    Response response = client.handle(request);
+
+    // Test that the request was received and processed by the server OK. 
+    assertTrue("Testing for successful POST to", response.getStatus().isSuccess());
+  }
 }

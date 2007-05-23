@@ -23,6 +23,9 @@ import org.restlet.data.Protocol;
  * @author Philip Johnson
  */
 public class Server extends Application {
+  
+  /** Retrieves the admin email from System.getProperty() */
+  public static final String ADMIN_EMAIL_KEY = "sensorbase.admin.email";
 
   /** Holds the Restlet Component associated with this Server. */
   private Component component; 
@@ -82,6 +85,7 @@ public class Server extends Application {
     router.attach("/sensordatatypes", SensorDataTypesResource.class);
     router.attach("/sensordatatypes/{sensordatatypename}", SensorDataTypeResource.class);
     router.attach("/users", UsersResource.class);
+    router.attach("/users?email={email}", UsersResource.class);
     router.attach("/users/{userkey}", UserResource.class);
     return router;
   }
@@ -109,8 +113,9 @@ public class Server extends Application {
   
   /**
    * Adds the properties in ~/.hackystat/sensorbase.properties into System Properties.
+   * @throws Exception if errors occur.
    */
-  private void initializeProperties () {
+  private void initializeProperties () throws Exception {
     String userHome = System.getProperty("user.home");
     String userDir = System.getProperty("user.dir");
     String hackyHome = userHome + "/.hackystat";
@@ -118,20 +123,29 @@ public class Server extends Application {
     String propFile = userHome + "/.hackystat/sensorbase.properties";
     Properties properties = new Properties();
     // Set defaults
-    properties.setProperty("sensorbase.admin.email", "admin@hackystat.org");
+    properties.setProperty(ADMIN_EMAIL_KEY, "admin@hackystat.org");
     properties.setProperty("sensorbase.admin.userkey", "admin");
     properties.setProperty("sensorbase.context.root", "sensorbase");
     properties.setProperty("sensorbase.db.dir", sensorBaseHome + "/db");
     properties.setProperty("sensorbase.hostname", "localhost");
     properties.setProperty("sensorbase.logging.level", "INFO");
-    properties.setProperty("sensorbase.mail.server", "mail.hawaii.edu");
+    properties.setProperty("sensorbase.smtp.host", "mail.hawaii.edu");
     properties.setProperty("sensorbase.port", "9876");
     properties.setProperty("sensorbase.xml.dir", userDir + "/xml");
+    properties.setProperty("sensorbase.test.install", "false");
+    properties.setProperty("sensorbase.test.domain", "hackystat.org");
+    FileInputStream stream = null;
     try {
-      properties.load(new FileInputStream(propFile));
+      stream = new FileInputStream(propFile);
+      properties.load(stream);
     }
     catch (Exception e) {
       System.out.println(propFile + " not found. Using default sensorbase properties.");
+    }
+    finally {
+      if (stream != null) {
+        stream.close();
+      }
     }
     // Now add to System properties.
     Properties systemProperties = System.getProperties();
@@ -151,7 +165,7 @@ public class Server extends Application {
       "  sensorbase.context.root:  " + System.getProperty("sensorbase.context.root") + cr +
       "  sensorbase.db.dir:        " + System.getProperty("sensorbase.db.dir") + cr +
       "  sensorbase.logging.level: " + System.getProperty("sensorbase.logging.level") + cr +
-      "  sensorbase.mail.server :  " + System.getProperty("sensorbase.mail.server") + cr +
+      "  sensorbase.smtp.host:     " + System.getProperty("sensorbase.smtp.host") + cr +
       "  sensorbase.port:          " + System.getProperty("sensorbase.port") + cr +
       "  sensorbase.test.install:  " + System.getProperty("sensorbase.test.install") + cr + 
       "  sensorbase.xml.dir:       " + System.getProperty("sensorbase.xml.dir");

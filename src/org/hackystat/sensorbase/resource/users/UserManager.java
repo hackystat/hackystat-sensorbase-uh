@@ -29,10 +29,10 @@ public class UserManager {
   
   private static String jaxbPackage = "org.hackystat.sensorbase.resource.users.jaxb";
   
-  /** The in-memory repository of sensor data types, keyed by SDT name. */
+  /** The in-memory repository of Users, keyed by UserKey. */
   private Map<String, User> userMap = new HashMap<String, User>();
 
-    /** The property name that should resolve to the file containing default SDT definitions. */
+    /** The property name that should resolve to the file containing default User definitions. */
   private static String sdtDefaultsProperty = "hackystat.sensorbase.defaults.users";
   
   /** The JAXB marshaller for Users. */
@@ -170,6 +170,44 @@ public class UserManager {
   public synchronized void deleteUser(String userKey) {
     userMap.remove(userKey);
   }
+  
+  /**
+   * Returns true if the passed UserKey is known to this Manager.
+   * @param userKey The UserKey of interest.
+   * @return True if found in this Manager.
+   */
+  public synchronized boolean isUserKey(String userKey) {
+    return userMap.containsKey(userKey);
+  }
+  
+  /** 
+   * If a User with the passed email address exists, then return it.
+   * Otherwise create a new User and return it.
+   * If the email address ends with the test domain, then the UserKey will be the lower-cased
+   * account name. For example, "foo@hackystat.org" will create a UserKey called "foo" if
+   * hackystat.org is the test domain.  Otherwise, a unique, randomly generated 12 character key 
+   * is generated and used as the UserKey.
+   * @param email The email address for the user. 
+   * @return The retrieved or newly created User.
+   */
+  public synchronized User registerUser(String email) {
+    // registering happens rarely, so we'll just iterate through the userMap.
+    for (User user : this.userMap.values()) {
+      if (user.getEmail().equals(email)) {
+        return user;
+      }
+    }
+    // if we got here, we need to create a new User.
+    User user = new User();
+    user.setEmail(email);
+    // UserKey is either the lowercased account in the case of a test user, or the random string.
+    String userKey = 
+      email.endsWith(System.getProperty("sensorbase.test.domain")) ?
+          email.substring(0, email.indexOf('@')).toLowerCase() :
+            UserKeyGenerator.make(this);
+    user.setUserKey(userKey);
+    return user;
+  } 
   
   /**
    * Utility function for testing purposes that takes a User instance and returns it in XML.

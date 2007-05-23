@@ -12,5 +12,6 @@
 	<classpathentry kind="var" path="JAXB_HOME/lib/jaxb-api.jar"/>
 	<classpathentry kind="var" path="JAXB_HOME/lib/jaxb-impl.jar"/>
 	<classpathentry kind="var" path="JAXB_HOME/lib/jsr173_1.0_api.jar"/>
+	<classpathentry kind="var" path="JAVAMAIL_HOME/mail.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -20,6 +20,7 @@
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar" dest="${tmp.dir}"/>
+    <unjar src="${env.JAVAMAIL_HOME}/mail.jar" dest="${tmp.dir}"/>
  
     <jar destfile="${basedir}/sensorbase.java6.jar" basedir="${tmp.dir}">
       <manifest>
@@ -30,7 +31,7 @@
       </manifest>
     </jar>
   
-    <!-- Now build sensorbase.java5.jar, which adds in the JAXB stuff. --> 
+    <!-- Now build sensorbase.java5.jar, which adds in the JAXB and activation stuff. --> 
     <unjar src="${env.JAXB_HOME}/lib/activation.jar" dest="${tmp.dir}"/>
     <unjar src="${env.JAXB_HOME}/lib/jaxb-api.jar" dest="${tmp.dir}"/>
     <unjar src="${env.JAXB_HOME}/lib/jaxb-impl.jar" dest="${tmp.dir}"/>
