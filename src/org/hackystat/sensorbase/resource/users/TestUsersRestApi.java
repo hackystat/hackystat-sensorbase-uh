@@ -6,6 +6,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
+import org.hackystat.sensorbase.server.ServerProperties;
+import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.restlet.Client;
@@ -99,7 +101,7 @@ public class TestUsersRestApi {
     // Set up the call.
     Method method = Method.POST;
     String hostName = TestUsersRestApi.server.getHostName();
-    String testEmail = "TestPost@" + System.getProperty("sensorbase.test.domain");
+    String testEmail = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
     Reference reference = new Reference(hostName + "sensorbase/users?email=" + testEmail);
     Request request = new Request(method, reference);
 

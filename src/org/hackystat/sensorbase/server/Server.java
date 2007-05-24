@@ -1,8 +1,6 @@
 package org.hackystat.sensorbase.server;
 
-import java.io.FileInputStream;
 import java.util.Map;
-import java.util.Properties;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
@@ -16,16 +14,17 @@ import org.restlet.Component;
 import org.restlet.Restlet;
 import org.restlet.Router;
 import org.restlet.data.Protocol;
+import static org.hackystat.sensorbase.server.ServerProperties.HOSTNAME_KEY;
+import static org.hackystat.sensorbase.server.ServerProperties.PORT_KEY;
+import static org.hackystat.sensorbase.server.ServerProperties.CONTEXT_ROOT_KEY;
+import static org.hackystat.sensorbase.server.ServerProperties.LOGGING_LEVEL_KEY;
 
 
 /**
  * Sets up the HTTP Server process and dispatching to the associated resources. 
  * @author Philip Johnson
  */
-public class Server extends Application {
-  
-  /** Retrieves the admin email from System.getProperty() */
-  public static final String ADMIN_EMAIL_KEY = "sensorbase.admin.email";
+public class Server extends Application { 
 
   /** Holds the Restlet Component associated with this Server. */
   private Component component; 
@@ -41,22 +40,22 @@ public class Server extends Application {
    */
   public static Server newInstance(int port) throws Exception {
     Server server = new Server();
-    server.initializeProperties();
+    ServerProperties.initializeProperties();
     server.hostName = "http://" +
-                      System.getProperty("sensorbase.hostname") + 
+                      ServerProperties.get(HOSTNAME_KEY) + 
                       ":" + 
-                      System.getProperty("sensorbase.port") + 
+                      ServerProperties.get(PORT_KEY) + 
                       "/";
     server.component = new Component();
     server.component.getServers().add(Protocol.HTTP, port);
     server.component.getDefaultHost()
-      .attach("/" + System.getProperty("sensorbase.context.root"), server);
+      .attach("/" + ServerProperties.get(CONTEXT_ROOT_KEY), server);
     server.component.getLogService().setEnabled(false);
     server.component.start();
     SensorBaseLogger.getLogger().warning("Started SensorBase (Version " + getVersion() + ")");
     SensorBaseLogger.getLogger().warning("Host: " + server.hostName);
-    SensorBaseLogger.setLoggingLevel(System.getProperty("sensorbase.logging.level"));
-    server.echoProperties();
+    SensorBaseLogger.setLoggingLevel(ServerProperties.get(LOGGING_LEVEL_KEY));
+    ServerProperties.echoProperties();
     
     // Get rid of the Restlet Logger
     // Save a pointer to this Server instance in this Application's context. 
@@ -111,65 +110,6 @@ public class Server extends Application {
     return this.hostName;
   }
   
-  /**
-   * Adds the properties in ~/.hackystat/sensorbase.properties into System Properties.
-   * @throws Exception if errors occur.
-   */
-  private void initializeProperties () throws Exception {
-    String userHome = System.getProperty("user.home");
-    String userDir = System.getProperty("user.dir");
-    String hackyHome = userHome + "/.hackystat";
-    String sensorBaseHome = hackyHome + "/sensorbase"; 
-    String propFile = userHome + "/.hackystat/sensorbase.properties";
-    Properties properties = new Properties();
-    // Set defaults
-    properties.setProperty(ADMIN_EMAIL_KEY, "admin@hackystat.org");
-    properties.setProperty("sensorbase.admin.userkey", "admin");
-    properties.setProperty("sensorbase.context.root", "sensorbase");
-    properties.setProperty("sensorbase.db.dir", sensorBaseHome + "/db");
-    properties.setProperty("sensorbase.hostname", "localhost");
-    properties.setProperty("sensorbase.logging.level", "INFO");
-    properties.setProperty("sensorbase.smtp.host", "mail.hawaii.edu");
-    properties.setProperty("sensorbase.port", "9876");
-    properties.setProperty("sensorbase.xml.dir", userDir + "/xml");
-    properties.setProperty("sensorbase.test.install", "false");
-    properties.setProperty("sensorbase.test.domain", "hackystat.org");
-    FileInputStream stream = null;
-    try {
-      stream = new FileInputStream(propFile);
-      properties.load(stream);
-    }
-    catch (Exception e) {
-      System.out.println(propFile + " not found. Using default sensorbase properties.");
-    }
-    finally {
-      if (stream != null) {
-        stream.close();
-      }
-    }
-    // Now add to System properties.
-    Properties systemProperties = System.getProperties();
-    systemProperties.putAll(properties);
-    System.setProperties(systemProperties);
-  }
 
-  /**
-   * Prints all of the sensorbase settings to the logger.  
-   */
-  private void echoProperties() {
-    String cr = System.getProperty("line.separator"); 
-    String propertyInfo = cr + "SensorBase Properties:" + cr +
-      "  sensorbase.admin.email:   " + System.getProperty("sensorbase.admin.email") + cr +
-      "  sensorbase.admin.userkey: " + System.getProperty("sensorbase.admin.userkey") + cr +
-      "  sensorbase.hostname:      " + System.getProperty("sensorbase.hostname") + cr +
-      "  sensorbase.context.root:  " + System.getProperty("sensorbase.context.root") + cr +
-      "  sensorbase.db.dir:        " + System.getProperty("sensorbase.db.dir") + cr +
-      "  sensorbase.logging.level: " + System.getProperty("sensorbase.logging.level") + cr +
-      "  sensorbase.smtp.host:     " + System.getProperty("sensorbase.smtp.host") + cr +
-      "  sensorbase.port:          " + System.getProperty("sensorbase.port") + cr +
-      "  sensorbase.test.install:  " + System.getProperty("sensorbase.test.install") + cr + 
-      "  sensorbase.xml.dir:       " + System.getProperty("sensorbase.xml.dir");
-    SensorBaseLogger.getLogger().info(propertyInfo);
-  }
 }
 

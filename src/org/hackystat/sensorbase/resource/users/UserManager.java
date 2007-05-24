@@ -18,6 +18,9 @@ import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
 import org.hackystat.sensorbase.resource.users.jaxb.Users;
 import org.hackystat.sensorbase.server.Server;
+import org.hackystat.sensorbase.server.ServerProperties;
+import static org.hackystat.sensorbase.server.ServerProperties.XML_DIR_KEY;
+import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
 import org.w3c.dom.Document;
 
 /**
@@ -32,9 +35,6 @@ public class UserManager {
   /** The in-memory repository of Users, keyed by UserKey. */
   private Map<String, User> userMap = new HashMap<String, User>();
 
-    /** The property name that should resolve to the file containing default User definitions. */
-  private static String sdtDefaultsProperty = "hackystat.sensorbase.defaults.users";
-  
   /** The JAXB marshaller for Users. */
   private Marshaller marshaller; 
   
@@ -84,14 +84,16 @@ public class UserManager {
   }
   
   /**
-   * Checks the System property in SdtManager.sdtDefaultsProperty for the file to load.
+   * Checks ServerProperties for the XML_DIR property.
    * If this property is null, returns the File for ./xml/defaults/sensordatatypes.defaults.xml.
    * @return The File instance (which might not point to an existing file.)
    */
   private File findDefaultsFile() {
-    return (System.getProperties().containsKey(sdtDefaultsProperty)) ?
-        new File (System.getProperty(sdtDefaultsProperty)) :
-          new File (System.getProperty("user.dir") + "/xml/defaults/users.defaults.xml");
+    String defaultsPath = "/defaults/users.defaults.xml";
+    String xmlDir = ServerProperties.get(XML_DIR_KEY);
+    return (xmlDir == null) ?
+        new File (System.getProperty("user.dir") + "/xml" + defaultsPath) :
+          new File (xmlDir + defaultsPath);
   }
 
 
@@ -202,7 +204,7 @@ public class UserManager {
     user.setEmail(email);
     // UserKey is either the lowercased account in the case of a test user, or the random string.
     String userKey = 
-      email.endsWith(System.getProperty("sensorbase.test.domain")) ?
+      email.endsWith(ServerProperties.get(TEST_DOMAIN_KEY)) ?
           email.substring(0, email.indexOf('@')).toLowerCase() :
             UserKeyGenerator.make(this);
     user.setUserKey(userKey);

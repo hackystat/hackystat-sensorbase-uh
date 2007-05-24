@@ -11,6 +11,11 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
+import org.hackystat.sensorbase.server.ServerProperties;
+import static org.hackystat.sensorbase.server.ServerProperties.SMTP_HOST_KEY;
+import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
+import static org.hackystat.sensorbase.server.ServerProperties.TEST_INSTALL_KEY;
+import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
 
 /**
  * Provides a wrapper for SensorBase email services. Use the singleton instance to send emails:
@@ -39,11 +44,11 @@ public class Mailer {
   /** The singleton instance maintaining an Email session. */
   private Mailer() {
     Properties props = new Properties();
-    props.put("mail.smtp.host", System.getProperty("sensorbase.smtp.host"));
+    props.put("mail.smtp.host", ServerProperties.get(SMTP_HOST_KEY));
     this.session = Session.getInstance(props);
-    this.adminEmail = "Hackystat Admin <" + System.getProperty("sensorbase.admin.email") + ">";
-    this.testInstall = System.getProperty("sensorbase.test.install").toLowerCase();
-    this.testDomain = System.getProperty("sensorbase.test.domain");
+    this.adminEmail = "Hackystat Admin <" + ServerProperties.get(ADMIN_EMAIL_KEY) + ">";
+    this.testInstall = ServerProperties.get(TEST_INSTALL_KEY).toLowerCase();
+    this.testDomain = ServerProperties.get(TEST_DOMAIN_KEY);
   }
 
   /**

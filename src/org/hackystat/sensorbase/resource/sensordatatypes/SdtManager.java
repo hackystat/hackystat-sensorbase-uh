@@ -1,5 +1,7 @@
 package org.hackystat.sensorbase.resource.sensordatatypes;
 
+import static org.hackystat.sensorbase.server.ServerProperties.XML_DIR_KEY;
+
 import java.io.File;
 import java.io.StringReader;
 import java.util.HashMap;
@@ -16,6 +18,7 @@ import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeInde
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeRef;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypes;
 import org.hackystat.sensorbase.server.Server;
+import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
 import org.w3c.dom.Document;
@@ -32,9 +35,6 @@ public class SdtManager {
   /** The in-memory repository of sensor data types, keyed by SDT name. */
   private Map<String, SensorDataType> sdtMap = new HashMap<String, SensorDataType>();
 
-    /** The property name that should resolve to the file containing default SDT definitions. */
-  private static String sdtDefaultsProperty = "hackystat.sensorbase.defaults.sensordatatypes";
-  
   /** The JAXB marshaller for SensorDataTypes. */
   private Marshaller marshaller; 
   
@@ -84,14 +84,16 @@ public class SdtManager {
   }
   
   /**
-   * Checks the System property in SdtManager.sdtDefaultsProperty for the file to load.
+   * Checks the ServerProperties for the XML_DIR property.
    * If this property is null, returns the File for ./xml/defaults/sensordatatypes.defaults.xml.
    * @return The File instance (which might not point to an existing file.)
    */
   private File findDefaultsFile() {
-    return (System.getProperties().containsKey(sdtDefaultsProperty)) ?
-        new File (System.getProperty(sdtDefaultsProperty)) :
-          new File (System.getProperty("user.dir") + "/xml/defaults/sensordatatypes.defaults.xml");
+    String defaultsPath = "/defaults/sensordatatypes.defaults.xml";
+    String xmlDir = ServerProperties.get(XML_DIR_KEY);
+    return (xmlDir == null) ?
+        new File (System.getProperty("user.dir") + "/xml" + defaultsPath) :
+          new File (xmlDir + defaultsPath);
   }
 
 
