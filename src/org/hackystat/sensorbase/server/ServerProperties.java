@@ -82,17 +82,18 @@ public class ServerProperties {
    */
   static void echoProperties() {
     String cr = System.getProperty("line.separator"); 
+    String eq = " = ";
     String propertyInfo = cr + "SensorBase Properties:" + cr +
-      " " + ADMIN_EMAIL_KEY   + get(ADMIN_EMAIL_KEY) + cr +
-      " " + ADMIN_USERKEY_KEY + get(ADMIN_USERKEY_KEY) + cr +
-      " " + HOSTNAME_KEY      + get(HOSTNAME_KEY) + cr +
-      " " + CONTEXT_ROOT_KEY  + get(CONTEXT_ROOT_KEY) + cr +
-      " " + DB_DIR_KEY        + get(DB_DIR_KEY) + cr +
-      " " + LOGGING_LEVEL_KEY + get(LOGGING_LEVEL_KEY) + cr +
-      " " + SMTP_HOST_KEY     + get(SMTP_HOST_KEY) + cr +
-      " " + PORT_KEY          + get(PORT_KEY) + cr +
-      " " + TEST_INSTALL_KEY  + get(TEST_INSTALL_KEY) + cr + 
-      " " + XML_DIR_KEY       + get(XML_DIR_KEY);
+      " " + ADMIN_EMAIL_KEY   + eq + get(ADMIN_EMAIL_KEY) + cr +
+      " " + ADMIN_USERKEY_KEY + eq + get(ADMIN_USERKEY_KEY) + cr +
+      " " + HOSTNAME_KEY      + eq + get(HOSTNAME_KEY) + cr +
+      " " + CONTEXT_ROOT_KEY  + eq + get(CONTEXT_ROOT_KEY) + cr +
+      " " + DB_DIR_KEY        + eq + get(DB_DIR_KEY) + cr +
+      " " + LOGGING_LEVEL_KEY + eq + get(LOGGING_LEVEL_KEY) + cr +
+      " " + SMTP_HOST_KEY     + eq + get(SMTP_HOST_KEY) + cr +
+      " " + PORT_KEY          + eq + get(PORT_KEY) + cr +
+      " " + TEST_INSTALL_KEY  + eq + get(TEST_INSTALL_KEY) + cr + 
+      " " + XML_DIR_KEY       + eq + get(XML_DIR_KEY);
     SensorBaseLogger.getLogger().info(propertyInfo);
   }
   

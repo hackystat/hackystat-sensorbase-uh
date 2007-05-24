@@ -32,6 +32,10 @@
   <available file="${env.RESTLET_HOME}/lib/org.restlet.jar" type="file" property="restlet.available"/>
   <fail message="This package requires the Restlet Framework to be downloaded and RESTLET_HOME defined" unless="restlet.available"/>
 
+  <!-- Make sure that JavaMail is installed . --> 
+  <available file="${env.JAVAMAIL_HOME}/mail.jar" type="file" property="javamail.available"/>
+  <fail message="This package requires JavaMail 4.1 to be downloaded and JAVAMAIL_HOME defined" unless="javamail.available"/>
+
   <!-- Make sure that the JAXB library is available . --> 
   <available file="${env.JAXB_HOME}/lib/jaxb-xjc.jar" type="file" property="jaxb.available"/>
   <fail message="This package requires JAXB to be installed and JAXB_HOME defined" unless="jaxb.available"/>

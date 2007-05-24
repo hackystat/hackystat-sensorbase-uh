@@ -3,6 +3,7 @@ package org.hackystat.sensorbase.server;
 import java.util.Map;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
+import org.hackystat.sensorbase.mail.Mailer;
 import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
 import org.hackystat.sensorbase.resource.sensordatatypes.SensorDataTypeResource;
 import org.hackystat.sensorbase.resource.sensordatatypes.SensorDataTypesResource;
@@ -56,6 +57,14 @@ public class Server extends Application {
     SensorBaseLogger.getLogger().warning("Host: " + server.hostName);
     SensorBaseLogger.setLoggingLevel(ServerProperties.get(LOGGING_LEVEL_KEY));
     ServerProperties.echoProperties();
+    try {
+      Mailer.getInstance();
+    }
+    catch (Throwable e) {
+      String msg = "ERROR: JavaMail not installed correctly! Mail services will fail!";
+      SensorBaseLogger.getLogger().warning(msg);
+    }
+    
     
     // Get rid of the Restlet Logger
     // Save a pointer to this Server instance in this Application's context. 
@@ -109,7 +118,5 @@ public class Server extends Application {
   public String getHostName() {
     return this.hostName;
   }
-  
-
 }
 

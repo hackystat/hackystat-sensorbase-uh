@@ -256,5 +256,15 @@ public class UserManager {
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (User)unmarshaller.unmarshal(new StringReader(xmlString));
   }
+  
+  /**
+   * Returns true if the passed user is a test user.
+   * This is defined as their email address using the TEST_DOMAIN.  
+   * @param user The user. 
+   * @return True if the user is a test user. 
+   */
+  public boolean isTestUser(User user) {
+    return user.getEmail().endsWith(ServerProperties.get(TEST_DOMAIN_KEY));
+  }
 }
 

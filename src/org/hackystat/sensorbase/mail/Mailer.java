@@ -113,5 +113,5 @@ public class Mailer {
   public boolean send(String toAddr, String subject, String body) {
     return this.send(this.adminEmail, toAddr, subject, body);
   }
-
 }
+

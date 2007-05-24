@@ -20,7 +20,7 @@
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.JAVAMAIL_HOME}/mail.jar" dest="${tmp.dir}"/>
+
  
     <jar destfile="${basedir}/sensorbase.java6.jar" basedir="${tmp.dir}">
       <manifest>

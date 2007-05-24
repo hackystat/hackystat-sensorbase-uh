@@ -42,7 +42,7 @@ class UserKeyGenerator {
      while (!isUniqueKey) {
        userKey = new StringBuffer(UserKeyGenerator.USERKEY_LENGTH);
        for (int i = 0; i < UserKeyGenerator.USERKEY_LENGTH; i++) {
-         userKey.append(charset[(int) generator.nextInt(charset.length)]);
+         userKey.append(charset[generator.nextInt(charset.length)]);
        }
        isUniqueKey = !manager.isUserKey(userKey.toString());
      }
