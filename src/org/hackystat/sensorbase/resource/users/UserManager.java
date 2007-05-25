@@ -107,7 +107,7 @@ public class UserManager {
     for (User user : this.userMap.values()) {
       UserRef ref = new UserRef();
       ref.setUserKey(user.getUserKey());
-      ref.setHref(this.server.getHostName() + "sensorbase/users/" + user.getUserKey());
+      ref.setHref(this.server.getHostName() + "users/" + user.getUserKey());
       index.getUserRef().add(ref);
     }
     // Now convert it to XML.
@@ -205,7 +205,7 @@ public class UserManager {
     // UserKey is either the lowercased account in the case of a test user, or the random string.
     String userKey = 
       email.endsWith(ServerProperties.get(TEST_DOMAIN_KEY)) ?
-          email.substring(0, email.indexOf('@')).toLowerCase() :
+          email.substring(0, email.indexOf('@')) :
             UserKeyGenerator.make(this);
     user.setUserKey(userKey);
     return user;

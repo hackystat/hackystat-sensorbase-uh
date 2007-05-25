@@ -107,7 +107,7 @@ public class SdtManager {
     for (SensorDataType sdt : this.sdtMap.values()) {
       SensorDataTypeRef ref = new SensorDataTypeRef();
       ref.setName(sdt.getName());
-      ref.setHref(this.server.getHostName() + "sensorbase/sensordatatypes/" + sdt.getName());
+      ref.setHref(this.server.getHostName() + "sensordatatypes/" + sdt.getName());
       index.getSensorDataTypeRef().add(ref);
     }
     // Now convert it to XML.

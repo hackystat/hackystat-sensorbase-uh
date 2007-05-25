@@ -48,7 +48,7 @@ public class TestSdtRestApi {
     // Set up the call.
     Method method = Method.GET;
     String hostName = TestSdtRestApi.server.getHostName();
-    Reference reference = new Reference(hostName + "sensorbase/sensordatatypes");
+    Reference reference = new Reference(hostName + "sensordatatypes");
     Request request = new Request(method, reference);
     Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);
     request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
@@ -74,7 +74,7 @@ public class TestSdtRestApi {
     // Set up the call.
     Method method = Method.GET;
     String hostName = TestSdtRestApi.server.getHostName();
-    Reference reference = new Reference(hostName + "sensorbase/sensordatatypes/SampleSdt");
+    Reference reference = new Reference(hostName + "sensordatatypes/SampleSdt");
     Request request = new Request(method, reference);
     Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);
     request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
@@ -115,7 +115,7 @@ public class TestSdtRestApi {
     
     // Now set up the call.
     String hostName = TestSdtRestApi.server.getHostName();
-    String uri = "sensorbase/sensordatatypes/TestSdt";
+    String uri = "sensordatatypes/TestSdt";
     Reference ref = new Reference(hostName + uri);
     Request request = new Request(Method.PUT, ref, new DomRepresentation(MediaType.TEXT_XML, doc));
     Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);

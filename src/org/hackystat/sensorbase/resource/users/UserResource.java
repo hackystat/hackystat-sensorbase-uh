@@ -1,8 +1,5 @@
 package org.hackystat.sensorbase.resource.users;
 
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.logger.StackTrace;
-import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -54,54 +51,6 @@ public class UserResource extends Resource {
     return result;
   }
   
-  /** 
-   * Indicate the PUT method is supported. 
-   * @return True.
-   */
-  @Override
-  public boolean allowPut() {
-      return true;
-  }
-
-  /**
-   * Implement the PUT method that creates a new User. 
-   * <ul>
-   * <li> The XML must be marshallable into an SDT instance using the SDT XmlSchema definition.
-   * <li> There must not be an existing SDT with that user key.
-   * <li> The user key in the URI string must match the user key in the XML.
-   * </ul>
-   * @param entity The XML representation of the new User. 
-   */
-  @Override
-  public void put(Representation entity) {
-    String entityString = null;
-    User user;
-    // Try to make the XML payload into a User, return failure if this fails. 
-    try { 
-      entityString = entity.getText();
-      user = UserManager.getUser(entityString);
-    }
-    catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Bad User Definition in PUT: " + StackTrace.toString(e));
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad User: " + entityString);
-      return;
-    }
-    // Return failure if the payload XML SDT is already defined.  
-    UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
-    if (manager.hasUser(user.getUserKey())) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "User defined:" + user.getUserKey());
-      return;
-    }
-    // Return failure if the URI SdtName is not the same as the XML SdtName.
-    if (!(this.userKey.equals(user.getUserKey()))) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "URI/XML name mismatch");
-      return;
-      
-    }
-    // otherwise we add it to the Manager and return success.
-    manager.putUser(user);      
-    getResponse().setStatus(Status.SUCCESS_CREATED);
-  }
   
   /** 
    * Indicate the DELETE method is supported. 
@@ -123,7 +72,7 @@ public class UserResource extends Resource {
     UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
     // Return failure if it doesn't exist.
     if (!manager.hasUser(this.userKey)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Nonexisting User: " + this.userKey);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Nonexistent User: " + this.userKey);
       return;
     }
     // Otherwise, delete it and return successs.

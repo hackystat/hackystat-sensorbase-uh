@@ -1,6 +1,7 @@
 package org.hackystat.sensorbase.server;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
@@ -44,7 +45,7 @@ public class ServerProperties {
     String userDir = System.getProperty("user.dir");
     String hackyHome = userHome + "/.hackystat";
     String sensorBaseHome = hackyHome + "/sensorbase"; 
-    String propFile = userHome + "/.hackystat/sensorbase.properties";
+    String propFile = userHome + "/.hackystat/sensorbase/sensorbase.properties";
     Properties properties = new Properties();
     // Set defaults
     properties.setProperty(ADMIN_EMAIL_KEY, "admin@hackystat.org");
@@ -62,8 +63,9 @@ public class ServerProperties {
     try {
       stream = new FileInputStream(propFile);
       properties.load(stream);
+      System.out.println("Loading SensorBase properties from: " + propFile);
     }
-    catch (Exception e) {
+    catch (IOException e) {
       System.out.println(propFile + " not found. Using default sensorbase properties.");
     }
     finally {
@@ -83,17 +85,18 @@ public class ServerProperties {
   static void echoProperties() {
     String cr = System.getProperty("line.separator"); 
     String eq = " = ";
-    String propertyInfo = cr + "SensorBase Properties:" + cr +
-      " " + ADMIN_EMAIL_KEY   + eq + get(ADMIN_EMAIL_KEY) + cr +
-      " " + ADMIN_USERKEY_KEY + eq + get(ADMIN_USERKEY_KEY) + cr +
-      " " + HOSTNAME_KEY      + eq + get(HOSTNAME_KEY) + cr +
-      " " + CONTEXT_ROOT_KEY  + eq + get(CONTEXT_ROOT_KEY) + cr +
-      " " + DB_DIR_KEY        + eq + get(DB_DIR_KEY) + cr +
-      " " + LOGGING_LEVEL_KEY + eq + get(LOGGING_LEVEL_KEY) + cr +
-      " " + SMTP_HOST_KEY     + eq + get(SMTP_HOST_KEY) + cr +
-      " " + PORT_KEY          + eq + get(PORT_KEY) + cr +
-      " " + TEST_INSTALL_KEY  + eq + get(TEST_INSTALL_KEY) + cr + 
-      " " + XML_DIR_KEY       + eq + get(XML_DIR_KEY);
+    String pad = "                ";
+    String propertyInfo = "SensorBase Properties:" + cr +
+      pad + ADMIN_EMAIL_KEY   + eq + get(ADMIN_EMAIL_KEY) + cr +
+      pad + ADMIN_USERKEY_KEY + eq + get(ADMIN_USERKEY_KEY) + cr +
+      pad + HOSTNAME_KEY      + eq + get(HOSTNAME_KEY) + cr +
+      pad + CONTEXT_ROOT_KEY  + eq + get(CONTEXT_ROOT_KEY) + cr +
+      pad + DB_DIR_KEY        + eq + get(DB_DIR_KEY) + cr +
+      pad + LOGGING_LEVEL_KEY + eq + get(LOGGING_LEVEL_KEY) + cr +
+      pad + SMTP_HOST_KEY     + eq + get(SMTP_HOST_KEY) + cr +
+      pad + PORT_KEY          + eq + get(PORT_KEY) + cr +
+      pad + TEST_INSTALL_KEY  + eq + get(TEST_INSTALL_KEY) + cr + 
+      pad + XML_DIR_KEY       + eq + get(XML_DIR_KEY);
     SensorBaseLogger.getLogger().info(propertyInfo);
   }
   

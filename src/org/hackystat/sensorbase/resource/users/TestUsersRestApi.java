@@ -47,7 +47,7 @@ public class TestUsersRestApi {
     // Set up the call.
     Method method = Method.GET;
     String hostName = TestUsersRestApi.server.getHostName();
-    Reference reference = new Reference(hostName + "sensorbase/users");
+    Reference reference = new Reference(hostName + "users");
     Request request = new Request(method, reference);
     Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);
     request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
@@ -73,7 +73,7 @@ public class TestUsersRestApi {
     // Set up the call.
     Method method = Method.GET;
     String hostName = TestUsersRestApi.server.getHostName();
-    Reference reference = new Reference(hostName + "sensorbase/users/TestUser");
+    Reference reference = new Reference(hostName + "users/TestUser");
     Request request = new Request(method, reference);
     Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);
     request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
@@ -99,11 +99,10 @@ public class TestUsersRestApi {
    */
   @Test public void postUser() throws Exception {
     // Set up the call.
-    Method method = Method.POST;
     String hostName = TestUsersRestApi.server.getHostName();
     String testEmail = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
-    Reference reference = new Reference(hostName + "sensorbase/users?email=" + testEmail);
-    Request request = new Request(method, reference);
+    Reference reference = new Reference(hostName + "users?email=" + testEmail);
+    Request request = new Request(Method.POST, reference);
 
     // Make the call.
     Client client = new Client(Protocol.HTTP);
@@ -111,5 +110,15 @@ public class TestUsersRestApi {
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful POST to", response.getStatus().isSuccess());
+    
+    // Now see that we can retrieve that user. 
+//    Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);
+//    reference = new Reference(hostName + "users/TestPost");
+//    request = new Request(Method.GET, reference);
+//    request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia);
+//    response = client.handle(request);
+//    assertTrue("Testing for successful GET testpost", response.getStatus().isSuccess());
+//    DomRepresentation data = response.getEntityAsDom();
+//    assertEquals("Checking User", "TestPost", data.getText("User/UserKey"));
   }
 }

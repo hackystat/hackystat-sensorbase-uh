@@ -46,6 +46,8 @@ public class Server extends Application {
                       ServerProperties.get(HOSTNAME_KEY) + 
                       ":" + 
                       ServerProperties.get(PORT_KEY) + 
+                      "/" +
+                      ServerProperties.get(CONTEXT_ROOT_KEY) +
                       "/";
     server.component = new Component();
     server.component.getServers().add(Protocol.HTTP, port);
@@ -112,7 +114,7 @@ public class Server extends Application {
   
   /**
    * Returns the host name associated with this server. 
-   * Example: "http://localhost:9876/"
+   * Example: "http://localhost:9876/sensorbase/"
    * @return The host name. 
    */
   public String getHostName() {
