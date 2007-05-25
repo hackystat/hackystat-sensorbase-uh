@@ -35,11 +35,10 @@ public class Server extends Application {
   
   /**
    * Creates a new instance of a SensorBase HTTP server, listening on the supplied port.  
-   * @param port The port number for this Server. 
    * @return The Server instance created. 
    * @throws Exception If problems occur starting up this server. 
    */
-  public static Server newInstance(int port) throws Exception {
+  public static Server newInstance() throws Exception {
     Server server = new Server();
     ServerProperties.initializeProperties();
     server.hostName = "http://" +
@@ -49,6 +48,7 @@ public class Server extends Application {
                       "/" +
                       ServerProperties.get(CONTEXT_ROOT_KEY) +
                       "/";
+    int port = Integer.valueOf(ServerProperties.get(PORT_KEY));
     server.component = new Component();
     server.component.getServers().add(Protocol.HTTP, port);
     server.component.getDefaultHost()
@@ -82,7 +82,7 @@ public class Server extends Application {
    * @throws Exception if problems occur.
    */
   public static void main(final String[] args) throws Exception {
-    Server.newInstance(9876);
+    Server.newInstance();
   }
 
   /**

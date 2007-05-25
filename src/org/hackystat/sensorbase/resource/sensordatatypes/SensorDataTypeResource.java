@@ -49,7 +49,7 @@ public class SensorDataTypeResource extends Resource {
     }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       result = new DomRepresentation(MediaType.TEXT_XML, 
-          manager.getSensorDataTypeDocument(this.sdtName));
+          manager.marshallSdt(this.sdtName));
     }
     return result;
   }
@@ -79,7 +79,7 @@ public class SensorDataTypeResource extends Resource {
     // Try to make the XML payload into an SDT, return failure if this fails. 
     try { 
       entityString = entity.getText();
-      sdt = SdtManager.getSensorDataType(entityString);
+      sdt = SdtManager.unmarshallSdt(entityString);
     }
     catch (Exception e) {
       SensorBaseLogger.getLogger().warning("Bad Sdt Definition in PUT: " + StackTrace.toString(e));

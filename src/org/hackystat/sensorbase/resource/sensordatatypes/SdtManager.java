@@ -125,30 +125,6 @@ public class SdtManager {
   }
   
   /**
-   * Returns the XML representation of the named SDT.
-   * @param name The name of the SDT.
-   * @return The XML representation of that SDT, or null if not found.
-   */
-  public synchronized Document getSensorDataTypeDocument(String name) {
-    // Return null if name is not an SDT
-    if (!sdtMap.containsKey(name)) {
-      return null;
-    }
-    Document doc = null;
-    try {
-      SensorDataType sdt = sdtMap.get(name);
-      doc = this.documentBuilder.newDocument();
-      this.marshaller.marshal(sdt, doc);
-    }
-    catch (Exception e ) {
-      String msg = "Failed to marshall the SDT named: " + name;
-      SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
-      throw new RuntimeException(msg, e);
-    }
-    return doc;
-  }
-  
-  /**
    * Updates the Manager with this SDT. Any old definition is overwritten.
    * @param sdt The SensorDataType.
    */
@@ -180,7 +156,7 @@ public class SdtManager {
    * @return The XML Document instance corresponding to this XML. 
    * @exception Exception If problems occur marshalling the SDT or building the Document instance. 
    */
-  public static Document getDocument(SensorDataType sdt) throws Exception {
+  public static Document marshallSdt(SensorDataType sdt) throws Exception {
     JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Marshaller marshaller = jc.createMarshaller(); 
     
@@ -193,13 +169,37 @@ public class SdtManager {
   }
   
   /**
+   * Returns the XML representation of the named SDT.
+   * @param name The name of the SDT.
+   * @return The XML representation of that SDT, or null if not found.
+   */
+  public synchronized Document marshallSdt(String name) {
+    // Return null if name is not an SDT
+    if (!sdtMap.containsKey(name)) {
+      return null;
+    }
+    Document doc = null;
+    try {
+      SensorDataType sdt = sdtMap.get(name);
+      doc = this.documentBuilder.newDocument();
+      this.marshaller.marshal(sdt, doc);
+    }
+    catch (Exception e ) {
+      String msg = "Failed to marshall the SDT named: " + name;
+      SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
+      throw new RuntimeException(msg, e);
+    }
+    return doc;
+  }
+  
+  /**
    * Takes an XML Document representing a SensorDataType and converts it to an instance. 
    * Note that this does not affect the state of any SdtManager instance. 
    * @param doc The XML Document representing a SensorDataType. 
    * @return The corresponding SensorDataType instance. 
    * @throws Exception If problems occur during unmarshalling. 
    */
-  public static SensorDataType getSensorDataType(Document doc) throws Exception {
+  public static SensorDataType unmarshallSdt(Document doc) throws Exception {
     JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (SensorDataType) unmarshaller.unmarshal(doc);
@@ -213,7 +213,7 @@ public class SdtManager {
    * @return The corresponding SensorDataType instance. 
    * @throws Exception If problems occur during unmarshalling.
    */
-  public static SensorDataType getSensorDataType(String xmlString) throws Exception {
+  public static SensorDataType unmarshallSdt(String xmlString) throws Exception {
     JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (SensorDataType)unmarshaller.unmarshal(new StringReader(xmlString));

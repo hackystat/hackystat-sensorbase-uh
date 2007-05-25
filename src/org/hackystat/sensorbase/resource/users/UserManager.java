@@ -13,6 +13,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
@@ -173,6 +174,16 @@ public class UserManager {
     userMap.remove(userKey);
   }
   
+
+  /**
+   * Returns the User associated with this UserKey.
+   * @param userKey The userKey string.
+   * @return The User, or null if not found.
+   */
+  public synchronized User getUser(String userKey) {
+    return userMap.get(userKey);
+  }
+  
   /**
    * Returns true if the passed UserKey is known to this Manager.
    * @param userKey The UserKey of interest.
@@ -202,12 +213,14 @@ public class UserManager {
     // if we got here, we need to create a new User.
     User user = new User();
     user.setEmail(email);
+    user.setProperties(new Properties());
     // UserKey is either the lowercased account in the case of a test user, or the random string.
     String userKey = 
       email.endsWith(ServerProperties.get(TEST_DOMAIN_KEY)) ?
           email.substring(0, email.indexOf('@')) :
             UserKeyGenerator.make(this);
     user.setUserKey(userKey);
+    this.userMap.put(userKey, user);
     return user;
   } 
   
@@ -218,7 +231,7 @@ public class UserManager {
    * @return The XML Document instance corresponding to this XML. 
    * @exception Exception If problems occur marshalling the User or building the Document instance. 
    */
-  public static Document getDocument(User user) throws Exception {
+  public static Document marshallUser(User user) throws Exception {
     JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Marshaller marshaller = jc.createMarshaller(); 
     
@@ -231,17 +244,37 @@ public class UserManager {
   }
   
   /**
+   * Utility function for testing purposes that takes a Properties instance and returns it in XML.
+   * Note that this does not affect the state of any Manager instance. 
+   * @param properties The Properties instance.
+   * @return The XML Document instance corresponding to this XML. 
+   * @exception Exception If problems occur marshalling the Properties or building the Document.
+   */
+  public static Document marshallProperties(Properties properties) throws Exception {
+    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+    Marshaller marshaller = jc.createMarshaller(); 
+    
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+    Document doc = documentBuilder.newDocument();
+    marshaller.marshal(properties, doc);
+    return doc;
+  }
+  
+  /**
    * Takes an XML Document representing a User and converts it to an instance. 
    * Note that this does not affect the state of any Manager instance. 
    * @param doc The XML Document representing a User.
    * @return The corresponding User instance. 
    * @throws Exception If problems occur during unmarshalling. 
    */
-  public static User getUser(Document doc) throws Exception {
+  public static User unmarshallUser(Document doc) throws Exception {
     JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (User) unmarshaller.unmarshal(doc);
   }
+   
   
   /**
    * Takes a String encoding of a User in XML format and converts it to an instance. 
@@ -251,10 +284,24 @@ public class UserManager {
    * @return The corresponding User instance. 
    * @throws Exception If problems occur during unmarshalling.
    */
-  public static User getUser(String xmlString) throws Exception {
+  public static User unmarshallUser(String xmlString) throws Exception {
     JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (User)unmarshaller.unmarshal(new StringReader(xmlString));
+  }
+  
+  /**
+   * Takes a String encoding of a Properties in XML format and converts it to an instance. 
+   * Note that this does not affect the state of any Manager instance. 
+   * 
+   * @param xmlString The XML string representing a Properties.
+   * @return The corresponding Properties instance. 
+   * @throws Exception If problems occur during unmarshalling.
+   */
+  public static Properties unmarshallProperties(String xmlString) throws Exception {
+    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+    Unmarshaller unmarshaller = jc.createUnmarshaller();
+    return (Properties)unmarshaller.unmarshal(new StringReader(xmlString));
   }
   
   /**

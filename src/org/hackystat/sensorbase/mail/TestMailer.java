@@ -16,7 +16,7 @@ public class TestMailer {
    * @exception Exception if problems occur. 
    */
   @Test public void testMailer() throws Exception {
-    Server server = Server.newInstance(9999);
+    Server server = Server.newInstance();
     Mailer mailer = Mailer.getInstance();
     assertTrue("Checking mailer", mailer.send("johnson@hackystat.org", "Test Subject", "TestBody"));
     server.stop();

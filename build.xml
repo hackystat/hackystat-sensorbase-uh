@@ -82,13 +82,25 @@
     </javac>
   </target>
 
-  <target name="clean" description="Delete build/ directory.">
-    <delete dir="${build.dir}" />
+  <target name="clean" description="Delete build/ directory and top-level sensorbase jar files.">
+    <delete>
+      <fileset dir="${basedir}" includes="sensorbase*.jar"/> 
+    </delete>
+    <delete dir="${build.dir}"/> 
   </target>
 
   <target name="convertLineEndings" description="Makes line endings compatible with host platform.">
     <fixcrlf srcdir="${basedir}" includes="*.build.xml"/>
   </target>
+ 
+ <target name="run" depends="compile" description="Compiles the sensorbase and starts it up.">
+  <java classname="org.hackystat.sensorbase.server.Server" fork="yes">
+    <classpath>
+      <pathelement location="${build.dir}/classes" />
+      <path refid="compile.classpath"/>
+    </classpath> 
+  </java>
+ </target> 
 
 </project>
 

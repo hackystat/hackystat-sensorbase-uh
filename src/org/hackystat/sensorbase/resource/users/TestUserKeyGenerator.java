@@ -16,7 +16,7 @@ public class TestUserKeyGenerator {
    * @throws Exception If problems occur. 
    */
   @Test public void testUserKey() throws Exception {
-    Server server = Server.newInstance(9999);
+    Server server = Server.newInstance();
     UserManager manager = new UserManager(server);
     assertNotNull("Checking generator", UserKeyGenerator.make(manager));
     server.stop();

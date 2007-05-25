@@ -37,7 +37,7 @@ public class TestSdtRestApi {
    * @throws Exception If problems occur setting up the server. 
    */
   @BeforeClass public static void setupServer() throws Exception {
-    TestSdtRestApi.server = Server.newInstance(9876);
+    TestSdtRestApi.server = Server.newInstance();
   }
 
   /**
@@ -90,7 +90,7 @@ public class TestSdtRestApi {
     assertEquals("Checking SDT", "SampleSdt", data.getText("SensorDataType/@Name"));
     
     //Make it into a Java SDT and ensure the fields are there as expected. 
-    SensorDataType sdt = SdtManager.getSensorDataType(data.getDocument());
+    SensorDataType sdt = SdtManager.unmarshallSdt(data.getDocument());
     assertEquals("Checking name", "SampleSdt", sdt.getName());
     assertTrue("Checking description", sdt.getDescription().startsWith("Sample SDT"));
     RequiredField reqField = sdt.getRequiredFields().getRequiredField().get(0);
@@ -111,7 +111,7 @@ public class TestSdtRestApi {
     sdt.setName("TestSdt");
     
     // Got a Java SDT. Now make it into XML.
-    Document doc = SdtManager.getDocument(sdt);
+    Document doc = SdtManager.marshallSdt(sdt);
     
     // Now set up the call.
     String hostName = TestSdtRestApi.server.getHostName();

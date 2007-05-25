@@ -21,7 +21,7 @@ public class TestSdtManager {
    */
   @Test public void testSdtManager () {
     SdtManager manager = new SdtManager(null);
-    Document defaults = manager.getSensorDataTypeDocument("UnitTest");
+    Document defaults = manager.marshallSdt("UnitTest");
     assertTrue("Checking that UnitTest SDT is defined", (!(defaults == null)));
   }
 

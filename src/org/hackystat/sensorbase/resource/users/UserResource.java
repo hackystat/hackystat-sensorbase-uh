@@ -1,5 +1,10 @@
 package org.hackystat.sensorbase.resource.users;
 
+import org.hackystat.sensorbase.logger.SensorBaseLogger;
+import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.sensorbase.resource.users.jaxb.Properties;
+import org.hackystat.sensorbase.resource.users.jaxb.Property;
+import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -45,9 +50,12 @@ public class UserResource extends Resource {
       throw new RuntimeException("Failed to find UserManager");
     }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      result = new DomRepresentation(MediaType.TEXT_XML, 
-          manager.getUserDocument(this.userKey));
-    }
+      if (!manager.hasUser(this.userKey)) {
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown: " + this.userKey);
+      }
+        result =  new DomRepresentation(MediaType.TEXT_XML, 
+            manager.getUserDocument(this.userKey));
+      }
     return result;
   }
   
@@ -62,21 +70,67 @@ public class UserResource extends Resource {
   }
   
   /**
-   * Implement the DELETE method that deletes an existing SDT given its name.
+   * Implement the DELETE method that deletes an existing User given its userkey.
    * <ul> 
-   * <li> The SDT must be currently defined in this SdtManager.
+   * <li> The User must be currently defined in this UserManager.
    * </ul>
    */
   @Override
   public void delete() {
     UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
-    // Return failure if it doesn't exist.
+    // Return failure if the UserKey doesn't exist.
     if (!manager.hasUser(this.userKey)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Nonexistent User: " + this.userKey);
       return;
     }
     // Otherwise, delete it and return successs.
     manager.deleteUser(userKey);      
+    getResponse().setStatus(Status.SUCCESS_OK);
+  }
+  
+  /** 
+   * Indicate the POST method is supported. 
+   * @return True.
+   */
+  @Override
+  public boolean allowPost() {
+    return true;
+  }
+  
+  /**
+   * Implement the POST method that updates the properties associated with a user.
+   * <ul> 
+   * <li> The User must be currently defined in this UserManager.
+   * <li> The payload must be an XML representation of a Properties instance.
+   * </ul>
+   * @param entity The entity to be posted.
+   */
+  @Override
+  public void post(Representation entity) {
+    UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
+    // Return failure if the User doesn't exist.
+    if (!manager.hasUser(this.userKey)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Nonexistent User: " + this.userKey);
+      return;
+    }
+    // Attempt to construct a Properties object.
+    String entityString = null;
+    Properties newProperties;
+    // Try to make the XML payload into a Properties instance, return failure if this fails. 
+    try { 
+      entityString = entity.getText();
+      newProperties = UserManager.unmarshallProperties(entityString);
+    }
+    catch (Exception e) {
+      SensorBaseLogger.getLogger().warning("Bad Properties Definition: " + StackTrace.toString(e));
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Properties: " + entityString);
+      return;
+    }
+    User user = manager.getUser(this.userKey);
+    // Update the existing property list with these new properties. 
+    for (Property property : newProperties.getProperty()) {
+      user.getProperties().getProperty().add(property);
+    }
     getResponse().setStatus(Status.SUCCESS_OK);
   }
 }
