@@ -4,6 +4,7 @@ import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
+import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
@@ -22,7 +23,8 @@ public class SensorDataResource extends Resource {
    */
   public SensorDataResource(Context context, Request request, Response response) {
     super(context, request, response);
-    getVariants().add(new Variant(MediaType.TEXT_PLAIN));
+    getVariants().clear();
+    getVariants().add(new Variant(MediaType.TEXT_XML));
   }
   
   /**
@@ -33,6 +35,14 @@ public class SensorDataResource extends Resource {
   @Override
   public Representation getRepresentation(Variant variant) {
     Representation result = null;
+    SensorDataManager manager = 
+      (SensorDataManager)getContext().getAttributes().get("SensorDataManager");
+    if (manager == null) {
+      throw new RuntimeException("Failed to find SensorDataManager");
+    }
+    if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
+      result = new DomRepresentation(MediaType.TEXT_XML, manager.getSensorDataIndexDocument());
+    }
     return result; 
   }
 }

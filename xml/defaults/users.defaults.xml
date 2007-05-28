@@ -10,4 +10,14 @@
       </Property>
     </Properties>
   </User>
+ <User>
+    <Email>sampleuser@hackystat.org</Email>
+    <UserKey>SampleUser</UserKey>
+    <Properties>
+      <Property>
+        <Key>TDD-Group</Key>
+        <Value>True</Value>
+      </Property>
+    </Properties>
+  </User>
 </Users>

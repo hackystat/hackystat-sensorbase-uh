@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<SensorDatas>
+<SensorData>
+ <Timestamp>2007-04-30T09:00:00.000</Timestamp>
+ <Runtime>2007-04-30T09:00:00.000</Runtime>
+ <Tool>Subversion</Tool>
+ <SensorDataType>http://localhost:9876/sensorbase/sensordatatype/SampleSdt</SensorDataType>
+ <Resource>file://home/johnson/svn/Foo/build.xml</Resource>
+ <User>http://localhost:9876/sensorbase/user/SampleUser</User>
+ <Properties>
+   <Property>
+     <Key>SampleField</Key>
+     <Value>2007-04-30T09:00:00.000</Value>
+   </Property>
+   <Property>
+     <Key>SampleOptionalProperty</Key>
+     <Value>10</Value>
+   </Property>
+  </Properties>
+</SensorData>
+
+<SensorData>
+ <Timestamp>2007-04-30T10:00:00.000</Timestamp>
+ <Runtime>2007-04-30T10:00:00.000</Runtime>
+ <Tool>Subversion</Tool>
+ <SensorDataType>http://localhost:9876/sensorbase/sensordatatype/SampleSdt</SensorDataType>
+ <Resource>file://home/johnson/svn/Foo/build.xml</Resource>
+ <User>http://localhost:9876/sensorbase/user/SampleUser</User>
+ <Properties>
+   <Property>
+     <Key>SampleField</Key>
+     <Value>2007-04-30T10:00:00.000</Value>
+   </Property>
+   <Property>
+     <Key>SampleOptionalProperty</Key>
+     <Value>10</Value>
+   </Property>
+  </Properties>
+</SensorData>
+</SensorDatas>
