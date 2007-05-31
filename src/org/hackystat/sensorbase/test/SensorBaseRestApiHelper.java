@@ -61,4 +61,12 @@ public class SensorBaseRestApiHelper {
     request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
     return client.handle(request);
   }
+  
+  /**
+   * Returns the hostname associated with this test server. 
+   * @return The host name, including the context root. 
+   */
+  protected String getHostName() {
+    return SensorBaseRestApiHelper.server.getHostName();
+  }
 }

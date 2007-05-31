@@ -11,7 +11,7 @@
   <property name="checkstyle.jar" value="checkstyle-all-${checkstyle.version}.jar"/>
   <property name="checkstyle.failOnViolation" value="false"/> 
 
-  <target name="checkstyle.tool" description="Checks the style of the sources and reports issues.">
+  <target name="checkstyle.tool" depends="compile" description="Checks the style of the sources and reports issues.">
     <!-- Check for the CHECKSTYLE_HOME environment variable, failing the build if it can't be found. -->
     <available file="${env.CHECKSTYLE_HOME}/${checkstyle.jar}" property="checkstyle.available"/>
     <fail unless="checkstyle.available" message="Error: CHECKSTYLE_HOME not set or ${env.CHECKSTYLE_HOME}/${checkstyle.jar} not found."/>
@@ -23,6 +23,10 @@
       <fileset dir="${src.dir}" includes="**/*.java" excludes="**/jaxb/**"/>
       <formatter type="plain"/>
       <formatter type="xml" tofile="${checkstyle.dir}/checkstyle.xml"/>
+      <classpath>
+        <pathelement location="${build.dir}/classes" />
+        <path refid="compile.classpath"/>
+      </classpath>   
     </checkstyle>
   </target>
   

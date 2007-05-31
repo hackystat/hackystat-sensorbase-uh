@@ -6,6 +6,7 @@ import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.mail.Mailer;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataResource;
+import org.hackystat.sensorbase.resource.sensordata.UserSensorDataResource;
 import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
 import org.hackystat.sensorbase.resource.sensordatatypes.SensorDataTypeResource;
 import org.hackystat.sensorbase.resource.sensordatatypes.SensorDataTypesResource;
@@ -101,6 +102,10 @@ public class Server extends Application {
     router.attach("/users?email={email}", UsersResource.class);
     router.attach("/users/{userkey}", UserResource.class);
     router.attach("/sensordata", SensorDataResource.class);
+    router.attach("/sensordata/{userkey}", UserSensorDataResource.class);
+    router.attach("/sensordata/{userkey}/{sensordatatype}", UserSensorDataResource.class);
+    router.attach("/sensordata/{userkey}/{sensordatatype}/{timestamp}", 
+        UserSensorDataResource.class);
     return router;
   }
 
