@@ -4,6 +4,7 @@ import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
+import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
@@ -22,7 +23,8 @@ public class ProjectsResource extends Resource {
    */
   public ProjectsResource(Context context, Request request, Response response) {
     super(context, request, response);
-    getVariants().add(new Variant(MediaType.TEXT_PLAIN));
+    getVariants().clear(); // copied from BookmarksResource.java, not sure why needed.
+    getVariants().add(new Variant(MediaType.TEXT_XML));
   }
   
   /**
@@ -32,6 +34,14 @@ public class ProjectsResource extends Resource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    return null; 
+    Representation result = null;
+    ProjectManager manager = (ProjectManager)getContext().getAttributes().get("ProjectManager");
+    if (manager == null) {
+      throw new RuntimeException("Failed to find ProjectManager");
+    }
+    if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
+      result = new DomRepresentation(MediaType.TEXT_XML, manager.getProjectIndexDocument());
+    }
+    return result;
   }
 }

@@ -54,32 +54,32 @@ public class SdtManager {
    */
   public SdtManager(Server server) {
     this.server = server;
-    File defaultsFile = findDefaultsFile();
-    // Initialize the SDTs if we've found a default file. 
-    if (defaultsFile.exists()) {
-      SensorBaseLogger.getLogger().info("Loading SDT defaults from " + defaultsFile.getPath());
-      try {
-        // Initialize marshaller and unmarshaller. 
-        JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
-        this.unmarshaller = jc.createUnmarshaller();
-        this.marshaller = jc.createMarshaller(); 
-        
-        // Get the default SDT definitions from the XML defaults file. 
+    try {
+      // Initialize marshaller and unmarshaller. 
+      JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+      this.unmarshaller = jc.createUnmarshaller();
+      this.marshaller = jc.createMarshaller(); 
+
+      // Get the default SDT definitions from the XML defaults file. 
+      File defaultsFile = findDefaultsFile();
+      // Initialize the SDTs if we've found a default file. 
+      if (defaultsFile.exists()) {
+        SensorBaseLogger.getLogger().info("Loading SDT defaults from " + defaultsFile.getPath());  
         SensorDataTypes sensorDataTypes = (SensorDataTypes) unmarshaller.unmarshal(defaultsFile);
         // Initialize the sdtMap
         for (SensorDataType sdt : sensorDataTypes.getSensorDataType()) {
           sdtMap.put(sdt.getName(), sdt);
         }
-        // Initialize documentBuilder
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        this.documentBuilder = dbf.newDocumentBuilder();
       }
-      catch (Exception e) {
-        String msg = "Exception during SDT JAXB initialization processing";
-        SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
-        throw new RuntimeException(msg, e);
-      }
+      // Initialize documentBuilder
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      dbf.setNamespaceAware(true);
+      this.documentBuilder = dbf.newDocumentBuilder();
+    }
+    catch (Exception e) {
+      String msg = "Exception during SDT JAXB initialization processing";
+      SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
+      throw new RuntimeException(msg, e);
     }
   }
   

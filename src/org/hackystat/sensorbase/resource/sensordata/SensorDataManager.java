@@ -61,34 +61,34 @@ public class SensorDataManager {
    */
   public SensorDataManager(Server server) {
     this.server = server;
-    File defaultsFile = findDefaultsFile();
-    // Initialize the SDTs if we've found a default file. 
-    if (defaultsFile.exists()) {
-      SensorBaseLogger.getLogger().info("Loading sensor data defaults: " + defaultsFile.getPath());
-      try {
-        // Initialize marshaller and unmarshaller. 
-        JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
-        this.unmarshaller = jc.createUnmarshaller();
-        this.marshaller = jc.createMarshaller(); 
-        
-        // Get the default Sensor Data definitions from the XML defaults file. 
+    try {
+      // Initialize marshaller and unmarshaller. 
+      JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+      this.unmarshaller = jc.createUnmarshaller();
+      this.marshaller = jc.createMarshaller(); 
+
+      // Get the default Sensor Data definitions from the XML defaults file. 
+      File defaultsFile = findDefaultsFile();
+      // Initialize the SDTs if we've found a default file. 
+      if (defaultsFile.exists()) {
+        SensorBaseLogger.getLogger().info("Loading SensorData defaults: " + defaultsFile.getPath());
         SensorDatas sensorDatas = (SensorDatas) unmarshaller.unmarshal(defaultsFile);
         // Initialize the sdtMap
         for (SensorData data : sensorDatas.getSensorData()) {
           putSensorDataInternal(data);
         }
-        // Initialize documentBuilder
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        dbf.setNamespaceAware(true);
-        this.documentBuilder = dbf.newDocumentBuilder();
-        // Initialize datatypefactory for XMLGregorianCalendar conversion.
-        this.datatypeFactory = DatatypeFactory.newInstance();
       }
-      catch (Exception e) {
-        String msg = "Exception during SensorData initialization processing";
-        SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
-        throw new RuntimeException(msg, e);
-      }
+      // Initialize documentBuilder
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      dbf.setNamespaceAware(true);
+      this.documentBuilder = dbf.newDocumentBuilder();
+      // Initialize datatypefactory for XMLGregorianCalendar conversion.
+      this.datatypeFactory = DatatypeFactory.newInstance();
+    }
+    catch (Exception e) {
+      String msg = "Exception during SensorData initialization processing";
+      SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
+      throw new RuntimeException(msg, e);
     }
   }
   

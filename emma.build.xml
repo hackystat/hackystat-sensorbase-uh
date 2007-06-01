@@ -33,7 +33,6 @@
              metadatafile="${emma.dir}/metadata.emma"
              merge="true" mode="overwrite">
         <filter excludes="org.hackystat.*.Test*"/>
-        <filter excludes="org.hackystat.sensorbase.resource.projects.*"/>
         <filter excludes="org.hackystat.*.jaxb.*"/>
       </instr>
     </emma>

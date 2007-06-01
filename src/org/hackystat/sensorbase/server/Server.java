@@ -4,6 +4,8 @@ import java.util.Map;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.mail.Mailer;
+import org.hackystat.sensorbase.resource.projects.ProjectManager;
+import org.hackystat.sensorbase.resource.projects.ProjectsResource;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataResource;
 import org.hackystat.sensorbase.resource.sensordata.UserSensorDataResource;
@@ -77,6 +79,7 @@ public class Server extends Application {
     attributes.put("SdtManager", new SdtManager(server));
     attributes.put("UserManager", new UserManager(server));
     attributes.put("SensorDataManager", new SensorDataManager(server));
+    attributes.put("ProjectManager", new ProjectManager(server));
     return server;
   }
   
@@ -106,6 +109,7 @@ public class Server extends Application {
     router.attach("/sensordata/{userkey}/{sensordatatype}", UserSensorDataResource.class);
     router.attach("/sensordata/{userkey}/{sensordatatype}/{timestamp}", 
         UserSensorDataResource.class);
+    router.attach("/projects", ProjectsResource.class);
     return router;
   }
 
