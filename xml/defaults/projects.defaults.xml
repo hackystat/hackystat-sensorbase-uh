@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<Projects>
+<Project Name="SampleProject">
+  <Description>Example Project</Description>
+  <StartDay>2006-01-31</StartDay>
+  <EndDay>2007-01-20</EndDay>
+  <Users>
+   <UserRef UserKey="SampleUser"  href="http://localhost:9876/sensorbase/users/sampleuser"/>
+  </Users>
+  <UriPatterns>
+    <UriPattern>file://**/Jupiter/**</UriPattern>
+  </UriPatterns>
+  <Properties>
+    <Property>
+      <Key>TDD-Group</Key>
+      <Value>True</Value>
+    </Property>
+  </Properties>
+</Project>
+</Projects>
