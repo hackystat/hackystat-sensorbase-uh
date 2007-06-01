@@ -104,20 +104,66 @@ public class ProjectManager {
     for (String userKey : this.projectMap.keySet()) {
       for (String projectName : this.projectMap.get(userKey).keySet()) {
         Project project = this.projectMap.get(userKey).get(projectName);
-        ProjectRef ref = new ProjectRef();
-        ref.setName(project.getName());
-        ref.setHref(this.server.getHostName() + "projects/" + userKey + "/" + project.getName());
-        index.getProjectRef().add(ref);
-      }
+        index.getProjectRef().add(makeProjectRef(project, userKey));
+       }
     }
-    // Now convert it to XML.
+    return marshallProjectIndex(index);
+  }
+  
+  /**
+   * Returns the XML Project for the passed user and projectname. 
+   * @param userKey The user.
+   * @param projectName The Project name.
+   * @return The XML Document instance providing a representation of this Project.
+   * @throws Exception If problems during the marshalling, or the User/Project does not exist. 
+   */
+  public synchronized Document getProjectDocument(String userKey, String projectName) 
+  throws Exception {
+    Project project = this.projectMap.get(userKey).get(projectName);
+    return marshallProject(project);
+  }
+  
+  /**
+   * Returns the XML SensorDataIndex for all data associated with this Project.
+   * @param userKey The User. 
+   * @param projectName the Project name.
+   * @return The XML Document instance providing an index to all current SDTs.
+   * @throws Exception every time. 
+   */
+  public synchronized Document getProjectSensorDataIndexDocument(String userKey, 
+      String projectName) throws Exception {
+    throw new Exception ("not implemented.");
+  }
+  
+  /**
+   * Returns the XML Index for all Projects associated with this User.
+   * @param userKey The User. 
+   * @return The XML Document instance providing an index to all current SDTs.
+   */
+  public synchronized Document getProjectIndexDocument(String userKey) {
+    ProjectIndex index = new ProjectIndex();
+    if (hasProjects(userKey)) {
+      for (String projectName : this.projectMap.get(userKey).keySet()) {
+        Project project = this.projectMap.get(userKey).get(projectName);
+        index.getProjectRef().add(makeProjectRef(project, userKey));
+       }
+    }
+    return marshallProjectIndex(index);
+  }
+  
+  /**
+   * Converts a SensorDataIndex instance into a Document and returns it.
+   * @param index The SensorDataIndex instance. 
+   * @return The Document.
+   */
+  private Document marshallProjectIndex(ProjectIndex index) {
     Document doc;
     try {
       doc = this.documentBuilder.newDocument();
       this.marshaller.marshal(index, doc);
     } 
     catch (Exception e ) {
-      String msg = "Failed to marshall Projects into an Index";
+      String msg = "Failed to marshall ProjectIndex into a Document";
       SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
@@ -125,7 +171,21 @@ public class ProjectManager {
   }
   
   /**
+   * Creates a ProjectRef instance from a Project.
+   * @param project The project. 
+   * @param userKey The UserKey.
+   * @return Its representation as a ProjectRef. 
+   */
+  private ProjectRef makeProjectRef(Project project, String userKey) {
+    ProjectRef ref = new ProjectRef();
+    ref.setName(project.getName());
+    ref.setHref(this.server.getHostName() + "projects/" + userKey + "/" + project.getName());
+    return ref; 
+  }
+  
+  /**
    * Updates the Manager with this Project. Any old definition is overwritten.
+   * Note that this same Project will be associated with ALL Users. 
    * @param project The Project. 
    */
   public final synchronized void putProject(Project project) {
@@ -147,6 +207,15 @@ public class ProjectManager {
     return 
     this.projectMap.containsKey(userKey) &&
     this.projectMap.get(userKey).containsKey(projectName);
+  }
+  
+  /**
+   * Returns true if the passed user has any defined Projects.
+   * @param  userKey A userkey
+   * @return True if that User is defined and has at least one Project.
+   */
+  public synchronized boolean hasProjects(String userKey) {
+    return this.projectMap.containsKey(userKey);
   }
   
   /**
