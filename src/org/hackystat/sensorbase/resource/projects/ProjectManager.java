@@ -6,10 +6,12 @@ import java.io.File;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -19,6 +21,10 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
 import org.hackystat.sensorbase.resource.projects.jaxb.Projects;
+import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
 import org.w3c.dom.Document;
@@ -125,6 +131,7 @@ public class ProjectManager {
   
   /**
    * Returns the XML SensorDataIndex for all data associated with this Project.
+   * Assumes that User and Project are valid.
    * @param userKey The User. 
    * @param projectName the Project name.
    * @return The XML Document instance providing an index to all current SDTs.
@@ -132,7 +139,25 @@ public class ProjectManager {
    */
   public synchronized Document getProjectSensorDataIndexDocument(String userKey, 
       String projectName) throws Exception {
-    throw new Exception ("not implemented.");
+    SensorDataIndex index = new SensorDataIndex();
+    SensorDataManager sensorDataManager = 
+      (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
+        
+    Project project = this.getProject(userKey, projectName);
+    XMLGregorianCalendar startTime = project.getStartTime();
+    XMLGregorianCalendar endTime = project.getEndTime();
+    Set<SensorData> dataSet = sensorDataManager.getData(userKey, startTime, endTime);
+    for (SensorData data : dataSet) {
+      String sdt = data.getSensorDataType();
+      XMLGregorianCalendar timestamp = data.getTimestamp();
+      SensorDataRef ref = new SensorDataRef();
+      ref.setOwner(userKey);
+      ref.setSensorDataType(sdt);
+      ref.setTimestamp(timestamp);
+      ref.setHref(server.getHostName() + "sensordata/" + userKey + "/" + sdt + "/" + timestamp);
+      index.getSensorDataRef().add(ref);
+    }
+    return sensorDataManager.marshallSensorDataIndex(index);
   }
   
   /**
@@ -185,15 +210,24 @@ public class ProjectManager {
   
   /**
    * Updates the Manager with this Project. Any old definition is overwritten.
-   * Note that this same Project will be associated with ALL Users. 
+   * Note that this same Project will be associated with the Owner and all Members.  
    * @param project The Project. 
    */
   public final synchronized void putProject(Project project) {
-    String ownerUserKey = project.getUsers().getUserRef().get(0).getUserKey();
+    // First, put the [owner, project] mapping
+    String ownerUserKey = project.getOwner();
     if (!projectMap.containsKey(ownerUserKey)) {
       projectMap.put(ownerUserKey, new HashMap<String, Project>());
     }
     projectMap.get(ownerUserKey).put(project.getName(), project);
+    
+    // Now put the [member, project] mappings, if any.
+    for (String memberUserKey : project.getMembers().getMember()) {
+      if (!projectMap.containsKey(memberUserKey)) {
+        projectMap.put(memberUserKey, new HashMap<String, Project>());
+      }
+      projectMap.get(memberUserKey).put(project.getName(), project);
+    }
   }
   
   /**

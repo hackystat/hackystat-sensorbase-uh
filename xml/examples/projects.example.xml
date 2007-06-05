@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <Project Name="Jupiter-3.3">
   <Description>Release 3.3 of the Jupiter code review plugin for Eclipse</Description>
-  <StartDay>2006-01-31</StartDay>
-  <EndDay>2007-01-20</EndDay>
-  <Users>
-   <UserRef UserKey="9fjchekcl34s"  href="http://hackystat.ics.hawaii.edu/hackystat/users/9fjchekcl34s"/>
-   <UserRef UserKey="7dkche3klclc"  href="http://hackystat.ics.hawaii.edu/hackystat/users/7dkche3klclc"/>
-  </Users>
+  <StartTime>2006-01-31T00:00:00.000</StartTime>
+  <EndTime>2007-01-20T00:00:00.000</EndTime>
+  <Owner>9fjchekcl34s</Owner>
+  <Members>
+   <Member>7dkche3klclc</Member>
+  </Members>
   <UriPatterns>
     <UriPattern>file://**/Jupiter/**</UriPattern>
   </UriPatterns>

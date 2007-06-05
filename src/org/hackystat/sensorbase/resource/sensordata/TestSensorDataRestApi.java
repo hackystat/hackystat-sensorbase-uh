@@ -105,16 +105,14 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
   @Test public void putSensorData() throws Exception {
     // First, create a sample sensor data instance.
     String user = "SampleUser";
-    String userUri = getHostName() + "users/" + user;
     String timestamp = "2007-04-30T02:00:00.000";
     DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
     XMLGregorianCalendar tstamp = datatypeFactory.newXMLGregorianCalendar(timestamp);
     String sdt = "SampleSdt";
-    String sdtUri = getHostName() + "sensordatatypes/" + sdt;
     SensorData data = new SensorData();
     data.setTool("Subversion");
-    data.setUser(userUri);
-    data.setSensorDataType(sdtUri);
+    data.setOwner(user);
+    data.setSensorDataType(sdt);
     data.setTimestamp(tstamp);
     data.setResource("file://foo/bar/baz.txt");
     data.setRuntime(tstamp);

@@ -33,7 +33,7 @@
       <xs:sequence>
         <xs:element ref="Email"/>
         <xs:element ref="UserKey"/>
-        <xs:element ref="Role"/>
+        <xs:element ref="Role" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="Properties" minOccurs="0" maxOccurs="1"/>
       </xs:sequence>
     </xs:complexType>

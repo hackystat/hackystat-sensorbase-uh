@@ -2,13 +2,15 @@
 <Projects>
 <Project Name="SampleProject">
   <Description>Example Project</Description>
-  <StartDay>2006-01-31</StartDay>
-  <EndDay>2007-01-20</EndDay>
-  <Users>
-   <UserRef UserKey="SampleUser"  href="http://localhost:9876/sensorbase/users/sampleuser"/>
-  </Users>
+  <StartTime>2007-01-01T00:00:00.000</StartTime>
+    <EndTime>2007-12-31T00:00:00.000</EndTime>
+  <Owner>SampleUser</Owner>
+  <Members>
+   <Member>SampleUser2</Member>
+  </Members>
   <UriPatterns>
     <UriPattern>file://**/Jupiter/**</UriPattern>
+    <UriPattern>file://**/TestData/**</UriPattern>
   </UriPatterns>
   <Properties>
     <Property>

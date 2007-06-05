@@ -5,11 +5,14 @@ import static org.hackystat.sensorbase.server.ServerProperties.XML_DIR_KEY;
 import java.io.File;
 import java.io.StringReader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
@@ -97,8 +100,8 @@ public class SensorDataManager {
    * @param data The SensorData instance.
    */
   private void putSensorDataInternal(SensorData data) {
-    String userKey = getLastUriElement(data.getUser());
-    String sdtName = getLastUriElement(data.getSensorDataType());
+    String userKey = data.getOwner();
+    String sdtName = data.getSensorDataType();
     XMLGregorianCalendar timestamp = data.getTimestamp();
     if (!this.dataMap.containsKey(userKey)) {
       this.dataMap.put(userKey, new HashMap<String, Map<XMLGregorianCalendar, SensorData>>());
@@ -125,16 +128,16 @@ public class SensorDataManager {
           new File (xmlDir + defaultsPath);
   }
   
-  /**
-   * Returns the last element of a URI, for example http://foo/bar -> bar
-   * Useful for converting SDT and UserKey URIs to their sdtName and userkey.
-   * Can throw an unchecked exception if the URI does not have a /.
-   * @param uri The URI to be trimmed.
-   * @return The last element in the URI.
-   */
-  private String getLastUriElement(String uri) {
-    return uri.substring(uri.lastIndexOf('/') + 1);
-  }
+//  /**
+//   * Returns the last element of a URI, for example http://foo/bar -> bar
+//   * Useful for converting SDT and UserKey URIs to their sdtName and userkey.
+//   * Can throw an unchecked exception if the URI does not have a /.
+//   * @param uri The URI to be trimmed.
+//   * @return The last element in the URI.
+//   */
+//  private String getLastUriElement(String uri) {
+//    return uri.substring(uri.lastIndexOf('/') + 1);
+//  }
 
 
   /**
@@ -192,7 +195,7 @@ public class SensorDataManager {
   private SensorDataRef makeSensorDataRef(String userKey, String sdtName, 
       XMLGregorianCalendar timestamp) {
     SensorDataRef ref = new SensorDataRef();
-    ref.setUserKey(userKey);
+    ref.setOwner(userKey);
     ref.setSensorDataType(sdtName);
     ref.setTimestamp(timestamp);
     ref.setHref(this.server.getHostName() + "sensordata/" + userKey + "/" + sdtName + "/" +
@@ -205,7 +208,7 @@ public class SensorDataManager {
    * @param index The SensorDataIndex instance. 
    * @return The Document.
    */
-  private Document marshallSensorDataIndex(SensorDataIndex index) {
+  public synchronized Document marshallSensorDataIndex(SensorDataIndex index) {
     Document doc;
     try {
       doc = this.documentBuilder.newDocument();
@@ -373,6 +376,50 @@ public class SensorDataManager {
     JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (SensorData)unmarshaller.unmarshal(new StringReader(xmlString));
+  }
+
+  /**
+   * Returns a (possibly empty) set of SensorData instances associated with the 
+   * given user between the startTime and endTime. 
+   * @param userKey The user. 
+   * @param startTime The start time.
+   * @param endTime The end time.
+   * @return The set of SensorData instances. 
+   */
+  public Set<SensorData> getData(String userKey, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime) {
+    Set<SensorData> dataSet = new HashSet<SensorData>();
+    if (this.dataMap.containsKey(userKey)) {
+      for (Map.Entry<String, Map<XMLGregorianCalendar, SensorData>> entry : 
+        this.dataMap.get(userKey).entrySet()) {
+        for (XMLGregorianCalendar tstamp : entry.getValue().keySet())  {
+            if (inBetween(startTime, endTime, tstamp)) {
+              dataSet.add(entry.getValue().get(tstamp));
+          }
+        }
+      }
+    }
+    return dataSet;
+  }
+  
+  /**
+   * Returns true if tstamp is equal to or between start and end.
+   * @param start The start time.
+   * @param end The end time.
+   * @param tstamp The timestamp to test. 
+   * @return True if between this interval.
+   */  
+  private boolean inBetween(XMLGregorianCalendar start, XMLGregorianCalendar end, 
+      XMLGregorianCalendar tstamp) {
+    if ((start.compare(tstamp) == DatatypeConstants.EQUAL) ||
+        (end.compare(tstamp) == DatatypeConstants.EQUAL)) {
+      return true;
+    }
+    if ((start.compare(tstamp) == DatatypeConstants.LESSER) &&
+        (end.compare(tstamp) == DatatypeConstants.GREATER)) {
+      return true;
+    }
+    return false;
   }
 
 }

@@ -5,7 +5,7 @@
  <Tool>Subversion</Tool>
  <SensorDataType>http://hackystat.ics.hawaii.edu/hackystat/sensordatatype/Commit</SensorDataType>
  <Resource>file://home/johnson/svn/Foo/build.xml</Resource>
- <User>http://hackystat.ics.hawaii.edu/hackystat/user/9fjchekcl34s</User>
+ <Owner>http://hackystat.ics.hawaii.edu/hackystat/user/9fjchekcl34s</Owner>
  <Properties>
    <Property>
      <Key>TotalLines</Key>

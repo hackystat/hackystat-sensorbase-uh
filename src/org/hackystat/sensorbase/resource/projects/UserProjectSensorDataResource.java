@@ -12,7 +12,7 @@ import org.restlet.resource.Variant;
 
 /**
  * The resource for processing GET host/projects/{userkey}/{projectname}/sensordata.
- * Returns an index to the SensorData resources associated with this User/Project.
+ * Returns an index to the SensorData resources associated with this User and Project.
  * 
  * @author Philip Johnson
  */

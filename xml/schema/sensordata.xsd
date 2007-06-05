@@ -4,12 +4,12 @@
   <xs:element name="Timestamp" type="xs:dateTime"/>
   <xs:element name="Runtime" type="xs:dateTime"/>
   <xs:element name="Tool" type="xs:string"/>
-  <xs:element name="SensorDataType" type="xs:anyURI"/>
+  <xs:element name="SensorDataType" type="xs:string"/>
   <xs:element name="Resource" type="xs:anyURI"/>
-  <xs:element name="User" type="xs:anyURI"/>
+  <xs:element name="Owner" type="xs:string"/>
   <xs:element name="Key" type="xs:string"/>
   <xs:element name="Value" type="xs:string"/>
-  <xs:attribute name="UserKey" type="xs:string"/>
+  <xs:attribute name="Owner" type="xs:string"/>
   <xs:attribute name="SensorDataType" type="xs:string"/>
   <xs:attribute name="Timestamp" type="xs:dateTime"/>
   <xs:attribute name="href" type="xs:anyURI"/>
@@ -41,7 +41,7 @@
         <xs:element ref="Tool"/>
         <xs:element ref="SensorDataType"/>
         <xs:element ref="Resource"/>
-        <xs:element ref="User"/>
+        <xs:element ref="Owner"/>
         <xs:element ref="Properties" minOccurs="0" maxOccurs="1"/>
       </xs:sequence>
     </xs:complexType>
@@ -57,7 +57,7 @@
 
   <xs:element name="SensorDataRef">
     <xs:complexType>
-      <xs:attribute ref="UserKey"/>
+      <xs:attribute ref="Owner"/>
       <xs:attribute ref="SensorDataType"/>
       <xs:attribute ref="Timestamp"/>
       <xs:attribute ref="href"/>

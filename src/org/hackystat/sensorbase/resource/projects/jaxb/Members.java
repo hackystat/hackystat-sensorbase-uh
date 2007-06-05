@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element ref="{}ProjectRef" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element ref="{}Member" maxOccurs="unbounded"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -38,41 +38,41 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "projectRef"
+    "member"
 })
-@XmlRootElement(name = "ProjectIndex")
-public class ProjectIndex {
+@XmlRootElement(name = "Members")
+public class Members {
 
-    @XmlElement(name = "ProjectRef")
-    protected List<ProjectRef> projectRef;
+    @XmlElement(name = "Member", required = true)
+    protected List<String> member;
 
     /**
-     * Gets the value of the projectRef property.
+     * Gets the value of the member property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the projectRef property.
+     * This is why there is not a <CODE>set</CODE> method for the member property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getProjectRef().add(newItem);
+     *    getMember().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link ProjectRef }
+     * {@link String }
      * 
      * 
      */
-    public List<ProjectRef> getProjectRef() {
-        if (projectRef == null) {
-            projectRef = new ArrayList<ProjectRef>();
+    public List<String> getMember() {
+        if (member == null) {
+            member = new ArrayList<String>();
         }
-        return this.projectRef;
+        return this.member;
     }
 
 }
