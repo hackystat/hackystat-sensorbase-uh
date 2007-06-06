@@ -86,7 +86,7 @@ public class UserSensorDataResource extends Resource {
         // First, try to parse the timestamp string, and return error if it doesn't parse.
         XMLGregorianCalendar tstamp;
         try {
-          tstamp = manager.convertTimestamp(this.timestamp);
+          tstamp = Timestamp.makeTimestamp(this.timestamp);
         }
         catch (Exception e) {
           getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Timestamp " + timestamp);

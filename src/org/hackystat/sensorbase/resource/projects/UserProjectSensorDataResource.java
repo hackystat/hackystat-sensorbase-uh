@@ -1,5 +1,7 @@
 package org.hackystat.sensorbase.resource.projects;
 
+import org.hackystat.sensorbase.resource.sensordata.Timestamp;
+import org.hackystat.sensorbase.resource.users.UserManager;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -22,6 +24,14 @@ public class UserProjectSensorDataResource extends Resource {
   private String userKey;
   /** To be retrieved from the URL. */
   private String projectName;
+  /** An optional query parameter */
+  private String startTime;
+  /** An optional query string parameter. */
+  private String endTime;
+  /** The Project Manager. */
+  private ProjectManager projectManager;
+  /** The User Manager. */
+  private UserManager userManager;
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -32,43 +42,84 @@ public class UserProjectSensorDataResource extends Resource {
   public UserProjectSensorDataResource(Context context, Request request, Response response) {
     super(context, request, response);
     this.userKey = (String) request.getAttributes().get("userkey");
-    this.projectName = (String) request.getAttributes().get("projectname");
+    this.projectName = (String) request.getAttributes().get("projectname"); 
+    this.startTime = (String) request.getAttributes().get("startTime");
+    this.endTime = (String) request.getAttributes().get("endTime");
+    this.projectManager = (ProjectManager)getContext().getAttributes().get("ProjectManager");
+    this.userManager = (UserManager)getContext().getAttributes().get("UserManager");
     getVariants().clear(); // copyied from BookmarksResource.java, not sure why needed.
     getVariants().add(new Variant(MediaType.TEXT_XML));
   }
   
   /**
    * Returns a SensorDataIndex of all SensorData associated with this Project and User.
+   * Returns an error condition if:
+   * <ul>
+   * <li> The user does not exist.
+   * <li> The Project Resource named by the User and Project does not exist.
+   * <li> startTime or endTime is not an XMLGregorianCalendar string.
+   * <li> One or the other but not both of startTime and endTime is provided.
+   * <li> endTime is greater than startTime.
+   * </ul>
    * 
    * @param variant The representational variant requested.
    * @return The representation. 
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    Representation result = null;
-    ProjectManager manager = 
-      (ProjectManager)getContext().getAttributes().get("ProjectManager");
-    if (manager == null) {
-      throw new RuntimeException("Failed to find ProjectManager");
+
+    // If this User does not exist, return an error.
+    if (!userManager.hasUser(this.userKey)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");
+      return null;
+    }   
+    // If this User/Project pair does not exist, return an error.
+    if (!projectManager.hasProject(this.userKey, this.projectName)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown project");
+      return null;
     }
-    if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      // If this User/Project pair does not exist, return an error.
-      if (!manager.hasProject(this.userKey, this.projectName)) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "No project");
+    // If startTime or endTime is provided, but is not an XMLGregorianCalendar, then return error.
+    if ((this.startTime != null) && (!Timestamp.isTimestamp(this.startTime))) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad startTime");
+      return null;
+    }
+    if ((this.endTime != null) && (!Timestamp.isTimestamp(this.endTime))) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad endTime");
+      return null;
+    }
+    // If end time is greater than start time, return an error.
+    if ((this.endTime != null) && (Timestamp.isTimestamp(this.endTime)) &&
+        (this.startTime != null) && (Timestamp.isTimestamp(this.startTime)) &&
+        (Timestamp.greaterThan(this.startTime, this.endTime))) {
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Start time after end time.");
         return null;
-      }
-      // Otherwise return the SensorDataIndex representation. 
+    }
+    // If startType is provided but not endTime, or vice versa, return an error. 
+    if ((this.endTime == null) && (this.startTime != null) ||
+        (this.endTime != null) && (this.startTime == null)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "startTime & endTime required.");
+      return null;
+    }
+
+    if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       try {
-        result = new DomRepresentation(MediaType.TEXT_XML, 
-            manager.getProjectSensorDataIndexDocument(this.userKey, this.projectName));
+        if (startTime == null) {
+          // Return all sensor data for this user and project if no query parameters.
+          return new DomRepresentation(MediaType.TEXT_XML, 
+              projectManager.getProjectSensorDataIndexDocument(this.userKey, this.projectName));
+        }
+        else {
+          // Return the sensor data starting at startTime and for the following duration.  
+          return new DomRepresentation(MediaType.TEXT_XML, 
+              projectManager.getProjectSensorDataIndexDocument(this.userKey, this.projectName,
+                  this.startTime, this.endTime));
+        }
       }
       catch (Exception e) {
         getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Problems marshalling");
         return null;
       }
-      }
-    return result;
+    }
+    return null;
   }
-  
-
 }

@@ -117,6 +117,9 @@ public class Server extends Application {
     router.attach("/projects/{userkey}/{projectname}", UserProjectResource.class);
     router.attach("/projects/{userkey}/{projectname}/sensordata", 
         UserProjectSensorDataResource.class);
+    router.attach(
+        "/projects/{userkey}/{projectname}/sensordata?startTime={startTime}&endTime={endTime}", 
+        UserProjectSensorDataResource.class);
     return router;
   }
 

@@ -22,6 +22,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
 import org.hackystat.sensorbase.resource.projects.jaxb.Projects;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
+import org.hackystat.sensorbase.resource.sensordata.Timestamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
@@ -161,6 +162,49 @@ public class ProjectManager {
   }
   
   /**
+   * Returns the XML SensorDataIndex for the data associated with this Project within the 
+   * specified start and end times.
+   * Note that the Project start and end times may further constrain the returned set of data. 
+   * This method chooses the greater of startString and the Project startTime, and the lesser of
+   * endString and the Project endTime. 
+   * Assumes that User and Project are valid.
+   * @param userKey The User. 
+   * @param projectName the Project name.
+   * @param startString The startTime as a string. 
+   * @param endString The endTime as a string.
+   * @return The XML Document instance providing an index to the sensor data in this project
+   * starting at startTime and ending at endTime. 
+   * @throws Exception if startString or endString are not XMLGregorianCalendars.
+   */
+  public synchronized Document getProjectSensorDataIndexDocument(String userKey, 
+      String projectName, String startString, String endString) throws Exception {
+    SensorDataIndex index = new SensorDataIndex();
+    SensorDataManager sensorDataManager = 
+      (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
+    Project project = this.getProject(userKey, projectName);
+    XMLGregorianCalendar startTime = Timestamp.makeTimestamp(startString);
+    XMLGregorianCalendar endTime = Timestamp.makeTimestamp(endString);
+    // make startTime the greater of startTime and the Project startTime. 
+    startTime = (Timestamp.greaterThan(startTime, project.getStartTime())) ?
+        startTime : project.getStartTime();
+    // make endTime the lesser of endTime and the Project endTime.
+    endTime = (Timestamp.lessThan(endTime, project.getEndTime())) ? endTime : project.getEndTime();
+        
+    Set<SensorData> dataSet = sensorDataManager.getData(userKey, startTime, endTime);
+    for (SensorData data : dataSet) {
+      String sdt = data.getSensorDataType();
+      XMLGregorianCalendar timestamp = data.getTimestamp();
+      SensorDataRef ref = new SensorDataRef();
+      ref.setOwner(userKey);
+      ref.setSensorDataType(sdt);
+      ref.setTimestamp(timestamp);
+      ref.setHref(server.getHostName() + "sensordata/" + userKey + "/" + sdt + "/" + timestamp);
+      index.getSensorDataRef().add(ref);
+    }
+    return sensorDataManager.marshallSensorDataIndex(index);
+  }
+  
+  /**
    * Returns the XML Index for all Projects associated with this User.
    * @param userKey The User. 
    * @return The XML Document instance providing an index to all current SDTs.
@@ -222,11 +266,13 @@ public class ProjectManager {
     projectMap.get(ownerUserKey).put(project.getName(), project);
     
     // Now put the [member, project] mappings, if any.
-    for (String memberUserKey : project.getMembers().getMember()) {
-      if (!projectMap.containsKey(memberUserKey)) {
-        projectMap.put(memberUserKey, new HashMap<String, Project>());
+    if (project.getMembers() != null) {
+      for (String memberUserKey : project.getMembers().getMember()) {
+        if (!projectMap.containsKey(memberUserKey)) {
+          projectMap.put(memberUserKey, new HashMap<String, Project>());
+        }
+        projectMap.get(memberUserKey).put(project.getName(), project);
       }
-      projectMap.get(memberUserKey).put(project.getName(), project);
     }
   }
   
@@ -325,7 +371,7 @@ public class ProjectManager {
    * @return The corresponding Project instance. 
    * @throws Exception If problems occur during unmarshalling. 
    */
-  public static Project unmarshallSdt(Document doc) throws Exception {
+  public static Project unmarshallProject(Document doc) throws Exception {
     JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (Project) unmarshaller.unmarshal(doc);
@@ -339,7 +385,7 @@ public class ProjectManager {
    * @return The corresponding Project instance. 
    * @throws Exception If problems occur during unmarshalling.
    */
-  public static Project unmarshallSdt(String xmlString) throws Exception {
+  public static Project unmarshallProject(String xmlString) throws Exception {
     JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (Project)unmarshaller.unmarshal(new StringReader(xmlString));

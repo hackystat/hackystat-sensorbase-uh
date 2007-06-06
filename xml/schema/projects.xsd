@@ -53,7 +53,7 @@
       <xs:sequence>
         <xs:element ref="Description"/>
         <xs:element ref="StartTime"/>
-        <xs:element ref="EndTime" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="EndTime"/>
         <xs:element ref="Owner"/>
         <xs:element ref="Members" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="UriPatterns"/>

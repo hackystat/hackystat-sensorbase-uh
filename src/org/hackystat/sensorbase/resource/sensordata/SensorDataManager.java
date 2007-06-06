@@ -12,8 +12,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.DatatypeFactory;
+//import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -55,7 +54,7 @@ public class SensorDataManager {
   Server server; 
   
   /** For parsing timestamp strings into XMLGregorianCalendar objects. */
-  DatatypeFactory datatypeFactory;
+ // DatatypeFactory datatypeFactory;
   
   /** 
    * The constructor for SdtManagers. 
@@ -86,7 +85,7 @@ public class SensorDataManager {
       dbf.setNamespaceAware(true);
       this.documentBuilder = dbf.newDocumentBuilder();
       // Initialize datatypefactory for XMLGregorianCalendar conversion.
-      this.datatypeFactory = DatatypeFactory.newInstance();
+  //    this.datatypeFactory = DatatypeFactory.newInstance();
     }
     catch (Exception e) {
       String msg = "Exception during SensorData initialization processing";
@@ -254,7 +253,7 @@ public class SensorDataManager {
    */
   public synchronized boolean hasData(String key, String sdtName, String timestamp) {
     try {
-      XMLGregorianCalendar tstamp = this.convertTimestamp(timestamp);
+      XMLGregorianCalendar tstamp = Timestamp.makeTimestamp(timestamp);
       return 
       this.dataMap.containsKey(key) &&
       this.dataMap.get(key).containsKey(sdtName) &&
@@ -289,20 +288,14 @@ public class SensorDataManager {
    */
   public synchronized void deleteData(String key, String sdtName, String timestamp) {
     if (hasData(key, sdtName, timestamp)) {
-      // Now we know we can convert this OK.
-      XMLGregorianCalendar tstamp = this.convertTimestamp(timestamp);
-      deleteData(key, sdtName, tstamp);
+      try {
+        XMLGregorianCalendar tstamp = Timestamp.makeTimestamp(timestamp);
+        deleteData(key, sdtName, tstamp);
+      }
+      catch (Exception e) { // NOPMD
+        // data cannot be in map by definition.
+      }
     }
-  }
-  
-  /**
-   * Attempts to parse timestampString into an XMLGregorianCalendar instance. 
-   * Can throw unchecked exceptions IllegalArgumentException or NullPointerException.
-   * @param timestampString The string to be parsed as a timestamp.
-   * @return The associated XMLGregorianCalendar instance. 
-   */
-  public synchronized XMLGregorianCalendar convertTimestamp(String timestampString) {
-    return this.datatypeFactory.newXMLGregorianCalendar(timestampString);
   }
   
   /**
@@ -365,6 +358,19 @@ public class SensorDataManager {
   }
   
   /**
+   * Takes an XML Document representing a SensorDataIndex and converts it to an instance. 
+   * Note that this does not affect the state of any SensorDataManager instance. 
+   * @param doc The XML Document representing a SensorDataIndex. 
+   * @return The corresponding SensorDataIndex instance. 
+   * @throws Exception If problems occur during unmarshalling. 
+   */
+  public static SensorDataIndex unmarshallSensorDataIndex(Document doc) throws Exception {
+    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+    Unmarshaller unmarshaller = jc.createUnmarshaller();
+    return (SensorDataIndex) unmarshaller.unmarshal(doc);
+  }
+  
+  /**
    * Takes a String encoding of a SensorData in XML format and converts it to an instance. 
    * Note that this does not affect the state of any SensorDataManager instance. 
    * 
@@ -393,33 +399,13 @@ public class SensorDataManager {
       for (Map.Entry<String, Map<XMLGregorianCalendar, SensorData>> entry : 
         this.dataMap.get(userKey).entrySet()) {
         for (XMLGregorianCalendar tstamp : entry.getValue().keySet())  {
-            if (inBetween(startTime, endTime, tstamp)) {
+            if (Timestamp.inBetween(startTime, endTime, tstamp)) {
               dataSet.add(entry.getValue().get(tstamp));
           }
         }
       }
     }
     return dataSet;
-  }
-  
-  /**
-   * Returns true if tstamp is equal to or between start and end.
-   * @param start The start time.
-   * @param end The end time.
-   * @param tstamp The timestamp to test. 
-   * @return True if between this interval.
-   */  
-  private boolean inBetween(XMLGregorianCalendar start, XMLGregorianCalendar end, 
-      XMLGregorianCalendar tstamp) {
-    if ((start.compare(tstamp) == DatatypeConstants.EQUAL) ||
-        (end.compare(tstamp) == DatatypeConstants.EQUAL)) {
-      return true;
-    }
-    if ((start.compare(tstamp) == DatatypeConstants.LESSER) &&
-        (end.compare(tstamp) == DatatypeConstants.GREATER)) {
-      return true;
-    }
-    return false;
   }
 
 }
