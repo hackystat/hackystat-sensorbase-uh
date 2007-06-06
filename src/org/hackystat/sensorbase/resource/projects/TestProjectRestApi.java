@@ -1,5 +1,6 @@
 package org.hackystat.sensorbase.resource.projects;
 
+import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -7,11 +8,13 @@ import static org.junit.Assert.assertTrue;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.hackystat.sensorbase.resource.projects.jaxb.Members;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.Timestamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
+import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.junit.Test;
 import org.restlet.data.MediaType;
@@ -174,8 +177,8 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   @Test public void putProject() throws Exception {
     // First, create a sample Project. 
     Project project = new Project();
-    project.setName("TestProject");
-    project.setDescription("Test Project");
+    project.setName("TestProject1");
+    project.setDescription("Test Project1");
     XMLGregorianCalendar tstamp = Timestamp.makeTimestamp();
     project.setStartTime(tstamp);
     project.setEndTime(tstamp);
@@ -186,7 +189,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     
     Document doc = ProjectManager.marshallProject(project);
     Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
-    String uri = "projects/SampleUser/TestProject";
+    String uri = "projects/SampleUser/TestProject1";
     Response response = makeRequest(Method.PUT, uri, representation);
 
     // Test that the PUT request was received and processed by the server OK. 
@@ -196,10 +199,83 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     response = makeRequest(Method.GET, uri);
     assertTrue("Testing for successful GET TestProject", response.getStatus().isSuccess());
     XmlRepresentation data = response.getEntityAsSax();
-    assertEquals("Checking SDT", "TestProject", data.getText("Project/@Name"));
+    assertEquals("Checking GET TestProject1", "TestProject1", data.getText("Project/@Name"));
     
     // Test that DELETE gets rid of this Project.
     response = makeRequest(Method.DELETE, uri);
-    assertTrue("Testing for successful DELETE TestProject", response.getStatus().isSuccess());
+    assertTrue("Testing for successful DELETE TestProject1", response.getStatus().isSuccess());
+  }
+  
+  /**
+   * Test that PUT a Project with a SampleUser2 as member, then allows SampleUser2 to GET it.
+   * @throws Exception If problems occur.
+   */
+  @Test public void putProjectMember() throws Exception {
+    // First, create a sample Project. 
+    Project project = new Project();
+    project.setName("TestProject2");
+    project.setDescription("Test Project2");
+    XMLGregorianCalendar tstamp = Timestamp.makeTimestamp();
+    project.setStartTime(tstamp);
+    project.setEndTime(tstamp);
+    project.setOwner("SampleUser");
+    UriPatterns uris = new UriPatterns();
+    uris.getUriPattern().add("**/test/**");
+    project.setUriPatterns(uris);
+    Members members = new Members();
+    members.getMember().add("SampleUser2");
+    project.setMembers(members);
+    
+    Document doc = ProjectManager.marshallProject(project);
+    Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
+    String uri = "projects/SampleUser/TestProject2";
+    Response response = makeRequest(Method.PUT, uri, representation);
+
+    // Test that the PUT request was received and processed by the server OK. 
+    assertTrue("Testing for successful PUT TestProject", response.getStatus().isSuccess());
+    
+    // Test to see that SampleUser2 can now retrieve it.
+    uri = "projects/SampleUser2/TestProject2";
+    response = makeRequest(Method.GET, uri);
+    assertTrue("Testing for successful SampleUser2 GET", response.getStatus().isSuccess());
+    XmlRepresentation data = response.getEntityAsSax();
+    assertEquals("Checking GET TestProject2", "TestProject2", data.getText("Project/@Name"));
+
+    // Test that a member cannot DELETE this Project.
+    response = makeRequest(Method.DELETE, uri);
+    assertTrue("Testing for unsuccessful DELETE TestProject", response.getStatus().isClientError());
+  }
+  
+  /**
+   * Tests that after creating a new User, it has a Default Project.
+   * @throws Exception If problems occur.
+   */
+  @Test public void newUserDefaultProject() throws Exception {
+    String testEmail = "TestDefaultProject@" + ServerProperties.get(TEST_DOMAIN_KEY);
+    Response response = makeRequest(Method.POST, "users?email=" + testEmail);
+
+    // Test that the request was received and processed by the server OK. 
+    assertTrue("Testing for creation of TestDefaultProject", response.getStatus().isSuccess());
+
+    // Now test that we can get this User's default project
+    String uri = "projects/TestDefaultProject/Default";
+    response = makeRequest(Method.GET, uri);
+    assertTrue("Testing for successful GET Default Project", response.getStatus().isSuccess());
+  }
+  
+  /**
+   * Tests that we retrieve all data for the SampleUser under their Default Project.
+   * @throws Exception If problems occur.
+   */
+  @Test public void sampleUserDefaultProjectData() throws Exception {
+    String uri = "projects/SampleUser/Default/sensordata";
+    Response response = makeRequest(Method.GET, uri);
+    assertTrue("Testing for successful GET Default Project 2", response.getStatus().isSuccess());
+    
+    // Ensure that we got all 3 sensor data instances.
+    DomRepresentation data = response.getEntityAsDom();
+    SensorDataIndex index = SensorDataManager.unmarshallSensorDataIndex(data.getDocument());
+    assertEquals("Checking that we retrieved 3 sensor data.", 3, index.getSensorDataRef().size());
+    
   }
 }

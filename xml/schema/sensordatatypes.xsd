@@ -37,7 +37,7 @@
   <xs:element name="Properties">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="Property" minOccurs="1" maxOccurs="unbounded"/>
+        <xs:element ref="Property" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -48,7 +48,7 @@
       <xs:sequence>
         <xs:element ref="Description"/>
         <xs:element ref="RequiredFields"/>
-        <xs:element ref="Properties" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="Properties"/>
       </xs:sequence>
       <xs:attribute ref="Name"/>
     </xs:complexType>

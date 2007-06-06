@@ -114,19 +114,10 @@ public class SensorDataTypeResource extends Resource {
   
   /**
    * Implement the DELETE method that deletes an existing SDT given its name.
-   * <ul> 
-   * <li> The SDT must be currently defined in this SdtManager.
-   * </ul>
    */
   @Override
   public void delete() {
     SdtManager manager = (SdtManager)getContext().getAttributes().get("SdtManager");
-    // Return failure if it doesn't exist.
-    if (!manager.hasSdt(this.sdtName)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Nonexisting SDT: " + this.sdtName);
-      return;
-    }
-    // Otherwise, delete it and return successs.
     manager.deleteSdt(sdtName);      
     getResponse().setStatus(Status.SUCCESS_OK);
   }

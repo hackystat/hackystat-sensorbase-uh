@@ -17,10 +17,13 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.sensorbase.resource.projects.jaxb.Members;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
 import org.hackystat.sensorbase.resource.projects.jaxb.Projects;
+import org.hackystat.sensorbase.resource.projects.jaxb.Properties;
+import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.Timestamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
@@ -82,8 +85,8 @@ public class ProjectManager {
       this.documentBuilder = dbf.newDocumentBuilder();
     }
     catch (Exception e) {
-      String msg = "Exception during Project initialization processing";
-      SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
+      String msg = "Exception during ProjectManager initialization processing";
+      SensorBaseLogger.getLogger().warning(msg + "/n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
   }
@@ -253,6 +256,25 @@ public class ProjectManager {
   }
   
   /**
+   * Creates and stores the "Default" project for the specified UserKey. 
+   * @param userKey The user key.
+   */
+  public synchronized void addDefaultProject(String userKey) {
+    Project project = new Project();
+    project.setDescription("The default Project");
+    project.setStartTime(Timestamp.getDefaultProjectStartTime());
+    project.setEndTime(Timestamp.getDefaultProjectEndTime());
+    project.setMembers(new Members());
+    project.setName("Default");
+    project.setOwner(userKey);
+    project.setProperties(new Properties());
+    UriPatterns uriPatterns = new UriPatterns();
+    uriPatterns.getUriPattern().add("**");
+    project.setUriPatterns(uriPatterns);
+    putProject(project);
+  }
+  
+  /**
    * Updates the Manager with this Project. Any old definition is overwritten.
    * Note that this same Project will be associated with the Owner and all Members.  
    * @param project The Project. 
@@ -389,5 +411,19 @@ public class ProjectManager {
     JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (Project)unmarshaller.unmarshal(new StringReader(xmlString));
+  }
+
+  /**
+   * Returns true if the User is the Owner of this Project. 
+   * False if User or Project is undefined or the User is not the owner. 
+   * @param userKey The user. 
+   * @param projectName The project 
+   * @return True if the User is the owner of this Project. 
+   */
+  public synchronized boolean isOwner(String userKey, String projectName) {
+    if (!hasProject(userKey, projectName)) {
+      return false;
+    }
+    return getProject(userKey, projectName).getOwner().equals(userKey);
   }
 }

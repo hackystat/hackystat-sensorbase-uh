@@ -77,8 +77,8 @@ public class SdtManager {
       this.documentBuilder = dbf.newDocumentBuilder();
     }
     catch (Exception e) {
-      String msg = "Exception during SDT JAXB initialization processing";
-      SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
+      String msg = "Exception during SdtManager initialization processing";
+      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
   }

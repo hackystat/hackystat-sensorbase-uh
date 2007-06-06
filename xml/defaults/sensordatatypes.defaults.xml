@@ -25,6 +25,7 @@
         <Description>The version ID assigned to this commit"</Description>
       </RequiredField>
     </RequiredFields>
+    <Properties/>
   </SensorDataType>
 
   <SensorDataType Name="SampleSdt">

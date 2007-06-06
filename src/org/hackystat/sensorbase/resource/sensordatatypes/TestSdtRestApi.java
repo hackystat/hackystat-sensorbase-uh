@@ -96,8 +96,8 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
     response = makeRequest(Method.DELETE, uri);
     assertTrue("Testing for successful DELETE TestSdt", response.getStatus().isSuccess());
     
-    // Test that a second DELETE fails, since da buggah is no longer in there.
+    // Test that a second DELETE succeeds even though its no longer there. 
     response = makeRequest(Method.DELETE, uri);
-    assertTrue("Testing for failed second DELETE TestSdt", response.getStatus().isClientError());
+    assertTrue("Testing for second DELETE TestSdt", response.getStatus().isSuccess());
   }
 }

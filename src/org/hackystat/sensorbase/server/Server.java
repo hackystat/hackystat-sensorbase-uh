@@ -80,9 +80,10 @@ public class Server extends Application {
     // Save a pointer to this Server instance in this Application's context. 
     Map<String, Object> attributes = server.getContext().getAttributes();
     attributes.put("SdtManager", new SdtManager(server));
+    attributes.put("ProjectManager", new ProjectManager(server));
+    // Note: UserManager initialization uses ProjectManager, so ordering is important. 
     attributes.put("UserManager", new UserManager(server));
     attributes.put("SensorDataManager", new SensorDataManager(server));
-    attributes.put("ProjectManager", new ProjectManager(server));
     return server;
   }
   

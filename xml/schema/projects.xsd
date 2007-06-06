@@ -16,7 +16,7 @@
   <xs:element name="Members">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="Member" minOccurs="1" maxOccurs="unbounded"/>
+        <xs:element ref="Member" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -42,7 +42,7 @@
   <xs:element name="Properties">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="Property" minOccurs="1" maxOccurs="unbounded"/>
+        <xs:element ref="Property" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -55,9 +55,9 @@
         <xs:element ref="StartTime"/>
         <xs:element ref="EndTime"/>
         <xs:element ref="Owner"/>
-        <xs:element ref="Members" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="Members"/>
         <xs:element ref="UriPatterns"/>
-        <xs:element ref="Properties" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="Properties"/>
       </xs:sequence>
       <xs:attribute ref="Name"/>
     </xs:complexType>

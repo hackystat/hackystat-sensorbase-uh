@@ -90,6 +90,8 @@ public class UserProjectResource extends Resource {
    * <li> The XML must be marshallable into a Project instance using the Project XmlSchema.
    * <li> The User must exist.
    * <li> The Project name in the URI string must match the Project name in the XML.
+   * <li> The User must be the Owner.
+   * <li> All members must be defined as Users. 
    * </ul>
    * This implementation does not yet require members to agree to Project participation. 
    * @param entity The XML representation of the new Project.
@@ -115,10 +117,26 @@ public class UserProjectResource extends Resource {
     }
     // Return failure if the URI ProjectName is not the same as the XML SdtName.
     if (!(this.projectName.equals(project.getName()))) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "URI/XML name mismatch");
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Different URI/XML project names");
       return;
       
     }
+    // Return failure if the User is not the Owner
+    if (!this.userKey.equals(project.getOwner())) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "User is not owner.");
+      return;
+    }
+    // Return failure if any Members are not Users.
+    if (project.getMembers() != null) {
+      for (String memberKey : project.getMembers().getMember()) {
+        if (!userManager.hasUser(memberKey)) {
+          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+              "Undefined member: " + memberKey);
+          return;
+        }
+      }
+    }
+
     // otherwise we add it to the Manager and return success.
     projectManager.putProject(project);      
     getResponse().setStatus(Status.SUCCESS_CREATED);
@@ -137,6 +155,7 @@ public class UserProjectResource extends Resource {
    * Implement the DELETE method that deletes an existing Project for a given User.
    * <ul> 
    * <li> The User must be currently defined.
+   * <li> The User must be the owner.
    * </ul>
    * If the Project doesn't exist, that's fine, it's still "deleted".
    */
@@ -146,7 +165,12 @@ public class UserProjectResource extends Resource {
     if (!userManager.hasUser(this.userKey)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");
       return;
-    }  
+    } 
+    
+    if (!projectManager.isOwner(this.userKey, this.projectName)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "User is not Owner.");
+      return;
+    }
     // Otherwise, delete it and return successs.
     projectManager.deleteProject(this.userKey, this.projectName);      
     getResponse().setStatus(Status.SUCCESS_OK);

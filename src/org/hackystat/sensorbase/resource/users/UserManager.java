@@ -13,6 +13,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
@@ -48,6 +49,9 @@ public class UserManager {
   /** The Server associated with this Manager. */
   Server server; 
   
+  /** The project manager. */
+  ProjectManager projectManager;
+  
   /** 
    * The constructor for UserManagers. 
    * There is one UserManager per Server. 
@@ -56,6 +60,8 @@ public class UserManager {
   public UserManager(Server server) {
     this.server = server;
     try {
+      this.projectManager = 
+        (ProjectManager)this.server.getContext().getAttributes().get("ProjectManager");
       // Initialize marshaller and unmarshaller. 
       JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
       this.unmarshaller = jc.createUnmarshaller();
@@ -67,9 +73,11 @@ public class UserManager {
       if (defaultsFile.exists()) {
         SensorBaseLogger.getLogger().info("Loading User defaults from " + defaultsFile.getPath());  
         Users users = (Users) unmarshaller.unmarshal(defaultsFile);
-        // Initialize the sdtMap
+        
+        // Initialize the sdtMap and define the default project.
         for (User user : users.getUser()) {
           userMap.put(user.getUserKey(), user);
+          projectManager.addDefaultProject(user.getUserKey());
         }
       }
       // Initialize documentBuilder
@@ -78,8 +86,8 @@ public class UserManager {
       this.documentBuilder = dbf.newDocumentBuilder();
     }
     catch (Exception e) {
-      String msg = "Exception during SDT JAXB initialization processing";
-      SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
+      String msg = "Exception during UserManager initialization processing";
+      SensorBaseLogger.getLogger().warning(msg + "/n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
   }
@@ -221,6 +229,7 @@ public class UserManager {
             UserKeyGenerator.make(this);
     user.setUserKey(userKey);
     this.userMap.put(userKey, user);
+    projectManager.addDefaultProject(user.getUserKey());
     return user;
   } 
   

@@ -88,8 +88,8 @@ public class SensorDataManager {
   //    this.datatypeFactory = DatatypeFactory.newInstance();
     }
     catch (Exception e) {
-      String msg = "Exception during SensorData initialization processing";
-      SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
+      String msg = "Exception during SensorDataManager initialization processing";
+      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
   }

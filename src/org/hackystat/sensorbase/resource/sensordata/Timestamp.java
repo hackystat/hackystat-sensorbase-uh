@@ -55,6 +55,46 @@ public class Timestamp {
   }
   
   /**
+   * Returns an XMLGregorianCalendar corresponding to 01-Jan-1000.
+   * @return The timestamp. 
+   */
+  public static XMLGregorianCalendar getDefaultProjectStartTime() {
+    try {
+      DatatypeFactory factory = DatatypeFactory.newInstance();
+      XMLGregorianCalendar startTime = factory.newXMLGregorianCalendar();
+      startTime.setDay(1);
+      startTime.setMonth(1);
+      startTime.setYear(1000);
+      startTime.setTime(0, 0, 0);
+      startTime.setMillisecond(000); //NOPMD
+      return startTime; 
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Bad datatypeFactory", e);
+    }
+  }
+
+  /**
+   * Returns an XMLGregorianCalendar corresponding to 01-Jan-3000.
+   * @return The timestamp. 
+   */
+  public static XMLGregorianCalendar getDefaultProjectEndTime() {
+    try {
+      DatatypeFactory factory = DatatypeFactory.newInstance();
+      XMLGregorianCalendar endTime = factory.newXMLGregorianCalendar();
+      endTime.setDay(1);
+      endTime.setMonth(1);
+      endTime.setYear(3000);
+      endTime.setTime(23, 59, 59);
+      endTime.setMillisecond(999);      
+      return endTime; 
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Bad datatypeFactory", e);
+    }
+  }  
+  
+  /**
    * Returns true if tstamp is equal to or between start and end.
    * @param start The start time.
    * @param end The end time.
