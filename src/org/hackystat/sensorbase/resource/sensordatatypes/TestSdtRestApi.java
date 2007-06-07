@@ -1,7 +1,6 @@
 package org.hackystat.sensorbase.resource.sensordatatypes;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -88,9 +87,9 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
     XmlRepresentation data = response.getEntityAsSax();
     assertEquals("Checking SDT", "TestSdt", data.getText("SensorDataType/@Name"));
     
-    // Test that PUTting it again is an error. 
+    // Test that PUTting it again is OK.
     response = makeRequest(Method.PUT, uri, representation);
-    assertFalse("Testing for unsuccessful PUT TestSdt", response.getStatus().isSuccess());
+    assertTrue("Testing for successful update TestSdt", response.getStatus().isSuccess());
     
     // Test that DELETE gets rid of this SDT.
     response = makeRequest(Method.DELETE, uri);

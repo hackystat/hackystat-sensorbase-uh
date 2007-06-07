@@ -142,7 +142,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
    * returns an index of SensorData containing one entry. 
    * @throws Exception If problems occur.
    */
-  @Test public void getSampleUserProjectSensorDataDuration() throws Exception {
+  @Test public void getSampleUserProjectSensorDataInterval() throws Exception {
     // Get sensor data for SampleUser and SampleProject, which should have 1 instances.
     String uri = "projects/SampleUser/SampleProject/sensordata?startTime=2007-04-30T09:00:00.000" +
     "&endTime=2007-04-30T09:30:00.000";

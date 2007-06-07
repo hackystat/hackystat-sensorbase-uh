@@ -67,7 +67,6 @@ public class SensorDataTypeResource extends Resource {
    * Implement the PUT method that creates a new SDT. 
    * <ul>
    * <li> The XML must be marshallable into an SDT instance using the SDT XmlSchema definition.
-   * <li> There must not be an existing SDT with that name.
    * <li> The SDT name in the URI string must match the SDT name in the XML.
    * </ul>
    * @param entity The XML representation of the new SDT. 
@@ -86,19 +85,13 @@ public class SensorDataTypeResource extends Resource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad SDT: " + entityString);
       return;
     }
-    // Return failure if the payload XML SDT is already defined.  
-    SdtManager manager = (SdtManager)getContext().getAttributes().get("SdtManager");
-    if (manager.hasSdt(sdt.getName())) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "SDT defined: " + sdt.getName());
-      return;
-    }
     // Return failure if the URI SdtName is not the same as the XML SdtName.
     if (!(this.sdtName.equals(sdt.getName()))) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "URI/XML name mismatch");
       return;
-      
     }
     // otherwise we add it to the Manager and return success.
+    SdtManager manager = (SdtManager)getContext().getAttributes().get("SdtManager");
     manager.putSdt(sdt);      
     getResponse().setStatus(Status.SUCCESS_CREATED);
   }
