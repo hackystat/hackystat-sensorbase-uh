@@ -20,6 +20,7 @@ import org.hackystat.sensorbase.resource.users.UserResource;
 import org.hackystat.sensorbase.resource.users.UsersResource;
 import org.restlet.Application;
 import org.restlet.Component;
+import org.restlet.Guard;
 import org.restlet.Restlet;
 import org.restlet.Router;
 import org.restlet.data.Protocol;
@@ -98,29 +99,41 @@ public class Server extends Application {
 
   /**
    * Dispatch to the Projects, SensorData, SensorDataTypes, or Users Resource depending on the URL.
+   * We will authenticate all requests except for registration (users?email={email}).
    * @return The router Restlet.
    */
   @Override
   public Restlet createRoot() {
-    Router router = new Router(getContext());
-    router.attach("/sensordatatypes", SensorDataTypesResource.class);
-    router.attach("/sensordatatypes/{sensordatatypename}", SensorDataTypeResource.class);
-    router.attach("/users", UsersResource.class);
-    router.attach("/users?email={email}", UsersResource.class);
-    router.attach("/users/{userkey}", UserResource.class);
-    router.attach("/sensordata", SensorDataResource.class);
-    router.attach("/sensordata/{userkey}", UserSensorDataResource.class);
-    router.attach("/sensordata/{userkey}/{sensordatatype}", UserSensorDataResource.class);
-    router.attach("/sensordata/{userkey}/{sensordatatype}/{timestamp}", 
+    // First, create a Router that will have a guard placed in front of it so that all of these
+    // requests will require HTTP Basic authentication.
+    Router authRouter = new Router(getContext());
+    authRouter.attach("/sensordatatypes", SensorDataTypesResource.class);
+    authRouter.attach("/sensordatatypes/{sensordatatypename}", SensorDataTypeResource.class);
+    authRouter.attach("/users", UsersResource.class);
+    authRouter.attach("/users/{userkey}", UserResource.class);
+    authRouter.attach("/sensordata", SensorDataResource.class);
+    authRouter.attach("/sensordata/{userkey}", UserSensorDataResource.class);
+    authRouter.attach("/sensordata/{userkey}/{sensordatatype}", UserSensorDataResource.class);
+    authRouter.attach("/sensordata/{userkey}/{sensordatatype}/{timestamp}", 
         UserSensorDataResource.class);
-    router.attach("/projects", ProjectsResource.class);
-    router.attach("/projects/{userkey}", UserProjectsResource.class);
-    router.attach("/projects/{userkey}/{projectname}", UserProjectResource.class);
-    router.attach("/projects/{userkey}/{projectname}/sensordata", 
+    authRouter.attach("/projects", ProjectsResource.class);
+    authRouter.attach("/projects/{userkey}", UserProjectsResource.class);
+    authRouter.attach("/projects/{userkey}/{projectname}", UserProjectResource.class);
+    authRouter.attach("/projects/{userkey}/{projectname}/sensordata", 
         UserProjectSensorDataResource.class);
-    router.attach(
+    authRouter.attach(
         "/projects/{userkey}/{projectname}/sensordata?startTime={startTime}&endTime={endTime}", 
         UserProjectSensorDataResource.class);
+    // Here's the Guard that we will place in front of authRouter.
+    Guard guard = new Authenticator(getContext());
+    guard.setNext(authRouter);
+    
+    // Now create our "top-level" router which will allow the registration URI to proceed without
+    // authentication, but all other URI patterns will go to the guarded Router. 
+    Router router = new Router(getContext());
+    router.attach("/users?email={email}", UsersResource.class);
+    router.attachDefault(guard);
+    
     return router;
   }
 

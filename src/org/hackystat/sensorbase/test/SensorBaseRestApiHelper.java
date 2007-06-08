@@ -3,6 +3,8 @@ package org.hackystat.sensorbase.test;
 import org.hackystat.sensorbase.server.Server;
 import org.junit.BeforeClass;
 import org.restlet.Client;
+import org.restlet.data.ChallengeResponse;
+import org.restlet.data.ChallengeScheme;
 import org.restlet.data.MediaType;
 import org.restlet.data.Method;
 import org.restlet.data.Preference;
@@ -59,6 +61,10 @@ public class SensorBaseRestApiHelper {
           new Request(method, reference, entity);
     Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);
     request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
+    // Add authentication info
+    ChallengeScheme scheme = ChallengeScheme.HTTP_BASIC;
+    ChallengeResponse authentication = new ChallengeResponse(scheme, "user", "pw");
+    request.setChallengeResponse(authentication);
     return client.handle(request);
   }
   
