@@ -28,8 +28,8 @@
     <Properties/>
   </SensorDataType>
 
-  <SensorDataType Name="SampleSdt">
-    <Description>Sample SDT used for Testing. Do not remove from your defaults file.</Description>
+  <SensorDataType Name="TestSdt">
+    <Description>SDT used for Testing. Do not remove from your defaults file.</Description>
     <RequiredFields>
       <RequiredField>
         <Name>SampleField</Name>

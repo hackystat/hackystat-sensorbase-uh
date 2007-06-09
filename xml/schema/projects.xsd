@@ -10,8 +10,7 @@
   <xs:element name="Owner" type="xs:string"/>
   <xs:element name="UriPattern" type="xs:string"/>
   <xs:attribute name="Name" type="xs:string"/>
-  <xs:attribute name="href" type="xs:anyURI"/>
-  <xs:attribute name="UserKey" type="xs:string"/>
+  <xs:attribute name="Href" type="xs:anyURI"/>
   
   <xs:element name="Members">
     <xs:complexType>
@@ -75,7 +74,7 @@
   <xs:element name="ProjectRef">
     <xs:complexType>
       <xs:attribute ref="Name"/>
-      <xs:attribute ref="href"/>
+      <xs:attribute ref="Href"/>
     </xs:complexType>
   </xs:element>
 

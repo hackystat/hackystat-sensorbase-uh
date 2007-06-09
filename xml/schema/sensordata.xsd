@@ -12,7 +12,7 @@
   <xs:attribute name="Owner" type="xs:string"/>
   <xs:attribute name="SensorDataType" type="xs:string"/>
   <xs:attribute name="Timestamp" type="xs:dateTime"/>
-  <xs:attribute name="href" type="xs:anyURI"/>
+  <xs:attribute name="Href" type="xs:anyURI"/>
 
 
   <xs:element name="Property">
@@ -60,7 +60,7 @@
       <xs:attribute ref="Owner"/>
       <xs:attribute ref="SensorDataType"/>
       <xs:attribute ref="Timestamp"/>
-      <xs:attribute ref="href"/>
+      <xs:attribute ref="Href"/>
     </xs:complexType>
   </xs:element>
 

@@ -84,18 +84,23 @@ public class UsersResource extends Resource {
     User user = manager.registerUser(this.email);
     // Now send the email to the (non-test) user and the hackystat admin.
     Mailer mailer = Mailer.getInstance();
-    String emailSubject = "Hackystat Registration";
-    String emailBody = "Welcome to Hackystat. Your UserKey is: " + user.getUserKey();
+    String emailSubject = "Hackystat Version 8 Registration";
+    String emailBody = 
+      "Welcome to Hackystat Version 8. " +
+      "\nYou are registered with the server: " + ServerProperties.get(HOSTNAME_KEY) +
+      "\nYour email is: " + user.getEmail() +
+      "\nYour password is: " + user.getPassword() +
+      "\n\nNote that email and password are both case sensitive!";
     boolean success = mailer.send(this.email, emailSubject, emailBody);
     if (success) {
       // Don't send the administrator emails about test user registration.
       if (!manager.isTestUser(user)) {
         mailer.send(ServerProperties.get(ADMIN_EMAIL_KEY), 
           "Hackystat 8 Admin Registration",
-          "User " + this.email + " registered and received key: " + user.getUserKey() + "\n" + 
+          "User " + this.email + " registered and received password: " + user.getPassword() + "\n" +
           "for host: " + ServerProperties.get(HOSTNAME_KEY));
       }
-    SensorBaseLogger.getLogger().warning("Registered: " + user.getUserKey() + " " + this.email); 
+    SensorBaseLogger.getLogger().warning("Registered: " +  this.email); 
     getResponse().setStatus(Status.SUCCESS_CREATED);
     }
   }

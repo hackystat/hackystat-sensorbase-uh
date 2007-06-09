@@ -81,9 +81,9 @@ public class Server extends Application {
     // Save a pointer to this Server instance in this Application's context. 
     Map<String, Object> attributes = server.getContext().getAttributes();
     attributes.put("SdtManager", new SdtManager(server));
-    attributes.put("ProjectManager", new ProjectManager(server));
-    // Note: UserManager initialization uses ProjectManager, so ordering is important. 
+    // Note: UserManager must be initialized before ProjectManager
     attributes.put("UserManager", new UserManager(server));
+    attributes.put("ProjectManager", new ProjectManager(server));
     attributes.put("SensorDataManager", new SensorDataManager(server));
     return server;
   }
@@ -110,19 +110,19 @@ public class Server extends Application {
     authRouter.attach("/sensordatatypes", SensorDataTypesResource.class);
     authRouter.attach("/sensordatatypes/{sensordatatypename}", SensorDataTypeResource.class);
     authRouter.attach("/users", UsersResource.class);
-    authRouter.attach("/users/{userkey}", UserResource.class);
+    authRouter.attach("/users/{email}", UserResource.class);
     authRouter.attach("/sensordata", SensorDataResource.class);
-    authRouter.attach("/sensordata/{userkey}", UserSensorDataResource.class);
-    authRouter.attach("/sensordata/{userkey}/{sensordatatype}", UserSensorDataResource.class);
-    authRouter.attach("/sensordata/{userkey}/{sensordatatype}/{timestamp}", 
+    authRouter.attach("/sensordata/{email}", UserSensorDataResource.class);
+    authRouter.attach("/sensordata/{email}/{sensordatatype}", UserSensorDataResource.class);
+    authRouter.attach("/sensordata/{email}/{sensordatatype}/{timestamp}", 
         UserSensorDataResource.class);
     authRouter.attach("/projects", ProjectsResource.class);
-    authRouter.attach("/projects/{userkey}", UserProjectsResource.class);
-    authRouter.attach("/projects/{userkey}/{projectname}", UserProjectResource.class);
-    authRouter.attach("/projects/{userkey}/{projectname}/sensordata", 
+    authRouter.attach("/projects/{email}", UserProjectsResource.class);
+    authRouter.attach("/projects/{email}/{projectname}", UserProjectResource.class);
+    authRouter.attach("/projects/{email}/{projectname}/sensordata", 
         UserProjectSensorDataResource.class);
     authRouter.attach(
-        "/projects/{userkey}/{projectname}/sensordata?startTime={startTime}&endTime={endTime}", 
+        "/projects/{email}/{projectname}/sensordata?startTime={startTime}&endTime={endTime}", 
         UserProjectSensorDataResource.class);
     // Here's the Guard that we will place in front of authRouter.
     Guard guard = new Authenticator(getContext());

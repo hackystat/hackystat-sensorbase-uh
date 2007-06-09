@@ -29,6 +29,8 @@ import org.hackystat.sensorbase.resource.sensordata.Timestamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
+import org.hackystat.sensorbase.resource.users.UserManager;
+import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
 import org.w3c.dom.Document;
@@ -41,8 +43,8 @@ public class ProjectManager {
   private static String jaxbPackage = "org.hackystat.sensorbase.resource.projects.jaxb";
   
   /** The in-memory repository of Projects, keyed by User and Project name. */
-  private Map<String, Map<String, Project>> projectMap = 
-    new HashMap<String, Map<String, Project>>();
+  private Map<User, Map<String, Project>> projectMap = 
+    new HashMap<User, Map<String, Project>>();
 
   /** The JAXB marshaller for Projects. */
   private Marshaller marshaller; 
@@ -56,6 +58,9 @@ public class ProjectManager {
   /** The Server associated with this ProjectManager. */
   Server server; 
   
+  /** The UserManager */
+  UserManager userManager;
+  
   /** 
    * The constructor for ProjectManagers. 
    * There is one ProjectManager per Server. 
@@ -63,6 +68,8 @@ public class ProjectManager {
    */
   public ProjectManager(Server server) {
     this.server = server;
+    this.userManager = 
+      (UserManager)this.server.getContext().getAttributes().get("UserManager");
     try {
       // Initialize marshaller and unmarshaller. 
       JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
@@ -77,6 +84,14 @@ public class ProjectManager {
         // Initialize the sdtMap
         for (Project project : projects.getProject()) {
           putProject(project);
+        }
+      }
+  
+      // Make sure that all defined Users have a Default Project at startup.
+      // We do it here to avoid a circular startup dependency between the User and Project Managers.
+      for (User user : userManager) {
+        if (!hasProject(user, "Default")) {
+          addDefaultProject(user);
         }
       }
       // Initialize documentBuilder
@@ -111,54 +126,55 @@ public class ProjectManager {
    */
   public synchronized Document getProjectIndexDocument() {
     ProjectIndex index = new ProjectIndex();
-    for (String userKey : this.projectMap.keySet()) {
-      for (String projectName : this.projectMap.get(userKey).keySet()) {
-        Project project = this.projectMap.get(userKey).get(projectName);
-        index.getProjectRef().add(makeProjectRef(project, userKey));
+    for (User user : this.projectMap.keySet()) {
+      for (String projectName : this.projectMap.get(user).keySet()) {
+        Project project = this.projectMap.get(user).get(projectName);
+        index.getProjectRef().add(makeProjectRef(project, user));
        }
     }
     return marshallProjectIndex(index);
   }
   
   /**
-   * Returns the XML Project for the passed user and projectname. 
-   * @param userKey The user.
+   * Returns the XML Project for the passed user and projectname, which must exist.
+   * @param user The user.
    * @param projectName The Project name.
    * @return The XML Document instance providing a representation of this Project.
    * @throws Exception If problems during the marshalling, or the User/Project does not exist. 
    */
-  public synchronized Document getProjectDocument(String userKey, String projectName) 
+  public synchronized Document getProjectDocument(User user, String projectName) 
   throws Exception {
-    Project project = this.projectMap.get(userKey).get(projectName);
+    Project project = this.projectMap.get(user).get(projectName);
     return marshallProject(project);
   }
   
   /**
-   * Returns the XML SensorDataIndex for all data associated with this Project.
+   * Returns an XML SensorDataIndex for all data associated with this Project.
    * Assumes that User and Project are valid.
-   * @param userKey The User. 
+   * @param user The User. 
    * @param projectName the Project name.
    * @return The XML Document instance providing an index to all current SDTs.
    * @throws Exception every time. 
    */
-  public synchronized Document getProjectSensorDataIndexDocument(String userKey, 
+  public synchronized Document getProjectSensorDataIndexDocument(User user, 
       String projectName) throws Exception {
+    String email = user.getEmail();
     SensorDataIndex index = new SensorDataIndex();
     SensorDataManager sensorDataManager = 
       (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
         
-    Project project = this.getProject(userKey, projectName);
+    Project project = this.getProject(user, projectName);
     XMLGregorianCalendar startTime = project.getStartTime();
     XMLGregorianCalendar endTime = project.getEndTime();
-    Set<SensorData> dataSet = sensorDataManager.getData(userKey, startTime, endTime);
+    Set<SensorData> dataSet = sensorDataManager.getData(user, startTime, endTime);
     for (SensorData data : dataSet) {
       String sdt = data.getSensorDataType();
       XMLGregorianCalendar timestamp = data.getTimestamp();
       SensorDataRef ref = new SensorDataRef();
-      ref.setOwner(userKey);
+      ref.setOwner(email);
       ref.setSensorDataType(sdt);
       ref.setTimestamp(timestamp);
-      ref.setHref(server.getHostName() + "sensordata/" + userKey + "/" + sdt + "/" + timestamp);
+      ref.setHref(server.getHostName() + "sensordata/" + email + "/" + sdt + "/" + timestamp);
       index.getSensorDataRef().add(ref);
     }
     return sensorDataManager.marshallSensorDataIndex(index);
@@ -171,7 +187,7 @@ public class ProjectManager {
    * This method chooses the greater of startString and the Project startTime, and the lesser of
    * endString and the Project endTime. 
    * Assumes that User and Project are valid.
-   * @param userKey The User. 
+   * @param user The User. 
    * @param projectName the Project name.
    * @param startString The startTime as a string. 
    * @param endString The endTime as a string.
@@ -179,12 +195,12 @@ public class ProjectManager {
    * starting at startTime and ending at endTime. 
    * @throws Exception if startString or endString are not XMLGregorianCalendars.
    */
-  public synchronized Document getProjectSensorDataIndexDocument(String userKey, 
+  public synchronized Document getProjectSensorDataIndexDocument(User user, 
       String projectName, String startString, String endString) throws Exception {
     SensorDataIndex index = new SensorDataIndex();
     SensorDataManager sensorDataManager = 
       (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
-    Project project = this.getProject(userKey, projectName);
+    Project project = this.getProject(user, projectName);
     XMLGregorianCalendar startTime = Timestamp.makeTimestamp(startString);
     XMLGregorianCalendar endTime = Timestamp.makeTimestamp(endString);
     // make startTime the greater of startTime and the Project startTime. 
@@ -193,15 +209,16 @@ public class ProjectManager {
     // make endTime the lesser of endTime and the Project endTime.
     endTime = (Timestamp.lessThan(endTime, project.getEndTime())) ? endTime : project.getEndTime();
         
-    Set<SensorData> dataSet = sensorDataManager.getData(userKey, startTime, endTime);
+    Set<SensorData> dataSet = sensorDataManager.getData(user, startTime, endTime);
+    String email = user.getEmail();
     for (SensorData data : dataSet) {
       String sdt = data.getSensorDataType();
       XMLGregorianCalendar timestamp = data.getTimestamp();
       SensorDataRef ref = new SensorDataRef();
-      ref.setOwner(userKey);
+      ref.setOwner(email);
       ref.setSensorDataType(sdt);
       ref.setTimestamp(timestamp);
-      ref.setHref(server.getHostName() + "sensordata/" + userKey + "/" + sdt + "/" + timestamp);
+      ref.setHref(server.getHostName() + "sensordata/" + email + "/" + sdt + "/" + timestamp);
       index.getSensorDataRef().add(ref);
     }
     return sensorDataManager.marshallSensorDataIndex(index);
@@ -209,15 +226,15 @@ public class ProjectManager {
   
   /**
    * Returns the XML Index for all Projects associated with this User.
-   * @param userKey The User. 
+   * @param user The User. 
    * @return The XML Document instance providing an index to all current SDTs.
    */
-  public synchronized Document getProjectIndexDocument(String userKey) {
+  public synchronized Document getProjectIndexDocument(User user) {
     ProjectIndex index = new ProjectIndex();
-    if (hasProjects(userKey)) {
-      for (String projectName : this.projectMap.get(userKey).keySet()) {
-        Project project = this.projectMap.get(userKey).get(projectName);
-        index.getProjectRef().add(makeProjectRef(project, userKey));
+    if (hasProjects(user)) {
+      for (String projectName : this.projectMap.get(user).keySet()) {
+        Project project = this.projectMap.get(user).get(projectName);
+        index.getProjectRef().add(makeProjectRef(project, user));
        }
     }
     return marshallProjectIndex(index);
@@ -245,28 +262,30 @@ public class ProjectManager {
   /**
    * Creates a ProjectRef instance from a Project.
    * @param project The project. 
-   * @param userKey The UserKey.
+   * @param user The User.
    * @return Its representation as a ProjectRef. 
    */
-  private ProjectRef makeProjectRef(Project project, String userKey) {
+  private ProjectRef makeProjectRef(Project project, User user) {
+    String email = user.getEmail();
+    String projectName = project.getName();
     ProjectRef ref = new ProjectRef();
-    ref.setName(project.getName());
-    ref.setHref(this.server.getHostName() + "projects/" + userKey + "/" + project.getName());
+    ref.setName(projectName);
+    ref.setHref(this.server.getHostName() + "projects/" + email + "/" + projectName);
     return ref; 
   }
   
   /**
-   * Creates and stores the "Default" project for the specified UserKey. 
-   * @param userKey The user key.
+   * Creates and stores the "Default" project for the specified user. 
+   * @param user The user.
    */
-  public synchronized void addDefaultProject(String userKey) {
+  public final synchronized void addDefaultProject(User user) {
     Project project = new Project();
     project.setDescription("The default Project");
     project.setStartTime(Timestamp.getDefaultProjectStartTime());
     project.setEndTime(Timestamp.getDefaultProjectEndTime());
     project.setMembers(new Members());
     project.setName("Default");
-    project.setOwner(userKey);
+    project.setOwner(user.getEmail());
     project.setProperties(new Properties());
     UriPatterns uriPatterns = new UriPatterns();
     uriPatterns.getUriPattern().add("**");
@@ -276,69 +295,84 @@ public class ProjectManager {
   
   /**
    * Updates the Manager with this Project. Any old definition is overwritten.
-   * Note that this same Project will be associated with the Owner and all Members.  
+   * Note that this same Project will be associated with the Owner and all Members. 
+   * Throws unchecked IllegalArgumentException if the Owner of the Project or any Members
+   * are not defined Users.  
    * @param project The Project. 
    */
   public final synchronized void putProject(Project project) {
     // First, put the [owner, project] mapping
-    String ownerUserKey = project.getOwner();
-    if (!projectMap.containsKey(ownerUserKey)) {
-      projectMap.put(ownerUserKey, new HashMap<String, Project>());
+    String email = project.getOwner();
+    User user = userManager.getUser(email);
+    if (user == null) {
+      throw new IllegalArgumentException("Project with undefined User " + email + " " + project);
     }
-    projectMap.get(ownerUserKey).put(project.getName(), project);
+    if (!projectMap.containsKey(user)) {
+      projectMap.put(user, new HashMap<String, Project>());
+    }
+    projectMap.get(user).put(project.getName(), project);
     
     // Now put the [member, project] mappings, if any.
     if (project.getMembers() != null) {
-      for (String memberUserKey : project.getMembers().getMember()) {
-        if (!projectMap.containsKey(memberUserKey)) {
-          projectMap.put(memberUserKey, new HashMap<String, Project>());
+      for (String memberEmail : project.getMembers().getMember()) {
+        User member = userManager.getUser(memberEmail);
+        // Throw an error if the Member is not defined. 
+        if (member == null) {
+          throw new IllegalArgumentException("Project with undefined Member " + email + " " 
+              + project);
         }
-        projectMap.get(memberUserKey).put(project.getName(), project);
+        // Otherwise add this project for this member. 
+        if (!projectMap.containsKey(member)) {
+          projectMap.put(member, new HashMap<String, Project>());
+        }
+        projectMap.get(member).put(project.getName(), project);
       }
     }
   }
   
   /**
    * Returns true if the passed Project name is defined is defined for this User. 
-   * @param  userKey A userkey
-   * @param  projectName A project name
+   * @param  user The user (can be null).
+   * @param  projectName A project name (can be null).
    * @return True if a Project with that name is defined for that User.  False if the User or
    * Project is not defined. 
    */
-  public synchronized boolean hasProject(String userKey, String projectName) {
+  public final synchronized boolean hasProject(User user, String projectName) {
     return 
-    this.projectMap.containsKey(userKey) &&
-    this.projectMap.get(userKey).containsKey(projectName);
+    (user != null) &&
+    (projectName != null) &&
+    this.projectMap.containsKey(user) &&
+    this.projectMap.get(user).containsKey(projectName);
   }
   
   /**
    * Returns true if the passed user has any defined Projects.
-   * @param  userKey A userkey
+   * @param  user The user.
    * @return True if that User is defined and has at least one Project.
    */
-  public synchronized boolean hasProjects(String userKey) {
-    return this.projectMap.containsKey(userKey);
+  public synchronized boolean hasProjects(User user) {
+    return this.projectMap.containsKey(user);
   }
   
   /**
-   * Returns the Project associated with userKey and projectName.
-   * @param  userKey A userkey
+   * Returns the Project associated with user and projectName.
+   * @param  user The user. 
    * @param  projectName A project name
    * @return The project, or null if not found.
    */
-  public synchronized Project getProject(String userKey, String projectName) {
-    return (hasProject(userKey, projectName)) ? projectMap.get(userKey).get(projectName) : null; 
+  public synchronized Project getProject(User user, String projectName) {
+    return (hasProject(user, projectName)) ? projectMap.get(user).get(projectName) : null; 
 
   }
   
   /**
    * Ensures that the named project is no longer associated with this user. 
-   * @param userKey The UserKey
+   * @param user The User.
    * @param projectName The project name.
    */
-  public synchronized void deleteProject(String userKey, String projectName) {
-    if (this.projectMap.containsKey(userKey)) {
-      this.projectMap.get(userKey).remove(projectName);
+  public synchronized void deleteProject(User user, String projectName) {
+    if (this.projectMap.containsKey(user)) {
+      this.projectMap.get(user).remove(projectName);
     }
   }
   
@@ -363,18 +397,18 @@ public class ProjectManager {
   
   /**
    * Returns the XML representation of the named Project for the User.
-   * @param userKey The user.
+   * @param user The user.
    * @param projectName The project name.
    * @return The XML representation of that Project or null if not found.
    */
-  public synchronized Document marshallProject(String userKey, String projectName) {
+  public synchronized Document marshallProject(User user, String projectName) {
     // Return null if there is no project with this name for this user.
-    if (!hasProject(userKey, projectName)) {
+    if (!hasProject(user, projectName)) {
       return null;
     }
     Document doc = null;
     try {
-      Project project = getProject(userKey, projectName);
+      Project project = getProject(user, projectName);
       doc = this.documentBuilder.newDocument();
       this.marshaller.marshal(project, doc);
     }
@@ -416,14 +450,14 @@ public class ProjectManager {
   /**
    * Returns true if the User is the Owner of this Project. 
    * False if User or Project is undefined or the User is not the owner. 
-   * @param userKey The user. 
+   * @param user The user.
    * @param projectName The project 
    * @return True if the User is the owner of this Project. 
    */
-  public synchronized boolean isOwner(String userKey, String projectName) {
-    if (!hasProject(userKey, projectName)) {
+  public synchronized boolean isOwner(User user, String projectName) {
+    if (!hasProject(user, projectName)) {
       return false;
     }
-    return getProject(userKey, projectName).getOwner().equals(userKey);
+    return getProject(user, projectName).getOwner().equals(user.getEmail());
   }
 }

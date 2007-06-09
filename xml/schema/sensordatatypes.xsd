@@ -6,7 +6,7 @@
   <xs:element name="Key" type="xs:string"/>
   <xs:element name="Value" type="xs:string"/>
   <xs:attribute name="Name" type="xs:string"/>
-  <xs:attribute name="href" type="xs:anyURI"/>
+  <xs:attribute name="Href" type="xs:anyURI"/>
 
   <xs:element name="RequiredField">
     <xs:complexType>
@@ -65,7 +65,7 @@
   <xs:element name="SensorDataTypeRef">
     <xs:complexType>
       <xs:attribute ref="Name"/>
-      <xs:attribute ref="href"/>
+      <xs:attribute ref="Href"/>
     </xs:complexType>
   </xs:element>
 

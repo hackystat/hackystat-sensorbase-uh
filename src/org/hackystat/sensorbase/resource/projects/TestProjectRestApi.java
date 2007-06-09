@@ -46,86 +46,88 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
 
     // Ensure that we can find the SampleProject definition.
     XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//ProjectRef[@Name='SampleProject']");
+    Node node = data.getNode("//ProjectRef[@Name='TestProject']");
     assertNotNull("Checking that we found a ProjectRef 1.", node);
   }
   
   /**
-   * Test that GET host/sensorbase/projects/SampleUser and SampleUser2 returns an index 
-   * containing a Project. SampleUser is the owner and SampleUser2 is a member. 
+   * Test that GET host/sensorbase/projects/TestUser@hackystat.org and 
+   * TestUser2@hackystat.org returns an index 
+   * containing a Project. TestUser is the owner and TestUser2 is a member. 
    * @throws Exception If problems occur.
    */
-  @Test public void getSampleUserProjectIndex() throws Exception {
-    Response response = makeRequest(Method.GET, "projects/SampleUser");
+  @Test public void getTestUserProjectIndex() throws Exception {
+    Response response = makeRequest(Method.GET, "projects/TestUser@hackystat.org");
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET index 2", response.getStatus().isSuccess());
 
-    // Ensure that we can find the SampleProject definition.
+    // Ensure that we can find the TestProject definition.
     XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//ProjectRef[@Name='SampleProject']");
+    Node node = data.getNode("//ProjectRef[@Name='TestProject']");
     assertNotNull("Checking that we found a ProjectRef 2.", node);
     
-    // Now check that we can retrieve a Project for SampleUser2
-    response = makeRequest(Method.GET, "projects/SampleUser2");
+    // Now check that we can retrieve a Project for TestUser2
+    response = makeRequest(Method.GET, "projects/TestUser2@hackystat.org");
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET index 2.1", response.getStatus().isSuccess());
 
-    // Ensure that we can find the SampleProject definition.
+    // Ensure that we can find the TestProject definition.
     data = response.getEntityAsSax();
-    node = data.getNode("//ProjectRef[@Name='SampleProject']");
+    node = data.getNode("//ProjectRef[@Name='TestProject']");
     assertNotNull("Checking that we found a ProjectRef 2.1", node);
 
   }
   
   /**
-   * Test that GET host/sensorbase/projects/SampleUser/SampleProject returns 
-   * a representation of SampleProject. Also for SampleUser2.
+   * Test that GET host/sensorbase/projects/TestUser@hackystat.org/TestProject returns 
+   * a representation of TestProject. Also for TestUser2@hackystat.org.
    * @throws Exception If problems occur.
    */
-  @Test public void getSampleUserProject() throws Exception {
-    Response response = makeRequest(Method.GET, "projects/SampleUser/SampleProject");
+  @Test public void getTestUserProject() throws Exception {
+    Response response = makeRequest(Method.GET, "projects/TestUser@hackystat.org/TestProject");
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET 3", response.getStatus().isSuccess());
 
-    // Ensure that we got the SampleProject.
+    // Ensure that we got the TestProject.
     XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//Project[@Name='SampleProject']");
+    Node node = data.getNode("//Project[@Name='TestProject']");
     assertNotNull("Checking that we found a Project 3.", node);
     
-    //Now try for SampleUser2.
-    response = makeRequest(Method.GET, "projects/SampleUser2/SampleProject");
+    //Now try for TestUser2.
+    response = makeRequest(Method.GET, "projects/TestUser2@hackystat.org/TestProject");
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET 3.1", response.getStatus().isSuccess());
 
-    // Ensure that we can find the SampleProject definition.
+    // Ensure that we can find the TestProject definition.
     data = response.getEntityAsSax();
-    node = data.getNode("//Project[@Name='SampleProject']");
+    node = data.getNode("//Project[@Name='TestProject']");
     assertNotNull("Checking that we found a Project 3.1.", node);
   }
   
   /**
-   * Test that GET host/sensorbase/projects/SampleUser/SampleProject/sensordata returns 
+   * Test that GET host/sensorbase/projects/TestUser@hackystat.org/TestProject/sensordata returns 
    * an index of SensorData. 
    * @throws Exception If problems occur.
    */
-  @Test public void getSampleUserProjectSensorData() throws Exception {
-    // Get sensor data for SampleUser and SampleProject, which should have two instances.
-    Response response = makeRequest(Method.GET, "projects/SampleUser/SampleProject/sensordata");
+  @Test public void getTestUserProjectSensorData() throws Exception {
+    // Get sensor data for TestUser and TestProject, which should have two instances.
+    Response response = makeRequest(Method.GET, 
+        "projects/TestUser@hackystat.org/TestProject/sensordata");
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET 4", response.getStatus().isSuccess());
 
-    // Ensure that we got the SampleProject.
+    // Ensure that we got the TestProject.
     XmlRepresentation data = response.getEntityAsSax();
     Node node = data.getNode("//SensorDataIndex/SensorDataRef");
     assertNotNull("Checking that we retrieved some sensor data.", node);
     
-    //Now try for SampleUser2, who should not have any associated sensor data. 
-    response = makeRequest(Method.GET, "projects/SampleUser2/SampleProject/sensordata");
+    //Now try for TestUser2, who should not have any associated sensor data. 
+    response = makeRequest(Method.GET, "projects/TestUser2@hackystat.org/TestProject/sensordata");
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET 4.1", response.getStatus().isSuccess());
@@ -137,15 +139,15 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   }
   
   /**
-   * Test that GET host/sensorbase/projects/SampleUser/SampleProject/sensordata?
-   * startTime=2006-04-30T09:00:00.000&duration=P10S
+   * Test that GET host/sensorbase/projects/TestUser@hackystat.org/TestProject/sensordata?
+   * startTime=2006-04-30T09:00:00.000&endTime=2007-04-30T09:30:00.000
    * returns an index of SensorData containing one entry. 
    * @throws Exception If problems occur.
    */
-  @Test public void getSampleUserProjectSensorDataInterval() throws Exception {
-    // Get sensor data for SampleUser and SampleProject, which should have 1 instances.
-    String uri = "projects/SampleUser/SampleProject/sensordata?startTime=2007-04-30T09:00:00.000" +
-    "&endTime=2007-04-30T09:30:00.000";
+  @Test public void getTestUserProjectSensorDataInterval() throws Exception {
+    // Get sensor data for TestUser and TestProject, which should have 1 instances.
+    String uri = "projects/TestUser@hackystat.org/TestProject/sensordata" + 
+    "?startTime=2007-04-30T09:00:00.000&endTime=2007-04-30T09:30:00.000";
     Response response = makeRequest(Method.GET, uri);
 
     // Test that the request was received and processed by the server OK. 
@@ -156,9 +158,9 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     SensorDataIndex index = SensorDataManager.unmarshallSensorDataIndex(data.getDocument());
     assertEquals("Checking that we retrieved 1 sensor data.", 1, index.getSensorDataRef().size());
     
-    //Now try for SampleUser2, who should not have any associated sensor data. 
-    uri = "projects/SampleUser2/SampleProject/sensordata?startTime=2006-04-30T09:00:00.000" +
-    "&endTime=2006-04-30T10:00:00.000";
+    //Now try for TestUser2, who should not have any associated sensor data. 
+    uri = "projects/TestUser2@hackystat.org/TestProject/sensordata" + 
+    "?startTime=2006-04-30T09:00:00.000&endTime=2006-04-30T10:00:00.000";
     response = makeRequest(Method.GET, uri);
 
     // Test that the request was received and processed by the server OK. 
@@ -182,14 +184,14 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     XMLGregorianCalendar tstamp = Timestamp.makeTimestamp();
     project.setStartTime(tstamp);
     project.setEndTime(tstamp);
-    project.setOwner("SampleUser");
+    project.setOwner("TestUser@hackystat.org");
     UriPatterns uris = new UriPatterns();
     uris.getUriPattern().add("**/test/**");
     project.setUriPatterns(uris);
     
     Document doc = ProjectManager.marshallProject(project);
     Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
-    String uri = "projects/SampleUser/TestProject1";
+    String uri = "projects/TestUser@hackystat.org/TestProject1";
     Response response = makeRequest(Method.PUT, uri, representation);
 
     // Test that the PUT request was received and processed by the server OK. 
@@ -207,7 +209,8 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   }
   
   /**
-   * Test that PUT a Project with a SampleUser2 as member, then allows SampleUser2 to GET it.
+   * Test that PUT a Project with a TestUser2@hackystat.org as member will then
+   * allow TestUser2@hackystat.org to GET it.
    * @throws Exception If problems occur.
    */
   @Test public void putProjectMember() throws Exception {
@@ -218,26 +221,26 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     XMLGregorianCalendar tstamp = Timestamp.makeTimestamp();
     project.setStartTime(tstamp);
     project.setEndTime(tstamp);
-    project.setOwner("SampleUser");
+    project.setOwner("TestUser@hackystat.org");
     UriPatterns uris = new UriPatterns();
     uris.getUriPattern().add("**/test/**");
     project.setUriPatterns(uris);
     Members members = new Members();
-    members.getMember().add("SampleUser2");
+    members.getMember().add("TestUser2@hackystat.org");
     project.setMembers(members);
     
     Document doc = ProjectManager.marshallProject(project);
     Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
-    String uri = "projects/SampleUser/TestProject2";
+    String uri = "projects/TestUser@hackystat.org/TestProject2";
     Response response = makeRequest(Method.PUT, uri, representation);
 
     // Test that the PUT request was received and processed by the server OK. 
     assertTrue("Testing for successful PUT TestProject", response.getStatus().isSuccess());
     
-    // Test to see that SampleUser2 can now retrieve it.
-    uri = "projects/SampleUser2/TestProject2";
+    // Test to see that TestUser2 can now retrieve it.
+    uri = "projects/TestUser2@hackystat.org/TestProject2";
     response = makeRequest(Method.GET, uri);
-    assertTrue("Testing for successful SampleUser2 GET", response.getStatus().isSuccess());
+    assertTrue("Testing for successful TestUser2 GET", response.getStatus().isSuccess());
     XmlRepresentation data = response.getEntityAsSax();
     assertEquals("Checking GET TestProject2", "TestProject2", data.getText("Project/@Name"));
 
@@ -258,17 +261,17 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     assertTrue("Testing for creation of TestDefaultProject", response.getStatus().isSuccess());
 
     // Now test that we can get this User's default project
-    String uri = "projects/TestDefaultProject/Default";
+    String uri = "projects/TestDefaultProject@hackystat.org/Default";
     response = makeRequest(Method.GET, uri);
     assertTrue("Testing for successful GET Default Project", response.getStatus().isSuccess());
   }
   
   /**
-   * Tests that we retrieve all data for the SampleUser under their Default Project.
+   * Tests that we retrieve all data for the TesteUser under their Default Project.
    * @throws Exception If problems occur.
    */
-  @Test public void sampleUserDefaultProjectData() throws Exception {
-    String uri = "projects/SampleUser/Default/sensordata";
+  @Test public void testUserDefaultProjectData() throws Exception {
+    String uri = "projects/TestUser@hackystat.org/Default/sensordata";
     Response response = makeRequest(Method.GET, uri);
     assertTrue("Testing for successful GET Default Project 2", response.getStatus().isSuccess());
     

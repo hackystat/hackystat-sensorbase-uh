@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <Projects>
-<Project Name="SampleProject">
+<Project Name="TestProject">
   <Description>Example Project</Description>
   <StartTime>2007-01-01T00:00:00.000</StartTime>
     <EndTime>2007-12-31T00:00:00.000</EndTime>
-  <Owner>SampleUser</Owner>
+  <Owner>TestUser@hackystat.org</Owner>
   <Members>
-   <Member>SampleUser2</Member>
+   <Member>TestUser2@hackystat.org</Member>
   </Members>
   <UriPatterns>
     <UriPattern>file://**/Jupiter/**</UriPattern>

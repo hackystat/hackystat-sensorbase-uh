@@ -14,8 +14,8 @@ public class ServerProperties {
   
   /** The admin email key. */
   public static final String ADMIN_EMAIL_KEY =     "sensorbase.admin.email";
-  /** The admin userkey key. */
-  public static final String ADMIN_USERKEY_KEY =   "sensorbase.admin.userkey";
+  /** The admin password. */
+  public static final String ADMIN_PASSWORD_KEY =   "sensorbase.admin.password";
   /** The context root key. */
   public static final String CONTEXT_ROOT_KEY =    "sensorbase.context.root";
   /** The database directory key. */
@@ -49,7 +49,7 @@ public class ServerProperties {
     Properties properties = new Properties();
     // Set defaults
     properties.setProperty(ADMIN_EMAIL_KEY, "admin@hackystat.org");
-    properties.setProperty(ADMIN_USERKEY_KEY, "admin");
+    properties.setProperty(ADMIN_PASSWORD_KEY, "admin@hackystat.org");
     properties.setProperty(CONTEXT_ROOT_KEY, "sensorbase");
     properties.setProperty(DB_DIR_KEY, sensorBaseHome + "/db");
     properties.setProperty(HOSTNAME_KEY, "localhost");
@@ -88,7 +88,7 @@ public class ServerProperties {
     String pad = "                ";
     String propertyInfo = "SensorBase Properties:" + cr +
       pad + ADMIN_EMAIL_KEY   + eq + get(ADMIN_EMAIL_KEY) + cr +
-      pad + ADMIN_USERKEY_KEY + eq + get(ADMIN_USERKEY_KEY) + cr +
+      pad + ADMIN_PASSWORD_KEY + eq + get(ADMIN_PASSWORD_KEY) + cr +
       pad + HOSTNAME_KEY      + eq + get(HOSTNAME_KEY) + cr +
       pad + CONTEXT_ROOT_KEY  + eq + get(CONTEXT_ROOT_KEY) + cr +
       pad + DB_DIR_KEY        + eq + get(DB_DIR_KEY) + cr +

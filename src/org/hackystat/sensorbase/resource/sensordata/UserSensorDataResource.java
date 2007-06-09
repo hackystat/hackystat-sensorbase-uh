@@ -5,6 +5,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
+import org.hackystat.sensorbase.resource.users.UserManager;
+import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -18,16 +20,18 @@ import org.restlet.resource.Variant;
 /**
  * The resource for all URIs that extend sensordata, including;
  * <ul>
- * <li> host/sensordata/{userkey}
- * <li> host/sensordata/{userkey}/{sensordatatype}
- * <li> host/sensordata/{userkey}/{sensordatatype}/{timestamp}
+ * <li> host/sensordata/{email}
+ * <li> host/sensordata/{email}/{sensordatatype}
+ * <li> host/sensordata/{email}/{sensordatatype}/{timestamp}
  * </ul>
  * 
  * @author Philip Johnson
  */
 public class UserSensorDataResource extends Resource {
   /** To be retrieved from the URL. */
-  private String userKey;
+  private String email;
+  /** The user, or null if not found. */
+  private User user; 
   /** To be retrieved from the URL, or else null if not found. */
   private String sdtName;
   /** To be retrieved from the URL, or else null if not found. */
@@ -41,7 +45,9 @@ public class UserSensorDataResource extends Resource {
    */
   public UserSensorDataResource(Context context, Request request, Response response) {
     super(context, request, response);
-    this.userKey = (String) request.getAttributes().get("userkey");
+    this.email = (String) request.getAttributes().get("email");
+    UserManager userManager = (UserManager)getContext().getAttributes().get("UserManager");
+    this.user = userManager.getUser(email);
     this.sdtName = (String) request.getAttributes().get("sensordatatype");
     this.timestamp = (String) request.getAttributes().get("timestamp");
     getVariants().clear(); // copyied from BookmarksResource.java, not sure why needed.
@@ -51,12 +57,12 @@ public class UserSensorDataResource extends Resource {
   /**
    * Returns a SensorDataIndex when a GET is called with:
    * <ul>
-   * <li> sensordata/{userkey}
-   * <li> sensordata/{userkey/{sensordatatype}
+   * <li> sensordata/{email}
+   * <li> sensordata/{email/{sensordatatype}
    * </ul>
    * Returns a SensorData when a GET is called with:
    * <ul>
-   * <li> sensordata/{userkey}/{sensordatatype}/{timestamp}
+   * <li> sensordata/{email}/{sensordatatype}/{timestamp}
    * </ul>
    * 
    * @param variant The representational variant requested.
@@ -65,23 +71,25 @@ public class UserSensorDataResource extends Resource {
   @Override
   public Representation getRepresentation(Variant variant) {
     Representation result = null;
+    // If this User does not exist, return an error.
+    if (this.user == null) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.email);
+      return null;
+    } 
     SensorDataManager manager = 
       (SensorDataManager)getContext().getAttributes().get("SensorDataManager");
-    if (manager == null) {
-      throw new RuntimeException("Failed to find SensorDataManager");
-    }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      // sensordata/{userkey}
+      // sensordata/{email}
       if ((this.sdtName == null) && (this.timestamp == null)) {
         result = new DomRepresentation(MediaType.TEXT_XML, 
-            manager.getSensorDataIndexDocument(this.userKey));
+            manager.getSensorDataIndexDocument(this.user));
       }
-      // sensordata/{userkey}/{sensordatatype}
+      // sensordata/{email}/{sensordatatype}
       else if (this.timestamp == null) {
         result = new DomRepresentation(MediaType.TEXT_XML, 
-            manager.getSensorDataIndexDocument(this.userKey, this.sdtName));
+            manager.getSensorDataIndexDocument(this.user, this.sdtName));
       }
-      // sensordata/{userkey}/{sensordatatype}/{timestamp}
+      // sensordata/{email}/{sensordatatype}/{timestamp}
       else {
         // First, try to parse the timestamp string, and return error if it doesn't parse.
         XMLGregorianCalendar tstamp;
@@ -93,13 +101,13 @@ public class UserSensorDataResource extends Resource {
           return null;
         }
         // Now, see if we actually have one.
-        if (!manager.hasData(userKey, sdtName, tstamp)) {
+        if (!manager.hasData(user, sdtName, tstamp)) {
           getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND, "Unknown Sensor Data");
           return null;
         }
         // We have one, so make its representation and return it.
         result = new DomRepresentation(MediaType.TEXT_XML, 
-            manager.marshallSensorData(this.userKey, this.sdtName, tstamp));
+            manager.marshallSensorData(this.user, this.sdtName, tstamp));
       }
     }
     return result;
@@ -132,6 +140,11 @@ public class UserSensorDataResource extends Resource {
   public void put(Representation entity) {
     String entityString = null;
     SensorData data;
+    // If this User does not exist, return an error.
+    if (this.user == null) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.email);
+      return;
+    }     
     // Try to make the XML payload into sensor data, return failure if this fails. 
     try { 
       entityString = entity.getText();
@@ -164,19 +177,18 @@ public class UserSensorDataResource extends Resource {
   }
   
   /**
-   * Implement the DELETE method that deletes an existing sensor data instance.
+   * Implement the DELETE method that ensures the specified sensor data instance no longer exists.
    */
   @Override
   public void delete() {
     SensorDataManager manager = 
       (SensorDataManager)getContext().getAttributes().get("SensorDataManager");
-    // Return failure if it doesn't exist.
-    if (!manager.hasData(this.userKey, this.sdtName, this.timestamp)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Nonexistent Sensor data");
+    // If this User does not exist, return an error.
+    if (this.user == null) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.email);
       return;
-    }
-    // Otherwise, delete it and return successs.
-    manager.deleteData(this.userKey, this.sdtName, this.timestamp);      
+    }      
+    manager.deleteData(this.user, this.sdtName, this.timestamp);      
     getResponse().setStatus(Status.SUCCESS_OK);
   }
   

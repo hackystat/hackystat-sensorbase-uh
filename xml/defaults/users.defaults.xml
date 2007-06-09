@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <Users>
   <User>
-    <Email>testuser@hackystat.org</Email>
-    <UserKey>TestUser</UserKey>
+    <Email>TestUser@hackystat.org</Email>
+    <Password>TestUser@hackystat.org</Password>
     <Properties>
       <Property>
         <Key>TDD-Group</Key>
@@ -11,8 +11,8 @@
     </Properties>
   </User>
  <User>
-    <Email>sampleuser@hackystat.org</Email>
-    <UserKey>SampleUser</UserKey>
+    <Email>TestUser2@hackystat.org</Email>
+    <Password>TestUser2@hackystat.org</Password>
     <Properties>
       <Property>
         <Key>TDD-Group</Key>
@@ -22,8 +22,8 @@
   </User>
 
  <User>
-    <Email>sampleuser2@hackystat.org</Email>
-    <UserKey>SampleUser2</UserKey>
+    <Email>TestUser3@hackystat.org</Email>
+    <Password>TestUser3@hackystat.org</Password>
     <Properties>
       <Property>
         <Key>TDD-Group</Key>

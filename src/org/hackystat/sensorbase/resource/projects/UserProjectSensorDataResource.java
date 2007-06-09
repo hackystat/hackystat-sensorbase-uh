@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.resource.projects;
 
 import org.hackystat.sensorbase.resource.sensordata.Timestamp;
 import org.hackystat.sensorbase.resource.users.UserManager;
+import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -13,7 +14,7 @@ import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
 
 /**
- * The resource for processing GET host/projects/{userkey}/{projectname}/sensordata.
+ * The resource for processing GET host/projects/{email}/{projectname}/sensordata.
  * Returns an index to the SensorData resources associated with this User and Project.
  * 
  * @author Philip Johnson
@@ -21,7 +22,9 @@ import org.restlet.resource.Variant;
 public class UserProjectSensorDataResource extends Resource {
   
   /** To be retrieved from the URL. */
-  private String userKey;
+  private String email;
+  /** The user corresponding to email, or null if not found. */
+  private User user;
   /** To be retrieved from the URL. */
   private String projectName;
   /** An optional query parameter */
@@ -41,12 +44,13 @@ public class UserProjectSensorDataResource extends Resource {
    */
   public UserProjectSensorDataResource(Context context, Request request, Response response) {
     super(context, request, response);
-    this.userKey = (String) request.getAttributes().get("userkey");
+    this.email = (String) request.getAttributes().get("email");
     this.projectName = (String) request.getAttributes().get("projectname"); 
     this.startTime = (String) request.getAttributes().get("startTime");
     this.endTime = (String) request.getAttributes().get("endTime");
     this.projectManager = (ProjectManager)getContext().getAttributes().get("ProjectManager");
     this.userManager = (UserManager)getContext().getAttributes().get("UserManager");
+    this.user = userManager.getUser(this.email);
     getVariants().clear(); // copyied from BookmarksResource.java, not sure why needed.
     getVariants().add(new Variant(MediaType.TEXT_XML));
   }
@@ -69,12 +73,12 @@ public class UserProjectSensorDataResource extends Resource {
   public Representation getRepresentation(Variant variant) {
 
     // If this User does not exist, return an error.
-    if (!userManager.hasUser(this.userKey)) {
+    if (this.user == null) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");
       return null;
     }   
     // If this User/Project pair does not exist, return an error.
-    if (!projectManager.hasProject(this.userKey, this.projectName)) {
+    if (!projectManager.hasProject(this.user, this.projectName)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown project");
       return null;
     }
@@ -106,12 +110,12 @@ public class UserProjectSensorDataResource extends Resource {
         if (startTime == null) {
           // Return all sensor data for this user and project if no query parameters.
           return new DomRepresentation(MediaType.TEXT_XML, 
-              projectManager.getProjectSensorDataIndexDocument(this.userKey, this.projectName));
+              projectManager.getProjectSensorDataIndexDocument(this.user, this.projectName));
         }
         else {
           // Return the sensor data starting at startTime and for the following duration.  
           return new DomRepresentation(MediaType.TEXT_XML, 
-              projectManager.getProjectSensorDataIndexDocument(this.userKey, this.projectName,
+              projectManager.getProjectSensorDataIndexDocument(this.user, this.projectName,
                   this.startTime, this.endTime));
         }
       }

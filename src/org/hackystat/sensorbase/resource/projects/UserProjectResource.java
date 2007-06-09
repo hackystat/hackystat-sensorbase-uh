@@ -4,6 +4,7 @@ import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.users.UserManager;
+import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -15,7 +16,7 @@ import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
 
 /**
- * The resource for processing GET host/projects/{userkey}/{projectname}.
+ * The resource for processing GET host/projects/{email}/{projectname}.
  * Returns a representation of the Project resource associated with this user. 
  * 
  * @author Philip Johnson
@@ -23,7 +24,9 @@ import org.restlet.resource.Variant;
 public class UserProjectResource extends Resource {
   
   /** To be retrieved from the URL. */
-  private String userKey;
+  private String email;
+  /** The user, or null if 'email' does not represent a User. */
+  private User user; 
   /** To be retrieved from the URL. */
   private String projectName;
   /** The Project Manager. */
@@ -39,40 +42,48 @@ public class UserProjectResource extends Resource {
    */
   public UserProjectResource(Context context, Request request, Response response) {
     super(context, request, response);
-    this.userKey = (String) request.getAttributes().get("userkey");
+    this.email = (String) request.getAttributes().get("email");
     this.projectName = (String) request.getAttributes().get("projectname");
     this.projectManager = (ProjectManager)getContext().getAttributes().get("ProjectManager");
     this.userManager = (UserManager)getContext().getAttributes().get("UserManager");
-    getVariants().clear(); // copyied from BookmarksResource.java, not sure why needed.
+    this.user = userManager.getUser(email);
+    getVariants().clear(); // copied from BookmarksResource.java, not sure why needed.
     getVariants().add(new Variant(MediaType.TEXT_XML));
   }
   
   /**
-   * Returns a ProjectIndex of all projects associated with this UserKey.
+   * Returns an XML representation of the Project associated with this User.
    * 
    * @param variant The representational variant requested.
    * @return The representation. 
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    Representation result = null;
+    // Return an error code if we can't find a User for this email.
+    if (this.user == null) {
+      String msg = "No user corresponding to: " + this.email;
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      return null;
+    }
+    // Return an error code if we can't find the named Project for this User. 
+    if (!projectManager.hasProject(this.user, this.projectName)) {
+      String msg = "No Project named " + this.projectName + " for user " + this.email;
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      return null;
+    }    
+    // Have a user and a project, so proceed.
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      // If this User/Project pair does not exist, return an error.
-      if (!projectManager.hasProject(this.userKey, this.projectName)) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "No project");
-        return null;
-      }
-      // Otherwise return the Project representation. 
       try {
-        result = new DomRepresentation(MediaType.TEXT_XML, 
-            projectManager.getProjectDocument(this.userKey, this.projectName));
+        return new DomRepresentation(MediaType.TEXT_XML, 
+            projectManager.getProjectDocument(this.user, this.projectName));
       }
       catch (Exception e) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Problems marshalling");
+        String msg = "Couldn't marshall project " + this.projectName + " into XML.";
+        getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, msg);
         return null;
       }
-      }
-    return result;
+    }
+    return null;
   }
   
   /** 
@@ -99,8 +110,9 @@ public class UserProjectResource extends Resource {
   @Override
   public void put(Representation entity) {
     // If this User does not exist, return an error.
-    if (!userManager.hasUser(this.userKey)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");
+    if (this.user == null) {
+      String msg = "Bad PUT: No user corresponding to: " + this.email;
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return;
     }  
     String entityString = null;
@@ -122,16 +134,17 @@ public class UserProjectResource extends Resource {
       
     }
     // Return failure if the User is not the Owner
-    if (!this.userKey.equals(project.getOwner())) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "User is not owner.");
+    if (!this.email.equals(project.getOwner())) {
+      String msg = "User " + user.getEmail() + " is not the Project Owner: " + project.getOwner();
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return;
     }
     // Return failure if any Members are not Users.
     if (project.getMembers() != null) {
       for (String memberKey : project.getMembers().getMember()) {
         if (!userManager.hasUser(memberKey)) {
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-              "Undefined member: " + memberKey);
+          String msg = "Undefined member: " + memberKey;
+          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg); 
           return;
         }
       }
@@ -162,17 +175,17 @@ public class UserProjectResource extends Resource {
   @Override
   public void delete() {
     //  If this User does not exist, return an error.
-    if (!userManager.hasUser(this.userKey)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");
+    if (this.user == null) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.email);
       return;
     } 
     
-    if (!projectManager.isOwner(this.userKey, this.projectName)) {
+    if (!projectManager.isOwner(this.user, this.projectName)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "User is not Owner.");
       return;
     }
     // Otherwise, delete it and return successs.
-    projectManager.deleteProject(this.userKey, this.projectName);      
+    projectManager.deleteProject(this.user, this.projectName);      
     getResponse().setStatus(Status.SUCCESS_OK);
   }
   

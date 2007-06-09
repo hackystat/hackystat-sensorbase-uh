@@ -37,8 +37,8 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
 
     // Ensure that we can find the SampleSdt definition.
     XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//SensorDataTypeRef[@Name='SampleSdt']");
-    assertNotNull("Checking that we found the SampleSdt", node);
+    Node node = data.getNode("//SensorDataTypeRef[@Name='TestSdt']");
+    assertNotNull("Checking that we found the TestSdt", node);
     }
   
   /**
@@ -46,17 +46,17 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getIndividualSdt() throws Exception {
-    Response response = makeRequest(Method.GET, "sensordatatypes/SampleSdt");
+    Response response = makeRequest(Method.GET, "sensordatatypes/TestSdt");
 
     // Test that the request was received and processed by the server OK. 
-    assertTrue("Testing for successful GET SampleSdt", response.getStatus().isSuccess());
+    assertTrue("Testing for successful GET TestSdt", response.getStatus().isSuccess());
     DomRepresentation data = response.getEntityAsDom();
-    assertEquals("Checking SDT", "SampleSdt", data.getText("SensorDataType/@Name"));
+    assertEquals("Checking SDT", "TestSdt", data.getText("SensorDataType/@Name"));
     
     //Make it into a Java SDT and ensure the fields are there as expected. 
     SensorDataType sdt = SdtManager.unmarshallSdt(data.getDocument());
-    assertEquals("Checking name", "SampleSdt", sdt.getName());
-    assertTrue("Checking description", sdt.getDescription().startsWith("Sample SDT"));
+    assertEquals("Checking name", "TestSdt", sdt.getName());
+    assertTrue("Checking description", sdt.getDescription().startsWith("SDT"));
     RequiredField reqField = sdt.getRequiredFields().getRequiredField().get(0);
     assertEquals("Checking required field name", "SampleField", reqField.getName());
     assertEquals("Checking required field value", "Sample Field Value", reqField.getDescription());
@@ -72,31 +72,31 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
   @Test public void putSdt() throws Exception {
     // First, create a sample SDT. Note that our XmlSchema is too lenient right now. 
     SensorDataType sdt = new SensorDataType();
-    sdt.setName("TestSdt");
+    sdt.setName("TestSdt2");
     Document doc = SdtManager.marshallSdt(sdt);
     Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
-    String uri = "sensordatatypes/TestSdt";
+    String uri = "sensordatatypes/TestSdt2";
     Response response = makeRequest(Method.PUT, uri, representation);
 
     // Test that the PUT request was received and processed by the server OK. 
-    assertTrue("Testing for successful PUT TestSdt", response.getStatus().isSuccess());
+    assertTrue("Testing for successful PUT TestSdt2", response.getStatus().isSuccess());
     
     // Test to see that we can now retrieve it. 
     response = makeRequest(Method.GET, uri);
-    assertTrue("Testing for successful GET TestSdt", response.getStatus().isSuccess());
+    assertTrue("Testing for successful GET TestSdt2", response.getStatus().isSuccess());
     XmlRepresentation data = response.getEntityAsSax();
-    assertEquals("Checking SDT", "TestSdt", data.getText("SensorDataType/@Name"));
+    assertEquals("Checking SDT", "TestSdt2", data.getText("SensorDataType/@Name"));
     
     // Test that PUTting it again is OK.
     response = makeRequest(Method.PUT, uri, representation);
-    assertTrue("Testing for successful update TestSdt", response.getStatus().isSuccess());
+    assertTrue("Testing for successful update TestSdt2", response.getStatus().isSuccess());
     
     // Test that DELETE gets rid of this SDT.
     response = makeRequest(Method.DELETE, uri);
-    assertTrue("Testing for successful DELETE TestSdt", response.getStatus().isSuccess());
+    assertTrue("Testing for successful DELETE TestSdt2", response.getStatus().isSuccess());
     
     // Test that a second DELETE succeeds even though its no longer there. 
     response = makeRequest(Method.DELETE, uri);
-    assertTrue("Testing for second DELETE TestSdt", response.getStatus().isSuccess());
+    assertTrue("Testing for second DELETE TestSdt2", response.getStatus().isSuccess());
   }
 }

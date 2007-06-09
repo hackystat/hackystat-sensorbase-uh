@@ -3,9 +3,9 @@
   <Description>Release 3.3 of the Jupiter code review plugin for Eclipse</Description>
   <StartTime>2006-01-31T00:00:00.000</StartTime>
   <EndTime>2007-01-20T00:00:00.000</EndTime>
-  <Owner>9fjchekcl34s</Owner>
+  <Owner>SampleUser@hackystat.org</Owner>
   <Members>
-   <Member>7dkche3klclc</Member>
+   <Member>AnotherSampleUser@hackystat.org</Member>
   </Members>
   <UriPatterns>
     <UriPattern>file://**/Jupiter/**</UriPattern>

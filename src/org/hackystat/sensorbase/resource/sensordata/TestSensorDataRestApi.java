@@ -47,11 +47,11 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     }
   
   /**
-   * Test that GET host/sensorbase/sensordata/SampleUser returns some sensor data. 
+   * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org returns some sensor data. 
    * @throws Exception If problems occur.
    */
   @Test public void getUserSensorDataIndex() throws Exception {
-    Response response = makeRequest(Method.GET, "sensordata/SampleUser");
+    Response response = makeRequest(Method.GET, "sensordata/TestUser@hackystat.org");
     
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET index 2", response.getStatus().isSuccess());
@@ -63,11 +63,11 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     }
   
   /**
-   * Test that GET host/sensorbase/sensordata/SampleUser/SampleSdt returns data.
+   * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org/SampleSdt returns data.
    * @throws Exception If problems occur.
    */
   @Test public void getUserSdtSensorDataIndex() throws Exception {
-    Response response = makeRequest(Method.GET, "sensordata/SampleUser/SampleSdt");
+    Response response = makeRequest(Method.GET, "sensordata/TestUser@hackystat.org/TestSdt");
     
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET index 3", response.getStatus().isSuccess());
@@ -79,12 +79,12 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     }
   
   /**
-   * Test that GET host/sensorbase/sensordata/SampleUser/SampleSdt/2007-04-30T09:00:00.000
-   * returns data.
+   * Test GET host/sensorbase/sensordata/TestUser@hackystat.org/TestSdt/2007-04-30T09:00:00.000
+   * and see that it returns data.
    * @throws Exception If problems occur.
    */
   @Test public void getUserSensorData() throws Exception {
-    String uri = "sensordata/SampleUser/SampleSdt/2007-04-30T09:00:00.000";
+    String uri = "sensordata/TestUser@hackystat.org/TestSdt/2007-04-30T09:00:00.000";
     Response response = makeRequest(Method.GET, uri);
     
     // Test that the request was received and processed by the server OK. 
@@ -99,16 +99,16 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
   
   /**
    * Test that PUT and DELETE of 
-   * host/sensorbase/sensordata/SampleUser/SampleSdt/2007-04-30T02:00:00.000 work.
+   * host/sensorbase/sensordata/TestUser@hackystat.org/TestSdt/2007-04-30T02:00:00.000 works.
    * @throws Exception If problems occur.
    */
   @Test public void putSensorData() throws Exception {
     // First, create a sample sensor data instance.
-    String user = "SampleUser";
+    String user = "TestUser@hackystat.org";
     String timestamp = "2007-04-30T02:00:00.000";
     DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
     XMLGregorianCalendar tstamp = datatypeFactory.newXMLGregorianCalendar(timestamp);
-    String sdt = "SampleSdt";
+    String sdt = "TestSdt";
     SensorData data = new SensorData();
     data.setTool("Subversion");
     data.setOwner(user);
@@ -143,9 +143,9 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     response = makeRequest(Method.DELETE, uri);
     assertTrue("Testing for successful DELETE SensorData", response.getStatus().isSuccess());
     
-    // Test that a second DELETE fails, since da buggah is no longer in there.
+    // Test that a second DELETE succeeds, even though da buggah is no longer in there.
     response = makeRequest(Method.DELETE, uri);
-    assertTrue("Testing for failed second DELETE SensorData", response.getStatus().isClientError());
+    assertTrue("Testing for OK second DELETE SensorData", response.getStatus().isSuccess());
   }
 
 }

@@ -22,7 +22,7 @@ import org.restlet.resource.Variant;
 public class UserResource extends Resource {
 
   /** To be retrieved from the URL. */
-  private String userKey; 
+  private String email; 
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -32,7 +32,7 @@ public class UserResource extends Resource {
    */
   public UserResource(Context context, Request request, Response response) {
     super(context, request, response);
-    this.userKey = (String) request.getAttributes().get("userkey");
+    this.email = (String) request.getAttributes().get("email");
     getVariants().clear(); // copied from BookmarksResource.java, not sure why needed.
     getVariants().add(new Variant(MediaType.TEXT_XML));
   }
@@ -50,11 +50,11 @@ public class UserResource extends Resource {
       throw new RuntimeException("Failed to find UserManager");
     }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      if (!manager.hasUser(this.userKey)) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown: " + this.userKey);
+      if (!manager.hasUser(this.email)) {
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown: " + this.email);
       }
         result =  new DomRepresentation(MediaType.TEXT_XML, 
-            manager.getUserDocument(this.userKey));
+            manager.getUserDocument(this.email));
       }
     return result;
   }
@@ -70,21 +70,13 @@ public class UserResource extends Resource {
   }
   
   /**
-   * Implement the DELETE method that deletes an existing User given its userkey.
-   * <ul> 
-   * <li> The User must be currently defined in this UserManager.
-   * </ul>
+   * Implement the DELETE method that deletes an existing User given their email.
+   * Does not matter if the User current exists or not. 
    */
   @Override
   public void delete() {
     UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
-    // Return failure if the UserKey doesn't exist.
-    if (!manager.hasUser(this.userKey)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Nonexistent User: " + this.userKey);
-      return;
-    }
-    // Otherwise, delete it and return successs.
-    manager.deleteUser(userKey);      
+    manager.deleteUser(email);      
     getResponse().setStatus(Status.SUCCESS_OK);
   }
   
@@ -109,8 +101,8 @@ public class UserResource extends Resource {
   public void post(Representation entity) {
     UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
     // Return failure if the User doesn't exist.
-    if (!manager.hasUser(this.userKey)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Nonexistent User: " + this.userKey);
+    if (!manager.hasUser(this.email)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown User: " + this.email);
       return;
     }
     // Attempt to construct a Properties object.
@@ -126,7 +118,7 @@ public class UserResource extends Resource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Properties: " + entityString);
       return;
     }
-    User user = manager.getUser(this.userKey);
+    User user = manager.getUser(this.email);
     // Update the existing property list with these new properties. 
     for (Property property : newProperties.getProperty()) {
       user.getProperties().getProperty().add(property);

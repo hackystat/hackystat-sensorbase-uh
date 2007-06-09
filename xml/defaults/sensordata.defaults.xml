@@ -4,9 +4,9 @@
  <Timestamp>2006-04-30T09:00:00.000</Timestamp>
  <Runtime>2006-04-30T09:00:00.000</Runtime>
  <Tool>Subversion</Tool>
- <SensorDataType>SampleSdt</SensorDataType>
+ <SensorDataType>TestSdt</SensorDataType>
  <Resource>file://home/johnson/svn/TestData/build.xml</Resource>
- <Owner>SampleUser</Owner>
+ <Owner>TestUser@hackystat.org</Owner>
  <Properties>
    <Property>
      <Key>SampleField</Key>
@@ -23,9 +23,9 @@
  <Timestamp>2007-04-30T09:00:00.000</Timestamp>
  <Runtime>2007-04-30T09:00:00.000</Runtime>
  <Tool>Subversion</Tool>
- <SensorDataType>SampleSdt</SensorDataType>
+ <SensorDataType>TestSdt</SensorDataType>
  <Resource>file://home/johnson/svn/TestData/build.xml</Resource>
- <Owner>SampleUser</Owner>
+ <Owner>TestUser@hackystat.org</Owner>
  <Properties>
    <Property>
      <Key>SampleField</Key>
@@ -44,7 +44,7 @@
  <Tool>Subversion</Tool>
  <SensorDataType>SampleSdt</SensorDataType>
  <Resource>file://home/johnson/svn/TestData/build.xml</Resource>
- <Owner>SampleUser</Owner>
+ <Owner>TestUser@hackystat.org</Owner>
  <Properties>
    <Property>
      <Key>SampleField</Key>

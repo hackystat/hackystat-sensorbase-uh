@@ -2,12 +2,12 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <!-- Primitive elements and attributes -->
   <xs:element name="Email" type="xs:string"/>
-  <xs:element name="UserKey" type="xs:string"/>
+  <xs:element name="Password" type="xs:string"/>
   <xs:element name="Role" type="xs:string"/>
   <xs:element name="Key" type="xs:string"/>
   <xs:element name="Value" type="xs:string"/>
-  <xs:attribute name="UserKey" type="xs:string"/>
-  <xs:attribute name="href" type="xs:anyURI"/>
+  <xs:attribute name="Email" type="xs:string"/>
+  <xs:attribute name="Href" type="xs:anyURI"/>
 
 
   <xs:element name="Property">
@@ -32,7 +32,7 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="Email"/>
-        <xs:element ref="UserKey"/>
+        <xs:element ref="Password"/>
         <xs:element ref="Role" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="Properties"/>
       </xs:sequence>
@@ -50,8 +50,8 @@
 
   <xs:element name="UserRef">
     <xs:complexType>
-      <xs:attribute ref="UserKey"/>
-      <xs:attribute ref="href"/>
+      <xs:attribute ref="Email"/>
+      <xs:attribute ref="Href"/>
     </xs:complexType>
   </xs:element>
 

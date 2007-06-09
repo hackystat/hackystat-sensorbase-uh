@@ -2,8 +2,9 @@ package org.hackystat.sensorbase.resource.users;
 
 import java.io.File;
 import java.io.StringReader;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
@@ -30,12 +31,12 @@ import org.w3c.dom.Document;
  * Loads default definitions if available. 
  * @author Philip Johnson
  */
-public class UserManager {
+public class UserManager implements Iterable<User> {
   
   private static String jaxbPackage = "org.hackystat.sensorbase.resource.users.jaxb";
   
-  /** The in-memory repository of Users, keyed by UserKey. */
-  private Map<String, User> userMap = new HashMap<String, User>();
+  /** The in-memory repository of Users, keyed by Email. */
+  private Map<String, User> userMap = new ConcurrentHashMap<String, User>();
 
   /** The JAXB marshaller for Users. */
   private Marshaller marshaller; 
@@ -49,9 +50,6 @@ public class UserManager {
   /** The Server associated with this Manager. */
   Server server; 
   
-  /** The project manager. */
-  ProjectManager projectManager;
-  
   /** 
    * The constructor for UserManagers. 
    * There is one UserManager per Server. 
@@ -60,8 +58,7 @@ public class UserManager {
   public UserManager(Server server) {
     this.server = server;
     try {
-      this.projectManager = 
-        (ProjectManager)this.server.getContext().getAttributes().get("ProjectManager");
+      
       // Initialize marshaller and unmarshaller. 
       JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
       this.unmarshaller = jc.createUnmarshaller();
@@ -76,8 +73,7 @@ public class UserManager {
         
         // Initialize the sdtMap and define the default project.
         for (User user : users.getUser()) {
-          userMap.put(user.getUserKey(), user);
-          projectManager.addDefaultProject(user.getUserKey());
+          userMap.put(user.getEmail(), user);
         }
       }
       // Initialize documentBuilder
@@ -115,8 +111,8 @@ public class UserManager {
     UserIndex index = new UserIndex();
     for (User user : this.userMap.values()) {
       UserRef ref = new UserRef();
-      ref.setUserKey(user.getUserKey());
-      ref.setHref(this.server.getHostName() + "users/" + user.getUserKey());
+      ref.setEmail(user.getEmail());
+      ref.setHref(this.server.getHostName() + "users/" + user.getEmail());
       index.getUserRef().add(ref);
     }
     // Now convert it to XML.
@@ -135,22 +131,22 @@ public class UserManager {
   
   /**
    * Returns the XML representation of the named User.
-   * @param userKey The UserKey of the User
+   * @param email The email address of the User
    * @return The XML representation of that User, or null if not found.
    */
-  public synchronized Document getUserDocument(String userKey) {
+  public synchronized Document getUserDocument(String email) {
     // Return null if name is not an SDT
-    if (!userMap.containsKey(userKey)) {
+    if (!userMap.containsKey(email)) {
       return null;
     }
     Document doc = null;
     try {
-      User user = userMap.get(userKey);
+      User user = userMap.get(email);
       doc = this.documentBuilder.newDocument();
       this.marshaller.marshal(user, doc);
     }
     catch (Exception e ) {
-      String msg = "Failed to marshall the User named: " + userKey;
+      String msg = "Failed to marshall the User: " + email;
       SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
@@ -162,52 +158,69 @@ public class UserManager {
    * @param user The SensorDataType.
    */
   public synchronized void putUser(User user) {
-    userMap.put(user.getUserKey(), user);
+    userMap.put(user.getEmail(), user);
   }
   
   /**
-   * Returns true if the passed userKey is defined. 
-   * @param userKey A userKey
-   * @return True if a User with that userKey is known to this Manager.
+   * Returns true if the passed user is defined. 
+   * @param email An email address
+   * @return True if a User with that email address is known to this Manager.
    */
-  public synchronized boolean hasUser(String userKey) {
-    return userMap.containsKey(userKey);
+  public synchronized boolean hasUser(String email) {
+    return (email != null) && (userMap.containsKey(email));
   }
   
   /**
    * Ensures that the passed User is no longer present in this Manager. 
-   * @param userKey The userKey of the User to remove if currently present.
+   * @param email The email address of the User to remove if currently present.
    */
-  public synchronized void deleteUser(String userKey) {
-    userMap.remove(userKey);
+  public synchronized void deleteUser(String email) {
+    userMap.remove(email);
   }
   
 
   /**
-   * Returns the User associated with this UserKey.
-   * @param userKey The userKey string.
+   * Returns the User associated with this email address if they are currently registered.
+   * @param email The email address
    * @return The User, or null if not found.
    */
-  public synchronized User getUser(String userKey) {
-    return userMap.get(userKey);
+  public synchronized User getUser(String email) {
+    return userMap.get(email);
   }
   
   /**
-   * Returns true if the passed UserKey is known to this Manager.
-   * @param userKey The UserKey of interest.
+   * Returns true if the User as identified by their email address is known to this Manager.
+   * @param email The email address of the User of interest.
    * @return True if found in this Manager.
    */
-  public synchronized boolean isUserKey(String userKey) {
-    return userMap.containsKey(userKey);
+  public synchronized boolean isUser(String email) {
+    return userMap.containsKey(email);
+  }
+  
+  /**
+   * Returns true if the passed user is a test user.
+   * This is defined as a User whose email address uses the TEST_DOMAIN.  
+   * @param user The user. 
+   * @return True if the user is a test user. 
+   */
+  public boolean isTestUser(User user) {
+    return user.getEmail().endsWith(ServerProperties.get(TEST_DOMAIN_KEY));
+  }
+  
+  /**
+   * Returns a thread-safe Iterator over the set of currently defined users. 
+   * @return An iterator. 
+   */
+  public Iterator<User> iterator() {
+    return this.userMap.values().iterator();
   }
   
   /** 
    * If a User with the passed email address exists, then return it.
    * Otherwise create a new User and return it.
-   * If the email address ends with the test domain, then the UserKey will be the lower-cased
-   * account name. For example, "foo@hackystat.org" will create a UserKey called "foo" if
-   * hackystat.org is the test domain.  Otherwise, a unique, randomly generated 12 character key 
-   * is generated and used as the UserKey.
+   * If the email address ends with the test domain, then the password will be the email.
+   * Otherwise, a unique, randomly generated 12 character key is generated as the password. 
+   * Defines the Default Project for each new user. 
    * @param email The email address for the user. 
    * @return The retrieved or newly created User.
    */
@@ -222,14 +235,14 @@ public class UserManager {
     User user = new User();
     user.setEmail(email);
     user.setProperties(new Properties());
-    // UserKey is either the lowercased account in the case of a test user, or the random string.
-    String userKey = 
-      email.endsWith(ServerProperties.get(TEST_DOMAIN_KEY)) ?
-          email.substring(0, email.indexOf('@')) :
-            UserKeyGenerator.make(this);
-    user.setUserKey(userKey);
-    this.userMap.put(userKey, user);
-    projectManager.addDefaultProject(user.getUserKey());
+    // Password is either the Email in the case of a test user, or the randomly generated string.
+    String password = 
+      email.endsWith(ServerProperties.get(TEST_DOMAIN_KEY)) ? email : PasswordGenerator.make();
+    user.setPassword(password);
+    this.userMap.put(email, user);
+    ProjectManager projectManager = 
+      (ProjectManager)this.server.getContext().getAttributes().get("ProjectManager");
+    projectManager.addDefaultProject(user);
     return user;
   } 
   
@@ -311,16 +324,6 @@ public class UserManager {
     JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (Properties)unmarshaller.unmarshal(new StringReader(xmlString));
-  }
-  
-  /**
-   * Returns true if the passed user is a test user.
-   * This is defined as their email address using the TEST_DOMAIN.  
-   * @param user The user. 
-   * @return True if the user is a test user. 
-   */
-  public boolean isTestUser(User user) {
-    return user.getEmail().endsWith(ServerProperties.get(TEST_DOMAIN_KEY));
   }
 }
 
