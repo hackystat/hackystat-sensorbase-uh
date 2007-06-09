@@ -207,7 +207,8 @@ public class ProjectManager {
     startTime = (Timestamp.greaterThan(startTime, project.getStartTime())) ?
         startTime : project.getStartTime();
     // make endTime the lesser of endTime and the Project endTime.
-    endTime = (Timestamp.lessThan(endTime, project.getEndTime())) ? endTime : project.getEndTime();
+    endTime = (Timestamp.lessThan(endTime, project.getEndTime())) ? 
+        endTime : project.getEndTime();
         
     Set<SensorData> dataSet = sensorDataManager.getData(user, startTime, endTime);
     String email = user.getEmail();
