@@ -30,26 +30,26 @@ import org.w3c.dom.Node;
 public class TestUsersRestApi extends SensorBaseRestApiHelper {
 
   /** The TestUser user email. */
-  private static final String TESTUSER = "TestUser@hackystat.org";
-  /** The URI string for the TestUser user. */
-  private static final String TESTUSER_URI = "users/" + TESTUSER; 
+  private String testUserEmail = "TestUser@hackystat.org";
   /** Here because PMD thinks this way is better. */
-  private static final String USERS = "users/";
+  private String usersUri = "users/";
+  /** The URI string for the TestUser user. */
+  private String testUserUri = usersUri + testUserEmail; 
 
   /**
    * Test that GET host/sensorbase/users returns an index containing TestUser.
    * @throws Exception If problems occur.
    */
   @Test public void getUsersIndex() throws Exception {
-    Response response = makeRequest(Method.GET, USERS);
+    Response response = makeAdminRequest(Method.GET, usersUri);
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Unsuccessful GET index", response.getStatus().isSuccess());
 
     // Ensure that we can find the SampleSdt definition.
     XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//UserRef[@Email='" + TESTUSER + "']");
-    assertNotNull("Failed to find " + TESTUSER, node);
+    Node node = data.getNode("//UserRef[@Email='" + testUserEmail + "']");
+    assertNotNull("Failed to find " + testUserEmail, node);
   }
   
   /**
@@ -57,17 +57,17 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getUser() throws Exception {
-    Response response = makeRequest(Method.GET, TESTUSER_URI);
+    Response response = makeRequest(Method.GET, testUserUri, testUserEmail);
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Unsuccessful GET TestUser", response.getStatus().isSuccess());
     DomRepresentation data = response.getEntityAsDom();
-    assertEquals("Failed to find email", TESTUSER, data.getText("User/Email"));
+    assertEquals("Failed to find email", testUserEmail, data.getText("User/Email"));
     
     //Make it into a Java SDT and ensure the fields are there as expected. 
     User user = UserManager.unmarshallUser(data.getDocument());
-    assertEquals("Bad email", TESTUSER, user.getEmail());
-    assertEquals("Bad password", TESTUSER, user.getPassword());
+    assertEquals("Bad email", testUserEmail, user.getEmail());
+    assertEquals("Bad password", testUserEmail, user.getPassword());
   }
   
   /**
@@ -76,13 +76,13 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    */
   @Test public void postUser() throws Exception {
     String testEmail = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
-    Response response = makeRequest(Method.POST, "users?email=" + testEmail);
+    Response response = makeRequest(Method.POST, "users?email=" + testEmail, null);
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Unsuccessful POST of TestPost@hackystat.org", response.getStatus().isSuccess());
 
     // Test that we can now retrieve this user with a GET.
-    response = makeRequest(Method.GET, USERS + testEmail);
+    response = makeRequest(Method.GET, usersUri + testEmail, testEmail);
     assertTrue("Unsuccessful GET TestPost", response.getStatus().isSuccess());
     DomRepresentation data = response.getEntityAsDom();
     assertEquals("Couldn't find TestPost user", testEmail, data.getText("User/Email"));
@@ -94,24 +94,24 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    */
   @Test public void deleteUser () throws Exception {
     String testEmail = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
-    String testEmailUri = USERS + testEmail;
-    Response response = makeRequest(Method.POST, "users?email=" + testEmail);
+    String testEmailUri = usersUri + testEmail;
+    Response response = makeRequest(Method.POST, "users?email=" + testEmail, testUserEmail);
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Unsuccessful POST of TestPost", response.getStatus().isSuccess());
     
     // Now try to delete
-    response = makeRequest(Method.DELETE, testEmailUri);
+    response = makeRequest(Method.DELETE, testEmailUri, testEmail);
     
     // Test that it was processed OK.
     assertTrue("Unsuccessful DELETE of TestPost", response.getStatus().isSuccess());
     
     //Ensure that TestPost is no longer found as a user.
-    response = makeRequest(Method.GET, testEmailUri);
+    response = makeRequest(Method.GET, testEmailUri, testEmail);
     assertFalse("Illegal GET of TestPost", response.getStatus().isSuccess());
     
     // Ensure that TestPost is not listed in the index.
-    response = makeRequest(Method.GET, "users");
+    response = makeAdminRequest(Method.GET, "users");
     assertTrue("Unsuccessful GET index", response.getStatus().isSuccess());
 
     // Ensure that we can't find the TestPost definition.
@@ -127,8 +127,8 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
   @Test public void postUserProperties () throws Exception {
     // Create (or recreate) the TestPost user
     String testEmail = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
-    String testEmailUri = USERS + testEmail;
-    Response response = makeRequest(Method.POST, "users?email=" + testEmail);
+    String testEmailUri = usersUri + testEmail;
+    Response response = makeRequest(Method.POST, "users?email=" + testEmail, null);
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Unsuccessful POST of TestPost", response.getStatus().isSuccess());
@@ -142,13 +142,13 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
     Document doc = UserManager.marshallProperties(properties);
     Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
 
-    response = makeRequest(Method.POST, testEmailUri, representation);
+    response = makeRequest(Method.POST, testEmailUri, testEmail, representation);
 
     // Test that the POST request was received and processed by the server OK. 
     assertTrue("Unsuccessful POST TestPost", response.getStatus().isSuccess());
     
     // Retrieve the User representation and see that this property is there. 
-    response = makeRequest(Method.GET, testEmailUri, representation);
+    response = makeRequest(Method.GET, testEmailUri, testEmail, representation);
     DomRepresentation data = response.getEntityAsDom();
     assertEquals("Bad key", "testKey", data.getText("//User/Properties/Property/Key"));
   }

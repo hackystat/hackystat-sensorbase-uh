@@ -23,7 +23,10 @@ import org.restlet.resource.Variant;
 public class UsersResource extends Resource {
   
   /** The email attribute if supplied in a POST request. */
-  private String email;
+  private String email = null;
+  
+  /** The authenticated user, retrieved from the ChallengeResponse. */
+  private String authUser = null;
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -34,12 +37,16 @@ public class UsersResource extends Resource {
   public UsersResource(Context context, Request request, Response response) {
     super(context, request, response);
     this.email = (String) request.getAttributes().get("email");
+    if (request.getChallengeResponse() != null) {
+      this.authUser = request.getChallengeResponse().getIdentifier();
+    }
     getVariants().clear(); // copied from BookmarksResource.java, not sure why needed.
     getVariants().add(new Variant(MediaType.TEXT_XML));
   }
   
   /**
-   * Returns the representation of the SensorDataTypes resource. 
+   * Returns the representation of an index of all the users in the system. 
+   * Only the administrator can request this resource. 
    * @param variant The representational variant requested.
    * @return The representation. 
    */
@@ -47,8 +54,10 @@ public class UsersResource extends Resource {
   public Representation getRepresentation(Variant variant) {
     Representation result = null;
     UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
-    if (manager == null) {
-      throw new RuntimeException("Failed to find UserManager");
+    if (!manager.isAdmin(this.authUser)) {
+      String msg = "Only the admin can obtain the index of all users.";
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      return null;
     }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       result = new DomRepresentation(MediaType.TEXT_XML, manager.getUserIndexDocument());
@@ -69,6 +78,7 @@ public class UsersResource extends Resource {
    * Implement the POST method that registers a new User.
    * <ul>
    * <li> There must be an "email" parameter that specifies the email address for this user.
+   * <li> No authentication is required. 
    * </ul>
    * @param entity The XML representation of the new User. 
    */

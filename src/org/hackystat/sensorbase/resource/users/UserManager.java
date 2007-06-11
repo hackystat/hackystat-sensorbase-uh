@@ -24,6 +24,8 @@ import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
 import static org.hackystat.sensorbase.server.ServerProperties.XML_DIR_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
+import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
+import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_PASSWORD_KEY;
 import org.w3c.dom.Document;
 
 /**
@@ -76,6 +78,8 @@ public class UserManager implements Iterable<User> {
           userMap.put(user.getEmail(), user);
         }
       }
+      // Initialize admin User
+      initializeAdminUser();
       // Initialize documentBuilder
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       dbf.setNamespaceAware(true);
@@ -85,6 +89,31 @@ public class UserManager implements Iterable<User> {
       String msg = "Exception during UserManager initialization processing";
       SensorBaseLogger.getLogger().warning(msg + "/n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
+    }
+  }
+  
+  /**
+   * Ensures a User exists with the admin role given the data in the sensorbase.properties file. 
+   * The admin password will be reset to what was in the sensorbase.properties file. 
+   */
+  private void initializeAdminUser() {
+    String adminEmail = ServerProperties.get(ADMIN_EMAIL_KEY);
+    String adminPassword = ServerProperties.get(ADMIN_PASSWORD_KEY);
+    // First, clear any existing Admin role property.
+    for (User user : this.userMap.values()) {
+      user.setRole("basic");
+    }
+    // Now define this user with the admin property.
+    if (this.userMap.containsKey(adminEmail)) {
+      User user = this.userMap.get(adminEmail);
+      user.setPassword(adminPassword);
+      user.setRole("admin");
+    } else {
+      User admin = new User();
+      admin.setEmail(adminEmail);
+      admin.setPassword(adminPassword);
+      admin.setRole("admin");
+      this.userMap.put(adminEmail, admin);
     }
   }
   
@@ -195,6 +224,29 @@ public class UserManager implements Iterable<User> {
    */
   public synchronized boolean isUser(String email) {
     return userMap.containsKey(email);
+  }
+  
+  /**
+   * Returns true if the User as identified by their email address and password
+   * is known to this Manager.
+   * @param email The email address of the User of interest.
+   * @param password The password of this user.
+   * @return True if found in this Manager.
+   */
+  public synchronized boolean isUser(String email, String password) {
+    User user = this.userMap.get(email);
+    return (user != null) && (password != null) && (password.equals(user.getPassword()));
+  }
+  
+  /**
+   * Returns true if email is a defined User with Admin privileges. 
+   * @param email An email address. 
+   * @return True if email is a User with Admin privileges. 
+   */
+  public synchronized boolean isAdmin(String email) {
+    return (email != null) &&
+           userMap.containsKey(email) && 
+           email.equals(ServerProperties.get(ADMIN_EMAIL_KEY));
   }
   
   /**

@@ -27,6 +27,10 @@ import org.w3c.dom.Node;
  * @author Philip M. Johnson
  */
 public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
+  
+  /** The test user. */
+  private String user = "TestUser@hackystat.org";
+  private String sensordata = "sensordata/";
 
   /**
    * Test that GET host/sensorbase/sensordata returns an index containing all Sensor Data.
@@ -35,15 +39,15 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getSensorDataIndex() throws Exception {
-    Response response = makeRequest(Method.GET, "sensordata");
+    Response response = makeAdminRequest(Method.GET, "sensordata");
     
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET index 1", response.getStatus().isSuccess());
 
-    // Ensure that we can find the SampleSdt definition.
+    // Ensure that we can find some sensor data. 
     XmlRepresentation data = response.getEntityAsSax();
     Node node = data.getNode("//SensorDataRef");
-    assertNotNull("Checking that we found sensor data 1.", node);
+    assertNotNull("Checking that we found at least one sensor data 1.", node);
     }
   
   /**
@@ -51,15 +55,15 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getUserSensorDataIndex() throws Exception {
-    Response response = makeRequest(Method.GET, "sensordata/TestUser@hackystat.org");
+    Response response = makeRequest(Method.GET, sensordata + user, user);
     
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET index 2", response.getStatus().isSuccess());
 
-    // Ensure that we can find the SampleSdt definition.
+    // Ensure that we can find some sensor data. 
     XmlRepresentation data = response.getEntityAsSax();
     Node node = data.getNode("//SensorDataRef");
-    assertNotNull("Checking that we found sensor data 2.", node);
+    assertNotNull("Checking that we found some sensor data 2.", node);
     }
   
   /**
@@ -67,7 +71,7 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getUserSdtSensorDataIndex() throws Exception {
-    Response response = makeRequest(Method.GET, "sensordata/TestUser@hackystat.org/TestSdt");
+    Response response = makeRequest(Method.GET, sensordata + user + "/TestSdt", user);
     
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET index 3", response.getStatus().isSuccess());
@@ -75,7 +79,7 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     // Ensure that we can find the SampleSdt definition.
     XmlRepresentation data = response.getEntityAsSax();
     Node node = data.getNode("//SensorDataRef");
-    assertNotNull("Checking that we found sensor data 3.", node);
+    assertNotNull("Checking that we found some sensor data 3.", node);
     }
   
   /**
@@ -84,16 +88,16 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getUserSensorData() throws Exception {
-    String uri = "sensordata/TestUser@hackystat.org/TestSdt/2007-04-30T09:00:00.000";
-    Response response = makeRequest(Method.GET, uri);
+    String uri = sensordata + user + "/TestSdt/2007-04-30T09:00:00.000";
+    Response response = makeRequest(Method.GET, uri, user);
     
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET index 4", response.getStatus().isSuccess());
 
-    // Ensure that we can find the SampleSdt definition.
+    // Ensure that we got a representation of sensor data back.
     XmlRepresentation data = response.getEntityAsSax();
     Node node = data.getNode("//SensorData");
-    assertNotNull("Checking that we found sensor data 4.", node);
+    assertNotNull("Checking that we found the sensor data 4.", node);
     }
   
   
@@ -104,7 +108,6 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
    */
   @Test public void putSensorData() throws Exception {
     // First, create a sample sensor data instance.
-    String user = "TestUser@hackystat.org";
     String timestamp = "2007-04-30T02:00:00.000";
     DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
     XMLGregorianCalendar tstamp = datatypeFactory.newXMLGregorianCalendar(timestamp);
@@ -126,25 +129,25 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     // Now convert the Sensor Data instance to XML.
     Document doc = SensorDataManager.marshallSensorData(data);
     Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
-    String uri = "sensordata/" + user + "/" + sdt + "/" + timestamp;
-    Response response = makeRequest(Method.PUT, uri, representation);
+    String uri = sensordata + user + "/" + sdt + "/" + timestamp;
+    Response response = makeRequest(Method.PUT, uri, user, representation);
 
     // Test that the PUT request was received and processed by the server OK. 
     assertTrue("Testing for successful PUT Sensor Data", response.getStatus().isSuccess());
     
     // Test to see that we can now retrieve it. 
-    response = makeRequest(Method.GET, uri);
+    response = makeRequest(Method.GET, uri, user);
     assertTrue("Testing for successful GET SensorData", response.getStatus().isSuccess());
     XmlRepresentation newData = response.getEntityAsSax();
     assertEquals("Checking SensorData", timestamp, newData.getText("SensorData/Timestamp"));
  
     
     // Test that DELETE gets rid of this SDT.
-    response = makeRequest(Method.DELETE, uri);
+    response = makeRequest(Method.DELETE, uri, user);
     assertTrue("Testing for successful DELETE SensorData", response.getStatus().isSuccess());
     
     // Test that a second DELETE succeeds, even though da buggah is no longer in there.
-    response = makeRequest(Method.DELETE, uri);
+    response = makeRequest(Method.DELETE, uri, user);
     assertTrue("Testing for OK second DELETE SensorData", response.getStatus().isSuccess());
   }
 

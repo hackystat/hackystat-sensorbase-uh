@@ -1,5 +1,6 @@
 package org.hackystat.sensorbase.server;
 
+import java.util.Enumeration;
 import java.util.Map;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
@@ -28,6 +29,10 @@ import static org.hackystat.sensorbase.server.ServerProperties.HOSTNAME_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.PORT_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.CONTEXT_ROOT_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.LOGGING_LEVEL_KEY;
+
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+
 
 
 /**
@@ -62,12 +67,12 @@ public class Server extends Application {
     server.component.getServers().add(Protocol.HTTP, port);
     server.component.getDefaultHost()
       .attach("/" + ServerProperties.get(CONTEXT_ROOT_KEY), server);
-    server.component.getLogService().setEnabled(false);
     server.component.start();
     SensorBaseLogger.getLogger().warning("Started SensorBase (Version " + getVersion() + ")");
     SensorBaseLogger.getLogger().warning("Host: " + server.hostName);
     SensorBaseLogger.setLoggingLevel(ServerProperties.get(LOGGING_LEVEL_KEY));
     ServerProperties.echoProperties();
+    disableRestletLogging();
     try {
       Mailer.getInstance();
     }
@@ -75,17 +80,29 @@ public class Server extends Application {
       String msg = "ERROR: JavaMail not installed correctly! Mail services will fail!";
       SensorBaseLogger.getLogger().warning(msg);
     }
-    
-    
-    // Get rid of the Restlet Logger
-    // Save a pointer to this Server instance in this Application's context. 
+
+    // Now create all of the Resource Managers and store them in the Context.
+    // Note: UserManager must be initialized before ProjectManager
     Map<String, Object> attributes = server.getContext().getAttributes();
     attributes.put("SdtManager", new SdtManager(server));
-    // Note: UserManager must be initialized before ProjectManager
     attributes.put("UserManager", new UserManager(server));
     attributes.put("ProjectManager", new ProjectManager(server));
     attributes.put("SensorDataManager", new SensorDataManager(server));
     return server;
+  }
+
+  /**
+   * Disable all loggers from com.noelios and org.restlet. 
+   */
+  private static void disableRestletLogging() {
+    LogManager logManager = LogManager.getLogManager();
+    for (Enumeration e = logManager.getLoggerNames(); e.hasMoreElements() ;) {
+      String logName = e.nextElement().toString();
+      if (logName.startsWith("com.noelios") ||
+          logName.startsWith("org.restlet")) {
+        logManager.getLogger(logName).setLevel(Level.OFF);
+      }
+    }
   }
   
   /**
@@ -104,8 +121,8 @@ public class Server extends Application {
    */
   @Override
   public Restlet createRoot() {
-    // First, create a Router that will have a guard placed in front of it so that all of these
-    // requests will require HTTP Basic authentication.
+    // First, create a Router that will have a Guard placed in front of it so that this Router's
+    // requests will require authentication.
     Router authRouter = new Router(getContext());
     authRouter.attach("/sensordatatypes", SensorDataTypesResource.class);
     authRouter.attach("/sensordatatypes/{sensordatatypename}", SensorDataTypeResource.class);

@@ -1,6 +1,9 @@
 package org.hackystat.sensorbase.test;
 
 import org.hackystat.sensorbase.server.Server;
+import org.hackystat.sensorbase.server.ServerProperties;
+import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
+import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_PASSWORD_KEY;
 import org.junit.BeforeClass;
 import org.restlet.Client;
 import org.restlet.data.ChallengeResponse;
@@ -37,23 +40,68 @@ public class SensorBaseRestApiHelper {
   }
   
   /**
-   * Does the housekeeping for making HTTP requests to the SensorBase.
+   * Does the housekeeping for making HTTP requests to the SensorBase by a test user.
    * @param method The type of Method.
    * @param requestString A string, such as "users".
+   * @param userEmail The email of a test user, used for authentication. Note that test users
+   * have their password defined to be the same as their email address during registration. 
+   * If userEmail is null, then no authentication credentials are added.
    * @return The Response instance returned from the server.
    */
-  protected Response makeRequest(Method method, String requestString) {
-    return makeRequest(method, requestString, null);
+  protected Response makeRequest(Method method, String requestString, String userEmail) {
+    return makeRequest(method, requestString, userEmail, null);
   }
   
-  /**
-   * Does the housekeeping for making HTTP requests to the SensorBase.
+ /** 
+  * Does the housekeeping for making HTTP requests to the SensorBase by the admin user. 
+  * @param method The type of Method.
+  * @param requestString A string, such as "users".
+  * @return The Response instance returned from the server.
+  */
+  protected Response makeAdminRequest(Method method, String requestString) {
+    return makeRequestInternal(method, requestString, ServerProperties.get(ADMIN_EMAIL_KEY),
+        ServerProperties.get(ADMIN_PASSWORD_KEY), null);
+  }
+  
+  /** 
+   * Does the housekeeping for making HTTP requests to the SensorBase by the admin user. 
    * @param method The type of Method.
    * @param requestString A string, such as "users".
    * @param entity The representation to be sent with the request. 
    * @return The Response instance returned from the server.
    */
-  protected Response makeRequest(Method method, String requestString, Representation entity) {
+   protected Response makeAdminRequest(Method method, String requestString,
+       Representation entity) {
+     return makeRequestInternal(method, requestString, ServerProperties.get(ADMIN_EMAIL_KEY),
+         ServerProperties.get(ADMIN_PASSWORD_KEY), entity);
+   }
+  
+  /**
+   * Does the housekeeping for making HTTP requests to the SensorBase by a test user. 
+   * @param method The type of Method.
+   * @param requestString A string, such as "users".
+   * @param userEmail The email of a test user, used for authentication. Note that test users
+   * have their password defined to be the same as their email address during registration. 
+   * If userEmail is null, then no authentication credentials are added.
+   * @param entity The representation to be sent with the request. 
+   * @return The Response instance returned from the server.
+   */
+  protected Response makeRequest(Method method, String requestString, String userEmail, 
+      Representation entity) {
+    return makeRequestInternal(method, requestString, userEmail, userEmail, entity);
+  }
+  
+  /**
+   * Does the housekeeping for making HTTP requests to the SensorBase by a test or admin user. 
+   * @param method The type of Method.
+   * @param requestString A string, such as "users".
+   * @param userEmail The email of the user (testuser or admin user).
+   * @param userPassword The password of the user (testuser or admin user).
+   * @param entity The representation to be sent with the request. 
+   * @return The Response instance returned from the server.
+   */
+  private Response makeRequestInternal(Method method, String requestString, String userEmail,
+      String userPassword, Representation entity) {
     String hostName = SensorBaseRestApiHelper.server.getHostName();
     Reference reference = new Reference(hostName + requestString);
     Request request = (entity == null) ? 
@@ -61,10 +109,12 @@ public class SensorBaseRestApiHelper {
           new Request(method, reference, entity);
     Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);
     request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
-    // Add authentication info
-    ChallengeScheme scheme = ChallengeScheme.HTTP_BASIC;
-    ChallengeResponse authentication = new ChallengeResponse(scheme, "user", "pw");
-    request.setChallengeResponse(authentication);
+    // Add authentication info unless userEmail is null.
+    if (userEmail != null) {
+      ChallengeScheme scheme =  ChallengeScheme.HTTP_BASIC;
+      ChallengeResponse authentication = new ChallengeResponse(scheme, userEmail, userPassword);
+      request.setChallengeResponse(authentication);
+    }
     return client.handle(request);
   }
   
