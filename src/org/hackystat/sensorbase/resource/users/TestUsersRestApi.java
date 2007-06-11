@@ -71,6 +71,21 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
   }
   
   /**
+   * Test that HEAD host/sensorbase/users/TestUser provides a lightweight way
+   * to check authentication credentials. 
+   * @throws Exception If problems occur.
+   */
+  @Test public void getUserHead() throws Exception {
+    Response response = makeRequest(Method.HEAD, testUserUri, testUserEmail);
+    // Test that the request was received and processed by the server OK. 
+    assertTrue("Unsuccessful HEAD TestUser", response.getStatus().isSuccess());
+    // Now check for bad credentials.
+    response = makeRequest(Method.HEAD, testUserUri, "unknownuser");
+    // Test that the request was received and processed by the server OK. 
+    assertTrue("Successful Bad HEAD TestUser", response.getStatus().isClientError());
+  }
+  
+  /**
    * Tests the POST method that registers a new user. 
    * @throws Exception If problems occur.
    */
