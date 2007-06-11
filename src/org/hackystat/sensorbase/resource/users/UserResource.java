@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.resource.users;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.Property;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -12,20 +13,13 @@ import org.restlet.data.Response;
 import org.restlet.data.Status;
 import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
-import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
 
 /**
  * Implements a Restlet Resource for manipulating individual User resources. 
  * @author Philip Johnson
  */
-public class UserResource extends Resource {
-
-  /** To be retrieved from the URL. */
-  private String uriUser; 
-  
-  /** The authenticated user, retrieved from the ChallengeResponse. */
-  private String authUser; 
+public class UserResource extends SensorBaseResource {
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -35,10 +29,6 @@ public class UserResource extends Resource {
    */
   public UserResource(Context context, Request request, Response response) {
     super(context, request, response);
-    this.authUser = request.getChallengeResponse().getIdentifier();
-    this.uriUser = (String) request.getAttributes().get("email");
-    getVariants().clear(); // copied from BookmarksResource.java, not sure why needed.
-    getVariants().add(new Variant(MediaType.TEXT_XML));
   }
   
   /**
@@ -49,21 +39,20 @@ public class UserResource extends Resource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    Representation result = null;
-    UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
-    if (!manager.hasUser(this.uriUser)) {
+    if (!super.userManager.hasUser(this.uriUser)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown: " + this.uriUser);
       return null;
     } 
-    if (!manager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
       String msg = "User is not admin and authenticated user does not not match user in URI";
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
     }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      result =  new DomRepresentation(MediaType.TEXT_XML,  manager.getUserDocument(this.uriUser));
+      return new DomRepresentation(MediaType.TEXT_XML,  
+          super.userManager.getUserDocument(this.uriUser));
     }
-    return result;
+    return null;
   }
   
   
@@ -82,13 +71,12 @@ public class UserResource extends Resource {
    */
   @Override
   public void delete() {
-    UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
-    if (!manager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
       String msg = "User is not admin and authenticated user does not not match user in URI";
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return;
     }
-    manager.deleteUser(uriUser);      
+    super.userManager.deleteUser(uriUser);      
     getResponse().setStatus(Status.SUCCESS_OK);
   }
   
@@ -112,13 +100,12 @@ public class UserResource extends Resource {
    */
   @Override
   public void post(Representation entity) {
-    UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
     // Return failure if the User doesn't exist.
-    if (!manager.hasUser(this.uriUser)) {
+    if (!super.userManager.hasUser(this.uriUser)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown User: " + this.uriUser);
       return;
     }
-    if (!manager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
       String msg = "User is not admin and authenticated user does not not match user in URI";
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return;
@@ -136,7 +123,7 @@ public class UserResource extends Resource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Properties: " + entityString);
       return;
     }
-    User user = manager.getUser(this.uriUser);
+    User user = super.userManager.getUser(this.uriUser);
     // Update the existing property list with these new properties. 
     for (Property property : newProperties.getProperty()) {
       user.getProperties().getProperty().add(property);

@@ -1,19 +1,19 @@
 package org.hackystat.sensorbase.resource.sensordatatypes;
 
+import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
-import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
 
 /**
- * Implements a Restlet Resource representing an index of Hackystat Sensor Data Types. 
+ * Implements a resource for GET host/sensordatatypes that returns an index of all defined SDTs. 
  * @author Philip Johnson
  */
-public class SensorDataTypesResource extends Resource {
+public class SensorDataTypesResource extends SensorBaseResource {
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -23,8 +23,6 @@ public class SensorDataTypesResource extends Resource {
    */
   public SensorDataTypesResource(Context context, Request request, Response response) {
     super(context, request, response);
-    getVariants().clear(); // copied from BookmarksResource.java, not sure why needed.
-    getVariants().add(new Variant(MediaType.TEXT_XML));
   }
   
   /**
@@ -34,16 +32,10 @@ public class SensorDataTypesResource extends Resource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    Representation result = null;
-    SdtManager manager = (SdtManager)getContext().getAttributes().get("SdtManager");
-    if (manager == null) {
-      throw new RuntimeException("Failed to find SdtManager");
-    }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      result = new DomRepresentation(MediaType.TEXT_XML, manager.getSensorDataTypeIndexDocument());
+      return new DomRepresentation(MediaType.TEXT_XML, 
+          super.sdtManager.getSensorDataTypeIndexDocument());
     }
-    return result;
+    return null;
   }
-
-  
 }

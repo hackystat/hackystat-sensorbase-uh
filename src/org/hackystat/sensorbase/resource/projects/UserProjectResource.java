@@ -3,7 +3,7 @@ package org.hackystat.sensorbase.resource.projects;
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
-import org.hackystat.sensorbase.resource.users.UserManager;
+import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
@@ -12,7 +12,6 @@ import org.restlet.data.Response;
 import org.restlet.data.Status;
 import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
-import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
 
 /**
@@ -21,18 +20,12 @@ import org.restlet.resource.Variant;
  * 
  * @author Philip Johnson
  */
-public class UserProjectResource extends Resource {
+public class UserProjectResource extends SensorBaseResource {
   
-  /** To be retrieved from the URL. */
-  private String email;
-  /** The user, or null if 'email' does not represent a User. */
+  /** The user, or null if the uriUser does not name a defined User. */
   private User user; 
   /** To be retrieved from the URL. */
   private String projectName;
-  /** The Project Manager. */
-  private ProjectManager projectManager;
-  /** The User Manager. */
-  private UserManager userManager;
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -42,32 +35,34 @@ public class UserProjectResource extends Resource {
    */
   public UserProjectResource(Context context, Request request, Response response) {
     super(context, request, response);
-    this.email = (String) request.getAttributes().get("email");
     this.projectName = (String) request.getAttributes().get("projectname");
-    this.projectManager = (ProjectManager)getContext().getAttributes().get("ProjectManager");
-    this.userManager = (UserManager)getContext().getAttributes().get("UserManager");
-    this.user = userManager.getUser(email);
-    getVariants().clear(); // copied from BookmarksResource.java, not sure why needed.
-    getVariants().add(new Variant(MediaType.TEXT_XML));
+    this.user = super.userManager.getUser(uriUser);
   }
   
   /**
    * Returns an XML representation of the Project associated with this User.
+   * <ul>
+   * <li> The uriUser must be defined as a User.
+   * <li> The authenticated user must be the admin or uriUser.
+   * <li> The Project must be defined for this User.
+   * </ul>
    * 
-   * @param variant The representational variant requested.
+   * @param variant The representational variant requested, or null if conditions are violated.
    * @return The representation. 
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    // Return an error code if we can't find a User for this email.
     if (this.user == null) {
-      String msg = "No user corresponding to: " + this.email;
+      String msg = "No user corresponding to: " + this.uriUser;
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
     }
-    // Return an error code if we can't find the named Project for this User. 
-    if (!projectManager.hasProject(this.user, this.projectName)) {
-      String msg = "No Project named " + this.projectName + " for user " + this.email;
+    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
+      return null;
+    }
+    if (!super.projectManager.hasProject(this.user, this.projectName)) {
+      String msg = "No Project named " + this.projectName + " for user " + this.uriUser;
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
     }    
@@ -75,7 +70,7 @@ public class UserProjectResource extends Resource {
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       try {
         return new DomRepresentation(MediaType.TEXT_XML, 
-            projectManager.getProjectDocument(this.user, this.projectName));
+            super.projectManager.getProjectDocument(this.user, this.projectName));
       }
       catch (Exception e) {
         String msg = "Couldn't marshall project " + this.projectName + " into XML.";
@@ -101,7 +96,7 @@ public class UserProjectResource extends Resource {
    * <li> The XML must be marshallable into a Project instance using the Project XmlSchema.
    * <li> The User must exist.
    * <li> The Project name in the URI string must match the Project name in the XML.
-   * <li> The User must be the Owner.
+   * <li> The authenticated user must be the uriUser or the admin.
    * <li> All members must be defined as Users. 
    * </ul>
    * This implementation does not yet require members to agree to Project participation. 
@@ -109,12 +104,15 @@ public class UserProjectResource extends Resource {
    */
   @Override
   public void put(Representation entity) {
-    // If this User does not exist, return an error.
     if (this.user == null) {
-      String msg = "Bad PUT: No user corresponding to: " + this.email;
+      String msg = "Bad PUT: No user corresponding to: " + this.uriUser;
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return;
     }  
+    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
+      return;
+    }
     String entityString = null;
     Project project;
     // Try to make the XML payload into an SDT, return failure if this fails. 
@@ -133,16 +131,16 @@ public class UserProjectResource extends Resource {
       return;
       
     }
-    // Return failure if the User is not the Owner
-    if (!this.email.equals(project.getOwner())) {
-      String msg = "User " + user.getEmail() + " is not the Project Owner: " + project.getOwner();
+    // Return failure if the User is not the Admin or the Project Owner
+    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(project.getOwner())) {
+      String msg = "User " + user.getEmail() + " is not the admin or Project Owner.";
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return;
     }
     // Return failure if any Members are not Users.
     if (project.getMembers() != null) {
       for (String memberKey : project.getMembers().getMember()) {
-        if (!userManager.hasUser(memberKey)) {
+        if (!super.userManager.hasUser(memberKey)) {
           String msg = "Undefined member: " + memberKey;
           getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg); 
           return;
@@ -151,7 +149,7 @@ public class UserProjectResource extends Resource {
     }
 
     // otherwise we add it to the Manager and return success.
-    projectManager.putProject(project);      
+    super.projectManager.putProject(project);      
     getResponse().setStatus(Status.SUCCESS_CREATED);
   }
   
@@ -168,7 +166,8 @@ public class UserProjectResource extends Resource {
    * Implement the DELETE method that deletes an existing Project for a given User.
    * <ul> 
    * <li> The User must be currently defined.
-   * <li> The User must be the owner.
+   * <li> The authenticated user must be the uriUser or the Admin. 
+   * <li> The User must be the admin or the Owner.
    * </ul>
    * If the Project doesn't exist, that's fine, it's still "deleted".
    */
@@ -176,18 +175,20 @@ public class UserProjectResource extends Resource {
   public void delete() {
     //  If this User does not exist, return an error.
     if (this.user == null) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.email);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.uriUser);
       return;
     } 
-    
-    if (!projectManager.isOwner(this.user, this.projectName)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "User is not Owner.");
+    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
+      return;
+    }    
+    if (!super.userManager.isAdmin(this.uriUser) && 
+        !super.projectManager.isOwner(this.user, this.projectName)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "User is not Owner or Admin.");
       return;
     }
     // Otherwise, delete it and return successs.
-    projectManager.deleteProject(this.user, this.projectName);      
+    super.projectManager.deleteProject(this.user, this.projectName);      
     getResponse().setStatus(Status.SUCCESS_OK);
   }
-  
-
 }

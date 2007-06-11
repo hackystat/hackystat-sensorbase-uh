@@ -1,7 +1,7 @@
 package org.hackystat.sensorbase.resource.projects;
 
+import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordata.Timestamp;
-import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
@@ -10,19 +10,16 @@ import org.restlet.data.Response;
 import org.restlet.data.Status;
 import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
-import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
 
 /**
- * The resource for processing GET host/projects/{email}/{projectname}/sensordata.
+ * The resource for processing GET host/projects/{user}/{projectname}/sensordata.
  * Returns an index to the SensorData resources associated with this User and Project.
  * 
  * @author Philip Johnson
  */
-public class UserProjectSensorDataResource extends Resource {
+public class UserProjectSensorDataResource extends SensorBaseResource {
   
-  /** To be retrieved from the URL. */
-  private String email;
   /** The user corresponding to email, or null if not found. */
   private User user;
   /** To be retrieved from the URL. */
@@ -31,10 +28,7 @@ public class UserProjectSensorDataResource extends Resource {
   private String startTime;
   /** An optional query string parameter. */
   private String endTime;
-  /** The Project Manager. */
-  private ProjectManager projectManager;
-  /** The User Manager. */
-  private UserManager userManager;
+
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -44,15 +38,10 @@ public class UserProjectSensorDataResource extends Resource {
    */
   public UserProjectSensorDataResource(Context context, Request request, Response response) {
     super(context, request, response);
-    this.email = (String) request.getAttributes().get("email");
     this.projectName = (String) request.getAttributes().get("projectname"); 
     this.startTime = (String) request.getAttributes().get("startTime");
     this.endTime = (String) request.getAttributes().get("endTime");
-    this.projectManager = (ProjectManager)getContext().getAttributes().get("ProjectManager");
-    this.userManager = (UserManager)getContext().getAttributes().get("UserManager");
-    this.user = userManager.getUser(this.email);
-    getVariants().clear(); // copyied from BookmarksResource.java, not sure why needed.
-    getVariants().add(new Variant(MediaType.TEXT_XML));
+    this.user = super.userManager.getUser(super.uriUser);
   }
   
   /**
@@ -60,6 +49,7 @@ public class UserProjectSensorDataResource extends Resource {
    * Returns an error condition if:
    * <ul>
    * <li> The user does not exist.
+   * <li> The authenticated user is not the uriUser or the Admin. 
    * <li> The Project Resource named by the User and Project does not exist.
    * <li> startTime or endTime is not an XMLGregorianCalendar string.
    * <li> One or the other but not both of startTime and endTime is provided.
@@ -71,14 +61,16 @@ public class UserProjectSensorDataResource extends Resource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-
-    // If this User does not exist, return an error.
     if (this.user == null) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");
       return null;
-    }   
+    }  
+    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
+      return null;
+    }
     // If this User/Project pair does not exist, return an error.
-    if (!projectManager.hasProject(this.user, this.projectName)) {
+    if (!super.projectManager.hasProject(this.user, this.projectName)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown project");
       return null;
     }
@@ -110,12 +102,12 @@ public class UserProjectSensorDataResource extends Resource {
         if (startTime == null) {
           // Return all sensor data for this user and project if no query parameters.
           return new DomRepresentation(MediaType.TEXT_XML, 
-              projectManager.getProjectSensorDataIndexDocument(this.user, this.projectName));
+              super.projectManager.getProjectSensorDataIndexDocument(this.user, this.projectName));
         }
         else {
-          // Return the sensor data starting at startTime and for the following duration.  
+          // Return the sensor data starting at startTime and ending with endTime. 
           return new DomRepresentation(MediaType.TEXT_XML, 
-              projectManager.getProjectSensorDataIndexDocument(this.user, this.projectName,
+              super.projectManager.getProjectSensorDataIndexDocument(this.user, this.projectName,
                   this.startTime, this.endTime));
         }
       }

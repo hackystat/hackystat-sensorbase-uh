@@ -78,7 +78,7 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
     Document doc = SdtManager.marshallSdt(sdt);
     Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
     String uri = "sensordatatypes/TestSdt2";
-    Response response = makeRequest(Method.PUT, uri, user, representation);
+    Response response = makeAdminRequest(Method.PUT, uri, representation);
 
     // Test that the PUT request was received and processed by the server OK. 
     assertTrue("Testing for successful PUT TestSdt2", response.getStatus().isSuccess());
@@ -90,15 +90,15 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
     assertEquals("Checking SDT", "TestSdt2", data.getText("SensorDataType/@Name"));
     
     // Test that PUTting it again is OK.
-    response = makeRequest(Method.PUT, uri, user, representation);
+    response = makeAdminRequest(Method.PUT, uri, representation);
     assertTrue("Testing for successful update TestSdt2", response.getStatus().isSuccess());
     
     // Test that DELETE gets rid of this SDT.
-    response = makeRequest(Method.DELETE, uri, user);
+    response = makeAdminRequest(Method.DELETE, uri);
     assertTrue("Testing for successful DELETE TestSdt2", response.getStatus().isSuccess());
     
     // Test that a second DELETE succeeds even though its no longer there. 
-    response = makeRequest(Method.DELETE, uri, user);
+    response = makeAdminRequest(Method.DELETE, uri);
     assertTrue("Testing for second DELETE TestSdt2", response.getStatus().isSuccess());
   }
 }

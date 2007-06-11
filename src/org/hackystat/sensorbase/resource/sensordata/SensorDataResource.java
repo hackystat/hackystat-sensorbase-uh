@@ -1,19 +1,22 @@
 package org.hackystat.sensorbase.resource.sensordata;
 
+import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
+import org.restlet.data.Status;
 import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
-import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
 
 /**
- * Implements a Restlet Resource for Hackystat Sensor Data. 
+ * Implements a Resource for processing host/sensordata requests and returning an index to 
+ * all sensor data for all users in the SensorBase.
+ * This is an admin-only operation that could return quite a large amount of data. 
  * @author Philip Johnson
  */
-public class SensorDataResource extends Resource {
+public class SensorDataResource extends SensorBaseResource {
  
   /**
    * The standard constructor.
@@ -23,26 +26,24 @@ public class SensorDataResource extends Resource {
    */
   public SensorDataResource(Context context, Request request, Response response) {
     super(context, request, response);
-    getVariants().clear();
-    getVariants().add(new Variant(MediaType.TEXT_XML));
   }
   
   /**
-   * Returns the representation of the Sensor Data resource. 
+   * Returns an index to all sensor data defined for all users in this system. 
    * @param variant The representational variant requested.
    * @return The representation. 
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    Representation result = null;
-    SensorDataManager manager = 
-      (SensorDataManager)getContext().getAttributes().get("SensorDataManager");
-    if (manager == null) {
-      throw new RuntimeException("Failed to find SensorDataManager");
-    }
+    if (!super.userManager.isAdmin(this.authUser)) {
+      String msg = "Only the admin can obtain the index of all sensor data.";
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      return null;
+    }    
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      result = new DomRepresentation(MediaType.TEXT_XML, manager.getSensorDataIndexDocument());
+      return new DomRepresentation(MediaType.TEXT_XML, 
+          super.sensorDataManager.getSensorDataIndexDocument());
     }
-    return result; 
+    return null;
   }
 }

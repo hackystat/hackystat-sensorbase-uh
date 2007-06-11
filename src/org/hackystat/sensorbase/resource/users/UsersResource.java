@@ -5,6 +5,7 @@ import org.hackystat.sensorbase.server.ServerProperties;
 import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.HOSTNAME_KEY;
 import org.hackystat.sensorbase.mail.Mailer;
+import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
@@ -13,20 +14,16 @@ import org.restlet.data.Response;
 import org.restlet.data.Status;
 import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
-import org.restlet.resource.Resource;
 import org.restlet.resource.Variant;
 
 /**
  * Implements a Restlet Resource representing an index of Hackystat Users. 
  * @author Philip Johnson
  */
-public class UsersResource extends Resource {
+public class UsersResource extends SensorBaseResource {
   
-  /** The email attribute if supplied in a POST request. */
+  /** The email query parameter when the request is a registration. */
   private String email = null;
-  
-  /** The authenticated user, retrieved from the ChallengeResponse. */
-  private String authUser = null;
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -37,11 +34,6 @@ public class UsersResource extends Resource {
   public UsersResource(Context context, Request request, Response response) {
     super(context, request, response);
     this.email = (String) request.getAttributes().get("email");
-    if (request.getChallengeResponse() != null) {
-      this.authUser = request.getChallengeResponse().getIdentifier();
-    }
-    getVariants().clear(); // copied from BookmarksResource.java, not sure why needed.
-    getVariants().add(new Variant(MediaType.TEXT_XML));
   }
   
   /**
@@ -52,17 +44,15 @@ public class UsersResource extends Resource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    Representation result = null;
-    UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
-    if (!manager.isAdmin(this.authUser)) {
+    if (!super.userManager.isAdmin(this.authUser)) {
       String msg = "Only the admin can obtain the index of all users.";
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
     }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      result = new DomRepresentation(MediaType.TEXT_XML, manager.getUserIndexDocument());
+      return new DomRepresentation(MediaType.TEXT_XML, super.userManager.getUserIndexDocument());
     }
-    return result;
+    return null;
   }
   
   /** 
@@ -84,14 +74,13 @@ public class UsersResource extends Resource {
    */
   @Override
   public void post(Representation entity) {
-    UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
     // Return Badness if we don't have the email attribute.
     if (this.email == null || "".equals(this.email)) {
       SensorBaseLogger.getLogger().warning("No email parameter"); 
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Missing email parameter");
       return;
     }
-    User user = manager.registerUser(this.email);
+    User user = super.userManager.registerUser(this.email);
     // Now send the email to the (non-test) user and the hackystat admin.
     Mailer mailer = Mailer.getInstance();
     String emailSubject = "Hackystat Version 8 Registration";
@@ -104,7 +93,7 @@ public class UsersResource extends Resource {
     boolean success = mailer.send(this.email, emailSubject, emailBody);
     if (success) {
       // Don't send the administrator emails about test user registration.
-      if (!manager.isTestUser(user)) {
+      if (!userManager.isTestUser(user)) {
         mailer.send(ServerProperties.get(ADMIN_EMAIL_KEY), 
           "Hackystat 8 Admin Registration",
           "User " + this.email + " registered and received password: " + user.getPassword() + "\n" +

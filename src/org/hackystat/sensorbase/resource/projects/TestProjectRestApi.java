@@ -44,7 +44,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getProjectIndex() throws Exception {
-    Response response = makeRequest(Method.GET, "projects", user);
+    Response response = makeAdminRequest(Method.GET, "projects");
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET index 1", response.getStatus().isSuccess());
