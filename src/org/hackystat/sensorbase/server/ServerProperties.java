@@ -108,5 +108,12 @@ public class ServerProperties {
   public static String get(String key) {
     return System.getProperty(key);
   }
-
+  
+  /**
+   * Returns the fully qualified host name, such as "http://localhost:9876/sensorbase/".
+   * @return The fully qualified host name.
+   */
+  public static String getFullHost() {
+    return "http://" + get(HOSTNAME_KEY) + ":" + get(PORT_KEY) + "/" + get(CONTEXT_ROOT_KEY) + "/";
+  }
 }

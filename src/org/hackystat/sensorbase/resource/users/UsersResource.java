@@ -86,10 +86,10 @@ public class UsersResource extends SensorBaseResource {
     String emailSubject = "Hackystat Version 8 Registration";
     String emailBody = 
       "Welcome to Hackystat Version 8. " +
-      "\nYou are registered with the server: " + ServerProperties.get(HOSTNAME_KEY) +
-      "\nYour email is: " + user.getEmail() +
+      "\nYou are registered with the server: " + ServerProperties.getFullHost() +
+      "\nYour user name is: " + user.getEmail() +
       "\nYour password is: " + user.getPassword() +
-      "\n\nNote that email and password are both case sensitive!";
+      "\n\nNote that the user name and password are both case sensitive!";
     boolean success = mailer.send(this.email, emailSubject, emailBody);
     if (success) {
       // Don't send the administrator emails about test user registration.
@@ -99,7 +99,7 @@ public class UsersResource extends SensorBaseResource {
           "User " + this.email + " registered and received password: " + user.getPassword() + "\n" +
           "for host: " + ServerProperties.get(HOSTNAME_KEY));
       }
-    SensorBaseLogger.getLogger().warning("Registered: " +  this.email); 
+    SensorBaseLogger.getLogger().warning("Registered: " +  this.email + " " + user.getPassword()); 
     getResponse().setStatus(Status.SUCCESS_CREATED);
     }
   }

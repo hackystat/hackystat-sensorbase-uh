@@ -218,5 +218,19 @@ public class SdtManager {
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (SensorDataType)unmarshaller.unmarshal(new StringReader(xmlString));
   }
+  
+  /**
+   * Takes a String encoding of a SensorDataTypeIndex in XML format and converts it to an instance. 
+   * Note that this does not affect the state of any SdtManager instance. 
+   * 
+   * @param xmlString The XML string representing a SensorDataTypeIndex.
+   * @return The corresponding SensorDataTypeIndex instance. 
+   * @throws Exception If problems occur during unmarshalling.
+   */
+  public static SensorDataTypeIndex unmarshallSdtIndex(String xmlString) throws Exception {
+    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+    Unmarshaller unmarshaller = jc.createUnmarshaller();
+    return (SensorDataTypeIndex)unmarshaller.unmarshal(new StringReader(xmlString));
+  }
 }
       
