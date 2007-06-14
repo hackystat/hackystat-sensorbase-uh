@@ -55,6 +55,9 @@ public class SensorDataManager {
   /** The Server associated with this SensorDataManager. */
   Server server; 
   
+  /** The http string identifier. */
+  private String http = "http";
+  
   /** 
    * The constructor for SensorDataManagers. 
    * There is one SensorDataManager per Server. 
@@ -83,8 +86,6 @@ public class SensorDataManager {
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       dbf.setNamespaceAware(true);
       this.documentBuilder = dbf.newDocumentBuilder();
-      // Initialize datatypefactory for XMLGregorianCalendar conversion.
-  //    this.datatypeFactory = DatatypeFactory.newInstance();
     }
     catch (Exception e) {
       String msg = "Exception during SensorDataManager initialization processing";
@@ -96,15 +97,27 @@ public class SensorDataManager {
   /**
    * Puts to the in-memory repository of sensor data, User -> SDT-> Timestamp-> SensorData.
    * Throws an illegal argument exception if the sensor data Owner (email) is not a defined User.
+   * The Owner and SDT fields are converted to URIs if they aren't already before storing
+   * in the repository. 
    * @param data The SensorData instance.
    */
   private void putSensorDataInternal(SensorData data) {
-    String email = data.getOwner();
-    String sdtName = data.getSensorDataType();
+    String owner = data.getOwner();
+    String ownerUri = convertOwnerToUri(owner);
+    String ownerEmail = convertOwnerToEmail(owner);
+    
+    String sdt = data.getSensorDataType();
+    String sdtName = convertSdtToName(sdt);
+    String sdtUri = convertSdtToUri(sdt);
+    
+    // Now update the SensorData instance with the URI versions of the owner and SDT.
+    data.setOwner(ownerUri);
+    data.setSensorDataType(sdtUri);
+    
     UserManager userManager = (UserManager)server.getContext().getAttributes().get("UserManager");
-    User user = userManager.getUser(email);
+    User user = userManager.getUser(ownerEmail);
     if (user == null) {
-      throw new IllegalArgumentException("Owner is not a defined User: " + email);
+      throw new IllegalArgumentException("Owner is not a defined User: " + ownerEmail);
     }
     XMLGregorianCalendar timestamp = data.getTimestamp();
     if (!this.dataMap.containsKey(user)) {
@@ -118,6 +131,64 @@ public class SensorDataManager {
     //Update the final map with the [Timestamp, SensorData] entry.
     map2.put(timestamp, data);
   }
+  
+  /**
+   * Converts an "Owner" string to an email address.
+   * The owner string might be a URI (starting with http) or an email address. 
+   * @param owner The owner string. 
+   * @return The email address corresponding to the owner string. 
+   */
+  private String convertOwnerToEmail(String owner) {
+    if (owner.startsWith(http)) {
+      int lastSlash = owner.lastIndexOf('/');
+      if (lastSlash < 0) {
+        throw new IllegalArgumentException("Could not convert owner to URI");
+      }
+      return owner.substring(lastSlash + 1); 
+    }
+    // Otherwise owner is already the email. 
+    return owner;
+  }
+  
+  /**
+   * Returns the owner string as a URI.
+   * The owner string could either be an email address or the URI. 
+   * @param owner The owner string. 
+   * @return The URI corresponding to the owner string. 
+   */
+  private String convertOwnerToUri(String owner) {
+    return (owner.startsWith(http)) ? owner :
+      ServerProperties.getFullHost() + "users/" + owner;
+  }
+  
+  /**
+   * Converts an "sdt" string to the sdt name.
+   * The sdt string might be a URI (starting with http) or the sdt name.
+   * @param sdt The sdt string. 
+   * @return The sdt name corresponding to the sdt string. 
+   */
+  private String convertSdtToName(String sdt) {
+    if (sdt.startsWith(http)) {
+      int lastSlash = sdt.lastIndexOf('/');
+      if (lastSlash < 0) {
+        throw new IllegalArgumentException("Could not convert sdt to name");
+      }
+      return sdt.substring(lastSlash + 1); 
+    }
+    // Otherwise sdt is already the name.
+    return sdt;
+  }
+  
+  /**
+   * Returns the sdt string as a URI.
+   * The sdt string could either be an sdt name or a URI. 
+   * @param sdt The sdt string. 
+   * @return The URI corresponding to the sdt string. 
+   */
+  private String convertSdtToUri(String sdt) {
+    return (sdt.startsWith(http)) ? sdt :
+      ServerProperties.getFullHost() + "sensordatatypes/" + sdt;
+  }  
 
   /**
    * Checks the ServerProperties for the XML_DIR property.

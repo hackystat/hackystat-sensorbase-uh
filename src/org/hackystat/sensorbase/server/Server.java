@@ -25,6 +25,7 @@ import org.restlet.Guard;
 import org.restlet.Restlet;
 import org.restlet.Router;
 import org.restlet.data.Protocol;
+
 import static org.hackystat.sensorbase.server.ServerProperties.HOSTNAME_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.PORT_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.CONTEXT_ROOT_KEY;
@@ -73,6 +74,8 @@ public class Server extends Application {
     SensorBaseLogger.setLoggingLevel(ServerProperties.get(LOGGING_LEVEL_KEY));
     ServerProperties.echoProperties();
     disableRestletLogging();
+    
+
     try {
       Mailer.getInstance();
     }

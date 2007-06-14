@@ -40,6 +40,10 @@ public class SensorDataTypeResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
+    if (!super.sdtManager.hasSdt(this.sdtName)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown SDT: " + this.sdtName);
+      return null;
+    } 
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       return new DomRepresentation(MediaType.TEXT_XML, super.sdtManager.marshallSdt(this.sdtName));
     }
