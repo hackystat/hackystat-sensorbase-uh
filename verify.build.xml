@@ -48,7 +48,8 @@
   </echo>
       
   <target name="verify" 
-    depends="clean, compile, javadoc, validateXml, junit.tool, checkstyle.tool, findbugs.tool, emma.tool, pmd.tool, emma.echo" 
+    depends="clean, compile, checkstyle.tool, findbugs.tool, pmd.tool, junit.tool, javadoc, 
+    validateXml, emma.tool,  emma.echo" 
     description="Invoke analyzers, fail if any errors found.">
       <fail message="FindBugs reported warnings." if="findbugs.warningsfound"/>
   </target>
