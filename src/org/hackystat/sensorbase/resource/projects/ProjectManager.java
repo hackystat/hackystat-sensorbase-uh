@@ -33,6 +33,7 @@ import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
+import org.hackystat.sensorbase.uripattern.UriPattern;
 import org.w3c.dom.Document;
 
 /**
@@ -149,7 +150,7 @@ public class ProjectManager {
   }
   
   /**
-   * Returns an XML SensorDataIndex for all data associated with this Project.
+   * Returns an XML SensorDataIndex for all data associated with this User and Project.
    * Assumes that User and Project are valid.
    * @param user The User. 
    * @param projectName the Project name.
@@ -168,16 +169,35 @@ public class ProjectManager {
     XMLGregorianCalendar endTime = project.getEndTime();
     Set<SensorData> dataSet = sensorDataManager.getData(user, startTime, endTime);
     for (SensorData data : dataSet) {
-      String sdt = data.getSensorDataType();
-      XMLGregorianCalendar timestamp = data.getTimestamp();
-      SensorDataRef ref = new SensorDataRef();
-      ref.setOwner(email);
-      ref.setSensorDataType(sdt);
-      ref.setTimestamp(timestamp);
-      ref.setHref(server.getHostName() + "sensordata/" + email + "/" + sdt + "/" + timestamp);
-      index.getSensorDataRef().add(ref);
+      if (uriPatternsMatch(project, data)) {
+        String sdt = data.getSensorDataType();
+        XMLGregorianCalendar timestamp = data.getTimestamp();
+        SensorDataRef ref = new SensorDataRef();
+        ref.setOwner(email);
+        ref.setSensorDataType(sdt);
+        ref.setTimestamp(timestamp);
+        ref.setHref(server.getHostName() + "sensordata/" + email + "/" + sdt + "/" + timestamp);
+        index.getSensorDataRef().add(ref);
+      }
     }
     return sensorDataManager.marshallSensorDataIndex(index);
+  }
+  
+  /**
+   * Returns true if at least one of the Project UriPatterns matches the SensorData's resource.
+   * @param project The project. 
+   * @param data The sensor data.
+   * @return True if the sensor data's resource matches this Project's UriPatterns.
+   */
+  private boolean uriPatternsMatch(Project project, SensorData data) {
+    for (String uriPatternString : project.getUriPatterns().getUriPattern()) {
+      UriPattern uriPattern = new UriPattern(uriPatternString); 
+      if (uriPattern.matches(data.getResource())) {
+        return true;
+      }
+    }
+    // No UriPattern matches, so return false. 
+    return false;
   }
   
   /**

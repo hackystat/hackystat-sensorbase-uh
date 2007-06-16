@@ -17,7 +17,8 @@ import java.util.regex.Matcher;
  * Note that in compound UriPatterns, all atomic patterns must be enclosed in parentheses, and
  * only one level of parentheses is supported. 
  * <p>
- * Note: Matching is case-sensitive, and backslashes in paths or UriPatterns is not supported.
+ * Note: Matching is case-sensitive, and only the forward slash is supported as a path separator.
+ * So, Windows-based sensors must convert their file paths before sending them!
  * 
  * @author Philip Johnson (adapted from code originally written for Hackystat 7 by Qin Zhang).
  *
