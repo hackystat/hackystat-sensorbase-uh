@@ -66,6 +66,9 @@ final class PatternMatcherImpl {
   public static PatternMatcherImpl getInstance() {
     return instance;
   }
+  
+  private static String separator = "/";
+  private static char separatorChar = '/';
 
   /**
    * Tests whether or not a given path matches the start of a given
@@ -111,8 +114,8 @@ final class PatternMatcherImpl {
     // File.separator.
     // When pattern starts with a File.separator, str has to start with a
     // File.separator.
-    if (str.startsWith(File.separator)
-        != pattern.startsWith(File.separator)) {
+    if (str.startsWith(separator)
+        != pattern.startsWith(separator)) {
       return false;
     }
 
@@ -521,7 +524,7 @@ final class PatternMatcherImpl {
    * @return a Vector of path elements from the tokenized path
    */
   public static Vector tokenizePath(String path) {
-    return tokenizePath(path, File.separator);
+    return tokenizePath(path, separator);
   }
 
   /**
@@ -550,7 +553,7 @@ final class PatternMatcherImpl {
    * @return An array of path elements from the tokenized path.
    */
   private static String[] tokenizePathAsArray(String path) {
-    char sep = File.separatorChar;
+    char sep = separatorChar;
     int start = 0;
     int len = path.length();
     int count = 0;
@@ -673,14 +676,14 @@ final class PatternMatcherImpl {
    * @return the leftmost part of the pattern without wildcards
    */
   public static String rtrimWildcardTokens(String input) {
-    Vector v = tokenizePath(input, File.separator);
+    Vector v = tokenizePath(input, separator);
     StringBuffer sb = new StringBuffer();
     for (int counter = 0; counter < v.size(); counter++) {
       if (hasWildcards((String) v.elementAt(counter))) {
         break;
       }
       if (counter > 0) {
-        sb.append(File.separator);
+        sb.append(separator);
       }
       sb.append((String) v.elementAt(counter));
     }
