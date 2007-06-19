@@ -1,0 +1,13 @@
+<project name="db" default="clean-db">
+  <description>
+  Provides the target for building a distribution of the StackyHack system.
+  </description>
+
+  <import file="build.xml"/>
+    
+  <target name="clean-db" description="Deletes the test db directory.">
+    <delete dir="${user.home}/.hackystat/sensorbase/db"/>   
+  </target>
+
+</project>
+

@@ -3,6 +3,7 @@ package org.hackystat.sensorbase.server;
 import java.util.Enumeration;
 import java.util.Map;
 
+import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.mail.Mailer;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
@@ -85,8 +86,13 @@ public class Server extends Application {
     }
 
     // Now create all of the Resource Managers and store them in the Context.
-    // Note: UserManager must be initialized before ProjectManager
+    // Ordering constraints: 
+    // - DbManager must precede all resource managers so it can initialize the tables
+    //   before the resource managers add data to them.
+    // - UserManager must be initialized before ProjectManager, since ProjectManager needs
+    //   to know about the Users. 
     Map<String, Object> attributes = server.getContext().getAttributes();
+    attributes.put("DbManager", new DbManager(server));
     attributes.put("SdtManager", new SdtManager(server));
     attributes.put("UserManager", new UserManager(server));
     attributes.put("ProjectManager", new ProjectManager(server));

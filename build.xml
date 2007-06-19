@@ -37,8 +37,14 @@
   <fail message="This package requires JavaMail 4.1 to be downloaded and JAVAMAIL_HOME defined" unless="javamail.available"/>
 
   <!-- Make sure that the JAXB library is available . --> 
+  <!-- Needed even under Java 6 so that a Java 5-compatible dist can be created. -->   
   <available file="${env.JAXB_HOME}/lib/jaxb-xjc.jar" type="file" property="jaxb.available"/>
   <fail message="This package requires JAXB to be installed and JAXB_HOME defined" unless="jaxb.available"/>
+ 
+  <!-- Make sure that Derby is available . --> 
+  <!-- Needed even under Java 6 so that a Java 5-compatible dist can be created. -->   
+  <available file="${env.DERBY_HOME}/lib/derby.jar" type="file" property="derby.available"/>
+  <fail message="This package requires Derby to be installed and DERBY_HOME defined" unless="derby.available"/>   
     
   <!-- Basic properties for this system. --> 
   <property name="system.name" value="hackystat-sensorbase-uh" />
@@ -70,6 +76,7 @@
     <fileset file="${env.JAXB_HOME}/lib/jaxb-api.jar"/> 
     <fileset file="${env.JAXB_HOME}/lib/jaxb-impl.jar"/> 
     <fileset file="${env.JAXB_HOME}/lib/jsr173_1.0_api.jar"/> 
+    <fileset file="${env.DERBY_HOME}/lib/derby.jar"/> 
   </path> 
 
   <target name="compile" description="Compiles the code.">

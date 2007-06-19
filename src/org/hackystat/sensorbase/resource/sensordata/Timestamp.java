@@ -2,9 +2,12 @@ package org.hackystat.sensorbase.resource.sensordata;
 
 import java.util.GregorianCalendar;
 
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hackystat.sensorbase.logger.SensorBaseLogger;
 
 /**
  * Utility class that facilitates Timestamp representation and processing. 
@@ -38,6 +41,34 @@ public class Timestamp {
   public static XMLGregorianCalendar makeTimestamp(String lexicalRepresentation) throws Exception {
     DatatypeFactory factory = DatatypeFactory.newInstance();
     return factory.newXMLGregorianCalendar(lexicalRepresentation);
+  }
+  
+  /**
+   * Converts a javax.sql.Timestamp into a javax.xml.datatype.XMLGregorianCalendar.
+   * @param tstamp The javax.sql.Timestamp
+   * @return An new instance of a javax.xml.datatype.XmlGregorianCalendar
+   */
+  public static XMLGregorianCalendar makeTimestamp(java.sql.Timestamp tstamp) {
+    DatatypeFactory factory = null;
+    try {
+      factory = DatatypeFactory.newInstance();
+      GregorianCalendar calendar = new GregorianCalendar();
+      calendar.setTimeInMillis(tstamp.getTime());
+      return factory.newXMLGregorianCalendar(calendar);
+    }
+    catch (DatatypeConfigurationException e) {
+      SensorBaseLogger.getLogger().warning("Failed to create DatatypeFactory in makeTimestamp()");
+    }
+    return null;
+  }
+  
+  /**
+   * Returns a new java.sql.Timestamp created from a javax.xml.datatype.XMLGregorianCalendar.
+   * @param calendar The XML timestamp.
+   * @return The SQL timestamp.
+   */
+  public static java.sql.Timestamp makeTimestamp(XMLGregorianCalendar calendar) {
+    return new java.sql.Timestamp(calendar.toGregorianCalendar().getTimeInMillis());
   }
   
   /**
