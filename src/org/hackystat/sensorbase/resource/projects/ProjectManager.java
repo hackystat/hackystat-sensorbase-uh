@@ -25,7 +25,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Projects;
 import org.hackystat.sensorbase.resource.projects.jaxb.Properties;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
-import org.hackystat.sensorbase.resource.sensordata.Timestamp;
+import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
@@ -167,7 +167,7 @@ public class ProjectManager {
     Project project = this.getProject(user, projectName);
     XMLGregorianCalendar startTime = project.getStartTime();
     XMLGregorianCalendar endTime = project.getEndTime();
-    Set<SensorData> dataSet = sensorDataManager.getData(user, startTime, endTime);
+    Set<SensorData> dataSet = sensorDataManager.getSensorData(user, startTime, endTime);
     for (SensorData data : dataSet) {
       if (uriPatternsMatch(project, data)) {
         String sdt = data.getSensorDataType();
@@ -221,16 +221,16 @@ public class ProjectManager {
     SensorDataManager sensorDataManager = 
       (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
     Project project = this.getProject(user, projectName);
-    XMLGregorianCalendar startTime = Timestamp.makeTimestamp(startString);
-    XMLGregorianCalendar endTime = Timestamp.makeTimestamp(endString);
+    XMLGregorianCalendar startTime = Tstamp.makeTimestamp(startString);
+    XMLGregorianCalendar endTime = Tstamp.makeTimestamp(endString);
     // make startTime the greater of startTime and the Project startTime. 
-    startTime = (Timestamp.greaterThan(startTime, project.getStartTime())) ?
+    startTime = (Tstamp.greaterThan(startTime, project.getStartTime())) ?
         startTime : project.getStartTime();
     // make endTime the lesser of endTime and the Project endTime.
-    endTime = (Timestamp.lessThan(endTime, project.getEndTime())) ? 
+    endTime = (Tstamp.lessThan(endTime, project.getEndTime())) ? 
         endTime : project.getEndTime();
         
-    Set<SensorData> dataSet = sensorDataManager.getData(user, startTime, endTime);
+    Set<SensorData> dataSet = sensorDataManager.getSensorData(user, startTime, endTime);
     String email = user.getEmail();
     for (SensorData data : dataSet) {
       String sdt = data.getSensorDataType();
@@ -302,8 +302,8 @@ public class ProjectManager {
   public final synchronized void addDefaultProject(User user) {
     Project project = new Project();
     project.setDescription("The default Project");
-    project.setStartTime(Timestamp.getDefaultProjectStartTime());
-    project.setEndTime(Timestamp.getDefaultProjectEndTime());
+    project.setStartTime(Tstamp.getDefaultProjectStartTime());
+    project.setEndTime(Tstamp.getDefaultProjectEndTime());
     project.setMembers(new Members());
     project.setName("Default");
     project.setOwner(user.getEmail());

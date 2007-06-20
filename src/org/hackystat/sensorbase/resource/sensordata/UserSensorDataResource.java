@@ -89,14 +89,14 @@ public class UserSensorDataResource extends SensorBaseResource {
         // First, try to parse the timestamp string, and return error if it doesn't parse.
         XMLGregorianCalendar tstamp;
         try {
-          tstamp = Timestamp.makeTimestamp(this.timestamp);
+          tstamp = Tstamp.makeTimestamp(this.timestamp);
         }
         catch (Exception e) {
           getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Timestamp " + timestamp);
           return null;
         }
         // Now, see if we actually have one.
-        if (!super.sensorDataManager.hasData(user, sdtName, tstamp)) {
+        if (!super.sensorDataManager.hasSensorData(user, sdtName, tstamp)) {
           getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND, "Unknown Sensor Data");
           return null;
         }
@@ -191,7 +191,7 @@ public class UserSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
       return;
     }
-    super.sensorDataManager.deleteData(this.user, this.sdtName, this.timestamp);      
+    super.sensorDataManager.deleteData(this.user, this.timestamp);      
     getResponse().setStatus(Status.SUCCESS_OK);
   }
 }

@@ -7,6 +7,8 @@
   <xs:element name="Value" type="xs:string"/>
   <xs:attribute name="Name" type="xs:string"/>
   <xs:attribute name="Href" type="xs:anyURI"/>
+  <xs:attribute name="LastMod" type="xs:dateTime"/>
+  
 
   <xs:element name="RequiredField">
     <xs:complexType>
@@ -50,8 +52,9 @@
         <xs:element ref="RequiredFields"/>
         <xs:element ref="Properties"/>
       </xs:sequence>
-      <xs:attribute ref="Name"/>
-    </xs:complexType>
+      <xs:attribute ref="Name" use="required"/>
+      <xs:attribute ref="LastMod" />      
+     </xs:complexType>
   </xs:element>
 
   <xs:element name="SensorDataTypes">
@@ -64,8 +67,9 @@
 
   <xs:element name="SensorDataTypeRef">
     <xs:complexType>
-      <xs:attribute ref="Name"/>
-      <xs:attribute ref="Href"/>
+      <xs:attribute ref="Name" use="required"/>
+      <xs:attribute ref="Href" use="required"/>
+      <xs:attribute ref="LastMod" use="required"/>      
     </xs:complexType>
   </xs:element>
 
@@ -74,6 +78,7 @@
       <xs:sequence>
         <xs:element ref="SensorDataTypeRef" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
+      <xs:attribute ref="LastMod" use="required"/>      
     </xs:complexType>
   </xs:element> 
 

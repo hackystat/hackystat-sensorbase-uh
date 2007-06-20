@@ -4,19 +4,21 @@ import static org.hackystat.sensorbase.server.ServerProperties.XML_DIR_KEY;
 
 import java.io.File;
 import java.io.StringReader;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.io.StringWriter;
 import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-//import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
+import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
@@ -34,15 +36,8 @@ import org.w3c.dom.Document;
  * @author Philip Johnson
  */
 public class SensorDataManager {
-  private static String jaxbPackage = "org.hackystat.sensorbase.resource.sensordata.jaxb";
+  private static final String jaxbPackage = "org.hackystat.sensorbase.resource.sensordata.jaxb";
   
-  /** 
-   * The in-memory repository of sensor data, User -> SDT-> Timestamp-> SensorData.
-   * This will be removed once we have a back-end database repository.  
-   */
-  private Map<User, Map<String, Map<XMLGregorianCalendar, SensorData>>> dataMap = 
-    new HashMap<User, Map<String, Map<XMLGregorianCalendar, SensorData>>>();
-
   /** The JAXB marshaller for SensorData. */
   private Marshaller marshaller; 
   
@@ -55,8 +50,11 @@ public class SensorDataManager {
   /** The Server associated with this SensorDataManager. */
   Server server; 
   
+  /** The DbManager associated with this server. */
+  DbManager dbManager;
+  
   /** The http string identifier. */
-  private String http = "http";
+  private static final String http = "http";
   
   /** 
    * The constructor for SensorDataManagers. 
@@ -65,27 +63,20 @@ public class SensorDataManager {
    */
   public SensorDataManager(Server server) {
     this.server = server;
+    this.dbManager = (DbManager)this.server.getContext().getAttributes().get("DbManager");
+    UserManager userManager = (UserManager)server.getContext().getAttributes().get("UserManager");
     try {
-      // Initialize marshaller and unmarshaller. 
+      // Initialize marshaller, unmarshaller, and documentBuilder. 
       JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
       this.unmarshaller = jc.createUnmarshaller();
       this.marshaller = jc.createMarshaller(); 
-
-      // Get the default Sensor Data definitions from the XML defaults file. 
-      File defaultsFile = findDefaultsFile();
-      // Initialize the SDTs if we've found a default file. 
-      if (defaultsFile.exists()) {
-        SensorBaseLogger.getLogger().info("Loading SensorData defaults: " + defaultsFile.getPath());
-        SensorDatas sensorDatas = (SensorDatas) unmarshaller.unmarshal(defaultsFile);
-        // Initialize the sdtMap
-        for (SensorData data : sensorDatas.getSensorData()) {
-          putSensorDataInternal(data);
-        }
-      }
-      // Initialize documentBuilder
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       dbf.setNamespaceAware(true);
       this.documentBuilder = dbf.newDocumentBuilder();
+
+      if (this.dbManager.isFreshDb()) {
+        loadDefaultSensorData(userManager); // NOPMD (Incorrect overridable method warning)
+      }
     }
     catch (Exception e) {
       String msg = "Exception during SensorDataManager initialization processing";
@@ -93,52 +84,41 @@ public class SensorDataManager {
       throw new RuntimeException(msg, e);
     }
   }
-  
+
+
   /**
-   * Puts to the in-memory repository of sensor data, User -> SDT-> Timestamp-> SensorData.
-   * Throws an illegal argument exception if the sensor data Owner (email) is not a defined User.
-   * The Owner and SDT fields are converted to URIs if they aren't already before storing
-   * in the repository. 
-   * @param data The SensorData instance.
+   * Loads the sensor data from the sensordata defaults file. 
+   * @param userManager The User Manager.
+   * @throws Exception If problems occur.
    */
-  private void putSensorDataInternal(SensorData data) {
-    String owner = data.getOwner();
-    String ownerUri = convertOwnerToUri(owner);
-    String ownerEmail = convertOwnerToEmail(owner);
-    
-    String sdt = data.getSensorDataType();
-    String sdtName = convertSdtToName(sdt);
-    String sdtUri = convertSdtToUri(sdt);
-    
-    // Now update the SensorData instance with the URI versions of the owner and SDT.
-    data.setOwner(ownerUri);
-    data.setSensorDataType(sdtUri);
-    
-    UserManager userManager = (UserManager)server.getContext().getAttributes().get("UserManager");
-    User user = userManager.getUser(ownerEmail);
-    if (user == null) {
-      throw new IllegalArgumentException("Owner is not a defined User: " + ownerEmail);
+  private void loadDefaultSensorData(UserManager userManager) throws Exception {
+    // Get the default Sensor Data definitions from the XML defaults file. 
+    File defaultsFile = findDefaultsFile();
+    // Initialize the SDTs if we've found a default file. 
+    if (defaultsFile.exists()) {
+      SensorBaseLogger.getLogger().info("Loading SensorData defaults: " 
+          + defaultsFile.getPath());
+      SensorDatas sensorDatas = (SensorDatas) unmarshaller.unmarshal(defaultsFile);
+      // Initialize the database.
+      for (SensorData data : sensorDatas.getSensorData()) {
+        String email = convertOwnerToEmail(data.getOwner());
+        if (!userManager.hasUser(email)) {
+          throw new IllegalArgumentException("Owner is not a defined User: " + email);
+        }
+        this.dbManager.saveSensorData(data, this.makeSensorDataXmlString(data),
+            this.makeSensorDataRefXmlString(data));
+      }
     }
-    XMLGregorianCalendar timestamp = data.getTimestamp();
-    if (!this.dataMap.containsKey(user)) {
-      this.dataMap.put(user, new HashMap<String, Map<XMLGregorianCalendar, SensorData>>());
-    }
-    Map<String, Map<XMLGregorianCalendar, SensorData>> map1 = this.dataMap.get(user);
-    if (!map1.containsKey(sdtName)) {
-      map1.put(sdtName, new HashMap<XMLGregorianCalendar, SensorData>());
-    }
-    Map<XMLGregorianCalendar, SensorData> map2 = this.dataMap.get(user).get(sdtName);
-    //Update the final map with the [Timestamp, SensorData] entry.
-    map2.put(timestamp, data);
   }
   
+
   /**
    * Converts an "Owner" string to an email address.
    * The owner string might be a URI (starting with http) or an email address. 
    * @param owner The owner string. 
    * @return The email address corresponding to the owner string. 
    */
-  private String convertOwnerToEmail(String owner) {
+  public static String convertOwnerToEmail(String owner) {
     if (owner.startsWith(http)) {
       int lastSlash = owner.lastIndexOf('/');
       if (lastSlash < 0) {
@@ -156,7 +136,7 @@ public class SensorDataManager {
    * @param owner The owner string. 
    * @return The URI corresponding to the owner string. 
    */
-  private String convertOwnerToUri(String owner) {
+  public static String convertOwnerToUri(String owner) {
     return (owner.startsWith(http)) ? owner :
       ServerProperties.getFullHost() + "users/" + owner;
   }
@@ -167,7 +147,7 @@ public class SensorDataManager {
    * @param sdt The sdt string. 
    * @return The sdt name corresponding to the sdt string. 
    */
-  private String convertSdtToName(String sdt) {
+  public static String convertSdtToName(String sdt) {
     if (sdt.startsWith(http)) {
       int lastSlash = sdt.lastIndexOf('/');
       if (lastSlash < 0) {
@@ -185,7 +165,7 @@ public class SensorDataManager {
    * @param sdt The sdt string. 
    * @return The URI corresponding to the sdt string. 
    */
-  private String convertSdtToUri(String sdt) {
+  public static String convertSdtToUri(String sdt) {
     return (sdt.startsWith(http)) ? sdt :
       ServerProperties.getFullHost() + "sensordatatypes/" + sdt;
   }  
@@ -207,16 +187,8 @@ public class SensorDataManager {
    * Returns the XML Index for all sensor data.
    * @return The XML Document instance providing an index of all relevent sensor data resources.
    */
-  public synchronized Document getSensorDataIndexDocument() {
-    SensorDataIndex index = new SensorDataIndex();
-    for (User user : this.dataMap.keySet()) {
-      for (String sdt : this.dataMap.get(user).keySet()) {
-        for (XMLGregorianCalendar timestamp : this.dataMap.get(user).get(sdt).keySet()) {
-          index.getSensorDataRef().add(makeSensorDataRef(user, sdt, timestamp));
-        }
-      }
-    }
-    return marshallSensorDataIndex(index);
+  public Document getSensorDataIndexDocument() {
+    return dbManager.getSensorDataIndexDocument();
   }
   
   /**
@@ -224,14 +196,8 @@ public class SensorDataManager {
    * @param user The User whose sensor data is to be returned. 
    * @return The XML Document instance providing an index of all relevent sensor data resources.
    */
-  public synchronized Document getSensorDataIndexDocument(User user) {
-    SensorDataIndex index = new SensorDataIndex();
-    for (String sdt : this.dataMap.get(user).keySet()) {
-      for (XMLGregorianCalendar timestamp : this.dataMap.get(user).get(sdt).keySet()) {
-        index.getSensorDataRef().add(makeSensorDataRef(user, sdt, timestamp));
-      }
-    }
-    return marshallSensorDataIndex(index);
+  public Document getSensorDataIndexDocument(User user) {
+    return dbManager.getSensorDataIndexDocument(user);
   }
   
   /**
@@ -240,12 +206,8 @@ public class SensorDataManager {
    * @param sdtName The sensor data type name.
    * @return The XML Document instance providing an index of all relevent sensor data resources.
    */
-  public synchronized Document getSensorDataIndexDocument(User user, String sdtName) {
-    SensorDataIndex index = new SensorDataIndex();
-    for (XMLGregorianCalendar timestamp : this.dataMap.get(user).get(sdtName).keySet()) {
-      index.getSensorDataRef().add(makeSensorDataRef(user, sdtName, timestamp));
-    }
-    return marshallSensorDataIndex(index);
+  public Document getSensorDataIndexDocument(User user, String sdtName) {
+    return this.dbManager.getSensorDataIndexDocument(user, sdtName);
   }
   
   /**
@@ -255,7 +217,7 @@ public class SensorDataManager {
    * @param timestamp The Timestamp.
    * @return A SensorDataRef instance. 
    */
-  private SensorDataRef makeSensorDataRef(User user, String sdt, XMLGregorianCalendar timestamp) {
+  public SensorDataRef makeSensorDataRef(User user, String sdt, XMLGregorianCalendar timestamp) {
     SensorDataRef ref = new SensorDataRef();
     ref.setOwner(user.getEmail());
     ref.setSensorDataType(sdt);
@@ -266,11 +228,29 @@ public class SensorDataManager {
   }
   
   /**
+   * Returns a SensorDataRef instance constructed from a SensorData instance.
+   * @param data The sensor data instance. 
+   * @return A SensorDataRef instance. 
+   */
+  public SensorDataRef makeSensorDataRef(SensorData data) {
+    SensorDataRef ref = new SensorDataRef();
+    String email = convertOwnerToEmail(data.getOwner());
+    String sdt = convertSdtToName(data.getSensorDataType());
+    XMLGregorianCalendar timestamp = data.getTimestamp();
+    ref.setOwner(email);
+    ref.setSensorDataType(sdt);
+    ref.setTimestamp(timestamp);
+    ref.setHref(this.server.getHostName() + "sensordata/" + email + "/" + sdt + "/" +
+        timestamp.toString()); 
+    return ref;
+  }
+  
+  /**
    * Converts a SensorDataIndex instance into a Document and returns it.
    * @param index The SensorDataIndex instance. 
    * @return The Document.
    */
-  public synchronized Document marshallSensorDataIndex(SensorDataIndex index) {
+  public Document marshallSensorDataIndex(SensorDataIndex index) {
     Document doc;
     try {
       doc = this.documentBuilder.newDocument();
@@ -288,8 +268,14 @@ public class SensorDataManager {
    * Updates the Manager with this sensor data. Any old definition is overwritten.
    * @param data The sensor data. 
    */
-  public synchronized void putSensorData(SensorData data) {
-    putSensorDataInternal(data);
+  public void putSensorData(SensorData data) {
+    try {
+      this.dbManager.saveSensorData(data, this.makeSensorDataXmlString(data),
+          this.makeSensorDataRefXmlString(data));
+    }
+    catch (Exception e) {
+      SensorBaseLogger.getLogger().warning("Failed to put sensor data " + StackTrace.toString(e));
+    }
   }
   
   /**
@@ -299,11 +285,8 @@ public class SensorDataManager {
    * @param timestamp The timestamp
    * @return True if there is any sensor data for this [key, sdtName, timestamp].
    */
-  public synchronized boolean hasData(User user, String sdt, XMLGregorianCalendar timestamp) {
-    return 
-    this.dataMap.containsKey(user) &&
-    this.dataMap.get(user).containsKey(sdt) &&
-    this.dataMap.get(user).get(sdt).containsKey(timestamp);
+  public boolean hasSensorData(User user, String sdt, XMLGregorianCalendar timestamp) {
+    return this.dbManager.hasSensorData(user, sdt, timestamp);
   }
   
   /**
@@ -314,46 +297,32 @@ public class SensorDataManager {
    * @param timestamp The timestamp as a string.
    * @return True if there is any sensor data for this [key, sdtName, timestamp].
    */
-  public synchronized boolean hasData(User user, String sdtName, String timestamp) {
-    try {
-      XMLGregorianCalendar tstamp = Timestamp.makeTimestamp(timestamp);
-      return 
-      this.dataMap.containsKey(user) &&
-      this.dataMap.get(user).containsKey(sdtName) &&
-      this.dataMap.get(user).get(sdtName).containsKey(tstamp);
-    }
-    catch (Exception e) {
-      return false;
-    }
+  public boolean hasSensorData(User user, String sdtName, String timestamp) {
+    return this.dbManager.hasSensorData(user, sdtName, timestamp);
   }
   
   /**
-   * Ensures that sensor data with the given user, SDT name, and timestamp is no longer
+   * Ensures that sensor data with the given user and timestamp is no longer
    * present in this manager.
    * @param user The user.
-   * @param sdtName The SDT associated with this sensor data.
    * @param timestamp The timestamp associated with this sensor data.
    */
-  public synchronized void deleteData(User user, String sdtName, XMLGregorianCalendar timestamp) {
-    if (this.hasData(user, sdtName, timestamp)) {
-      this.dataMap.get(user).get(sdtName).remove(timestamp);
-    }
+  public void deleteData(User user, XMLGregorianCalendar timestamp) {
+    this.dbManager.deleteData(user, timestamp);
   }
   
   /**
-   * Ensures that sensor data with the given user, SDT name, and timestamp is no longer
-   * present in this manager.
+   * Ensures that sensor data with the given user and timestamp no longer exists.
    * Note that if the timestamp cannot be parsed into a string, then the sensor data by definition
    * is not in this manager.
    * @param user The User
-   * @param sdtName The SDT associated with this sensor data.
    * @param timestamp The timestamp associated with this sensor data, as a string.
    */
-  public synchronized void deleteData(User user, String sdtName, String timestamp) {
-    if (hasData(user, sdtName, timestamp)) {
+  public void deleteData(User user, String timestamp) {
+    if (this.dbManager.hasSensorData(user, timestamp)) {
       try {
-        XMLGregorianCalendar tstamp = Timestamp.makeTimestamp(timestamp);
-        deleteData(user, sdtName, tstamp);
+        XMLGregorianCalendar tstamp = Tstamp.makeTimestamp(timestamp);
+        deleteData(user, tstamp);
       }
       catch (Exception e) { // NOPMD
         // data cannot be in map by definition.
@@ -387,15 +356,15 @@ public class SensorDataManager {
    * @param timestamp The timestamp.
    * @return The XML representation of that sensor data, or null if not found.
    */
-  public synchronized Document marshallSensorData(User user, String sdtName, 
+  public Document marshallSensorData(User user, String sdtName, 
       XMLGregorianCalendar timestamp) {
     // Return null if name is not an SDT
-    if (!this.hasData(user, sdtName, timestamp)) {
+    if (!this.hasSensorData(user, sdtName, timestamp)) {
       return null;
     }
     Document doc = null;
     try {
-      SensorData data = this.dataMap.get(user).get(sdtName).get(timestamp);
+      SensorData data = this.dbManager.getSensorData(user, timestamp);
       doc = this.documentBuilder.newDocument();
       this.marshaller.marshal(data, doc);
     }
@@ -446,7 +415,62 @@ public class SensorDataManager {
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (SensorData)unmarshaller.unmarshal(new StringReader(xmlString));
   }
+  
+  /**
+   * Returns the passed SensorData instance as a String encoding of its XML representation.
+   * @param data The SensorData instance. 
+   * @return The XML String representation.
+   * @throws Exception If problems occur during translation. 
+   */
+  public final String makeSensorDataXmlString (SensorData data) throws Exception {
+    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+    Marshaller marshaller = jc.createMarshaller(); 
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+    Document doc = documentBuilder.newDocument();
+    marshaller.marshal(data, doc);
+    DOMSource domSource = new DOMSource(doc);
+    StringWriter writer = new StringWriter();
+    StreamResult result = new StreamResult(writer);
+    TransformerFactory tf = TransformerFactory.newInstance();
+    Transformer transformer = tf.newTransformer();
+    transformer.transform(domSource, result);
+    String xmlString = writer.toString();
+    // Now remove the processing instruction.  This approach seems like a total hack.
+    xmlString = xmlString.substring(xmlString.indexOf('>') + 1);
+    return xmlString;
+  }
 
+  /**
+   * Returns the passed SensorData instance as a String encoding of its XML representation 
+   * as a SensorDataRef object.
+   * @param data The SensorData instance. 
+   * @return The XML String representation of it as a SensorDataRef
+   * @throws Exception If problems occur during translation. 
+   */
+  public final String makeSensorDataRefXmlString (SensorData data) throws Exception {
+    SensorDataRef ref = makeSensorDataRef(data);
+    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+    Marshaller marshaller = jc.createMarshaller(); 
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+    Document doc = documentBuilder.newDocument();
+    marshaller.marshal(ref, doc);
+    DOMSource domSource = new DOMSource(doc);
+    StringWriter writer = new StringWriter();
+    StreamResult result = new StreamResult(writer);
+    TransformerFactory tf = TransformerFactory.newInstance();
+    Transformer transformer = tf.newTransformer();
+    transformer.transform(domSource, result);
+    String xmlString = writer.toString();
+    // Now remove the processing instruction.  This approach seems like a total hack.
+    xmlString = xmlString.substring(xmlString.indexOf('>') + 1);
+    return xmlString;
+
+  }
+  
   /**
    * Returns a (possibly empty) set of SensorData instances associated with the 
    * given user between the startTime and endTime. 
@@ -455,20 +479,9 @@ public class SensorDataManager {
    * @param endTime The end time.
    * @return The set of SensorData instances. 
    */
-  public Set<SensorData> getData(User user, XMLGregorianCalendar startTime, 
+  public Set<SensorData> getSensorData(User user, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime) {
-    Set<SensorData> dataSet = new HashSet<SensorData>();
-    if (this.dataMap.containsKey(user)) {
-      for (Map.Entry<String, Map<XMLGregorianCalendar, SensorData>> entry : 
-        this.dataMap.get(user).entrySet()) {
-        for (XMLGregorianCalendar tstamp : entry.getValue().keySet())  {
-            if (Timestamp.inBetween(startTime, endTime, tstamp)) {
-              dataSet.add(entry.getValue().get(tstamp));
-          }
-        }
-      }
-    }
-    return dataSet;
+    return this.dbManager.getSensorData(user, startTime, endTime);
   }
 
 }

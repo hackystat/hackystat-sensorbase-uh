@@ -13,6 +13,7 @@
   <xs:attribute name="SensorDataType" type="xs:string"/>
   <xs:attribute name="Timestamp" type="xs:dateTime"/>
   <xs:attribute name="Href" type="xs:anyURI"/>
+  <xs:attribute name="LastMod" type="xs:dateTime"/>
 
 
   <xs:element name="Property">
@@ -44,6 +45,7 @@
         <xs:element ref="Owner"/>
         <xs:element ref="Properties"/>
       </xs:sequence>
+    <xs:attribute ref="LastMod" />      
     </xs:complexType>
   </xs:element>
 
@@ -57,10 +59,11 @@
 
   <xs:element name="SensorDataRef">
     <xs:complexType>
-      <xs:attribute ref="Owner"/>
-      <xs:attribute ref="SensorDataType"/>
-      <xs:attribute ref="Timestamp"/>
-      <xs:attribute ref="Href"/>
+      <xs:attribute ref="Owner" use="required"/>
+      <xs:attribute ref="SensorDataType" use="required"/>
+      <xs:attribute ref="Timestamp" use="required"/>
+      <xs:attribute ref="Href" use="required"/>
+      <xs:attribute ref="LastMod" use="required"/>      
     </xs:complexType>
   </xs:element>
 
@@ -69,6 +72,7 @@
       <xs:sequence>
         <xs:element ref="SensorDataRef" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
+    <xs:attribute ref="LastMod" use="required"/>      
     </xs:complexType>
   </xs:element> 
 

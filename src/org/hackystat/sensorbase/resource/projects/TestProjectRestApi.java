@@ -12,7 +12,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Members;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
-import org.hackystat.sensorbase.resource.sensordata.Timestamp;
+import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
@@ -187,7 +187,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     Project project = new Project();
     project.setName("TestProject1");
     project.setDescription("Test Project1");
-    XMLGregorianCalendar tstamp = Timestamp.makeTimestamp();
+    XMLGregorianCalendar tstamp = Tstamp.makeTimestamp();
     project.setStartTime(tstamp);
     project.setEndTime(tstamp);
     project.setOwner(user);
@@ -224,7 +224,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     Project project = new Project();
     project.setName("TestProject2");
     project.setDescription("Test Project2");
-    XMLGregorianCalendar tstamp = Timestamp.makeTimestamp();
+    XMLGregorianCalendar tstamp = Tstamp.makeTimestamp();
     project.setStartTime(tstamp);
     project.setEndTime(tstamp);
     project.setOwner(user);

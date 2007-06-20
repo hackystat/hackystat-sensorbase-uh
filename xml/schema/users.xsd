@@ -8,7 +8,7 @@
   <xs:element name="Value" type="xs:string"/>
   <xs:attribute name="Email" type="xs:string"/>
   <xs:attribute name="Href" type="xs:anyURI"/>
-
+  <xs:attribute name="LastMod" type="xs:dateTime"/>
 
   <xs:element name="Property">
     <xs:complexType>
@@ -31,11 +31,12 @@
   <xs:element name="User">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="Email"/>
-        <xs:element ref="Password"/>
+        <xs:element ref="Email" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="Password" minOccurs="1" maxOccurs="1"/>
         <xs:element ref="Role" minOccurs="0" maxOccurs="1"/>
-        <xs:element ref="Properties"/>
+        <xs:element ref="Properties" minOccurs="0" maxOccurs="1"/>
       </xs:sequence>
+      <xs:attribute ref="LastMod" />      
     </xs:complexType>
   </xs:element>
 
@@ -50,8 +51,9 @@
 
   <xs:element name="UserRef">
     <xs:complexType>
-      <xs:attribute ref="Email"/>
-      <xs:attribute ref="Href"/>
+      <xs:attribute ref="Email" use="required"/>
+      <xs:attribute ref="Href" use="required"/>
+      <xs:attribute ref="LastMod" use="required"/>      
     </xs:complexType>
   </xs:element>
 
@@ -60,6 +62,7 @@
       <xs:sequence>
         <xs:element ref="UserRef" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
+      <xs:attribute ref="LastMod" use="required"/>      
     </xs:complexType>
   </xs:element> 
 

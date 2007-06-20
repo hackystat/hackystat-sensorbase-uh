@@ -11,6 +11,7 @@
   <xs:element name="UriPattern" type="xs:string"/>
   <xs:attribute name="Name" type="xs:string"/>
   <xs:attribute name="Href" type="xs:anyURI"/>
+  <xs:attribute name="LastMod" type="xs:dateTime"/>
   
   <xs:element name="Members">
     <xs:complexType>
@@ -58,7 +59,8 @@
         <xs:element ref="UriPatterns"/>
         <xs:element ref="Properties"/>
       </xs:sequence>
-      <xs:attribute ref="Name"/>
+      <xs:attribute ref="Name" use="required"/>
+      <xs:attribute ref="LastMod"/>
     </xs:complexType>
   </xs:element>
 
@@ -73,8 +75,9 @@
 
   <xs:element name="ProjectRef">
     <xs:complexType>
-      <xs:attribute ref="Name"/>
-      <xs:attribute ref="Href"/>
+      <xs:attribute ref="Name" use="required"/>
+      <xs:attribute ref="Href" use="required"/>
+      <xs:attribute ref="LastMod"/>
     </xs:complexType>
   </xs:element>
 
@@ -83,6 +86,7 @@
       <xs:sequence>
         <xs:element ref="ProjectRef" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
+    <xs:attribute ref="LastMod"/>
     </xs:complexType>
   </xs:element> 
 
