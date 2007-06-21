@@ -57,7 +57,7 @@ public class UserProjectResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
     }
-    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
       return null;
     }
@@ -109,7 +109,7 @@ public class UserProjectResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return;
     }  
-    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
       return;
     }
@@ -178,11 +178,11 @@ public class UserProjectResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.uriUser);
       return;
     } 
-    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
       return;
     }    
-    if (!super.userManager.isAdmin(this.uriUser) && 
+    if (!super.userManager.isAdmin(this.authUser) && 
         !super.projectManager.isOwner(this.user, this.projectName)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "User is not Owner or Admin.");
       return;

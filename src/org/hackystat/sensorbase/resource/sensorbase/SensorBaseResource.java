@@ -5,11 +5,14 @@ import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
 import org.hackystat.sensorbase.resource.users.UserManager;
 import org.restlet.Context;
+import org.restlet.data.CharacterSet;
+import org.restlet.data.Language;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Resource;
+import org.restlet.resource.StringRepresentation;
 import org.restlet.resource.Variant;
 
 /**
@@ -78,4 +81,17 @@ public abstract class SensorBaseResource extends Resource {
    */
   @Override
   public abstract Representation getRepresentation(Variant variant);
+  
+  /**
+   * Creates and returns a new Restlet StringRepresentation built from xmlData.
+   * The xmlData will be prefixed with a processing instruction indicating UTF-8 and version 1.0.
+   * @param xmlData The xml data as a string. 
+   * @return A StringRepresentation of that xmldata. 
+   */
+  protected StringRepresentation getStringRepresentation(String xmlData) {
+    StringBuilder builder = new StringBuilder(500);
+    builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+    builder.append(xmlData);
+    return new StringRepresentation(builder, MediaType.TEXT_XML, Language.ALL, CharacterSet.UTF_8);
+  }
 }

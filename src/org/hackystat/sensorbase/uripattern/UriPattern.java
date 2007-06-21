@@ -1,5 +1,6 @@
 package org.hackystat.sensorbase.uripattern;
 
+import java.util.List;
 import java.util.regex.Matcher;
 
 
@@ -94,6 +95,21 @@ public class UriPattern implements Comparable {
         throw new RuntimeException("Illegal pattern.");
       }
     }
+  }
+  
+  /**
+   * Returns true if resource matches any of the UriPatterns.
+   * @param resource The resource of interest. 
+   * @param uriPatterns The list of UriPatterns.
+   * @return True if there is a match. 
+   */
+  public static boolean matches(String resource, List<UriPattern> uriPatterns) {
+    for (UriPattern pattern : uriPatterns) {
+      if (pattern.matches(resource)) {
+        return true;
+      }
+    }
+    return false;
   }
 
 

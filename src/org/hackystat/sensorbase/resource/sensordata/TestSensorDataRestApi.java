@@ -98,6 +98,12 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     XmlRepresentation data = response.getEntityAsSax();
     Node node = data.getNode("//SensorData");
     assertNotNull("Checking that we found the sensor data 4.", node);
+    
+    // Now check that the admin can get any user's data.
+    response = makeAdminRequest(Method.GET, uri);
+    
+    // Test that the request was received and processed by the server OK. 
+    assertTrue("Testing for successful GET index 4.1", response.getStatus().isSuccess());
     }
   
   

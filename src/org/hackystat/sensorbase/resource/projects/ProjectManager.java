@@ -233,14 +233,16 @@ public class ProjectManager {
     Set<SensorData> dataSet = sensorDataManager.getSensorData(user, startTime, endTime);
     String email = user.getEmail();
     for (SensorData data : dataSet) {
-      String sdt = data.getSensorDataType();
-      XMLGregorianCalendar timestamp = data.getTimestamp();
-      SensorDataRef ref = new SensorDataRef();
-      ref.setOwner(email);
-      ref.setSensorDataType(sdt);
-      ref.setTimestamp(timestamp);
-      ref.setHref(server.getHostName() + "sensordata/" + email + "/" + sdt + "/" + timestamp);
-      index.getSensorDataRef().add(ref);
+      if (uriPatternsMatch(project, data)) {
+        String sdt = data.getSensorDataType();
+        XMLGregorianCalendar timestamp = data.getTimestamp();
+        SensorDataRef ref = new SensorDataRef();
+        ref.setOwner(email);
+        ref.setSensorDataType(sdt);
+        ref.setTimestamp(timestamp);
+        ref.setHref(server.getHostName() + "sensordata/" + email + "/" + sdt + "/" + timestamp);
+        index.getSensorDataRef().add(ref);
+      }
     }
     return sensorDataManager.marshallSensorDataIndex(index);
   }

@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.db.inmemory;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,11 +12,9 @@ import org.hackystat.sensorbase.db.DbImplementation;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
-import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
-import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
-import org.w3c.dom.Document;
+import org.hackystat.sensorbase.uripattern.UriPattern;
 
 
 /**
@@ -26,11 +25,21 @@ import org.w3c.dom.Document;
  */
 public class InMemoryImplementation extends DbImplementation {
   
-  /** 
-   * The in-memory repository of sensor data, User -> Timestamp-> SensorData.
-   */
+  /** The in-memory repository of sensor data, User -> Timestamp-> SensorData. */
   private Map<User, Map<XMLGregorianCalendar, SensorData>> dataMap = 
     new HashMap<User, Map<XMLGregorianCalendar, SensorData>>();
+  
+  /** Maps a SensorData instance to its corresponding XML string. */
+  private Map<SensorData, String> data2xml = new HashMap<SensorData, String>();
+  
+  /** Maps a SensorData instance to its corresponding SensorDataRef XML string. */
+  private Map<SensorData, String> data2ref = new HashMap<SensorData, String>();
+  
+  /** The SensorDataIndex open tag. */
+  private String indexOpenTag = "<SensorDataIndex>";
+  
+  /** The SensorDataIndex close tag. */
+  private String indexCloseTag = "</SensorDataIndex>";
   
   /**
    * Creates a new InMemoryImplementation, which is a nonpersistent store for SensorData.
@@ -56,7 +65,7 @@ public class InMemoryImplementation extends DbImplementation {
 
   /** {@inheritDoc} */
   @Override
-  public synchronized boolean saveSensorData(SensorData data, String xmlSensorData, 
+  public synchronized boolean storeSensorData(SensorData data, String xmlSensorData, 
       String xmlSensorDataRef) {
     String owner = data.getOwner();
     String ownerUri = SensorDataManager.convertOwnerToUri(owner);
@@ -76,55 +85,85 @@ public class InMemoryImplementation extends DbImplementation {
     }
     //Update the interior map with the [Timestamp, SensorData] entry.
     this.dataMap.get(user).put(timestamp, data);
+    this.data2xml.put(data, xmlSensorData);
+    this.data2ref.put(data, xmlSensorDataRef);
     return false;
   }
   
 
   /** {@inheritDoc} */
   @Override
-  public synchronized Document getSensorDataIndexDocument() {
-    SensorDataIndex index = new SensorDataIndex();
+  public synchronized String getSensorDataIndex() {
+    StringBuilder builder = new StringBuilder(512);
+    builder.append(this.indexOpenTag);
     for (User user : this.dataMap.keySet()) {
       for (XMLGregorianCalendar timestamp : this.dataMap.get(user).keySet()) {
         SensorData data = this.dataMap.get(user).get(timestamp);
-        SensorDataRef ref = super.getSensorDataManager().makeSensorDataRef(data);
-        index.getSensorDataRef().add(ref);
+        String ref = this.data2ref.get(data);
+        builder.append(ref);
       }
     }
-    return super.getSensorDataManager().marshallSensorDataIndex(index);
+    builder.append(this.indexCloseTag);
+    return builder.toString();
   }
   
 
   /** {@inheritDoc} */
   @Override
-  public synchronized Document getSensorDataIndexDocument(User user) {
-    SensorDataIndex index = new SensorDataIndex();
+  public synchronized String getSensorDataIndex(User user) {
+    StringBuilder builder = new StringBuilder(512);
+    builder.append(this.indexOpenTag);
     if (this.dataMap.containsKey(user)) {
       for (XMLGregorianCalendar timestamp : this.dataMap.get(user).keySet()) {
         SensorData data = this.dataMap.get(user).get(timestamp);
-        SensorDataRef ref = super.getSensorDataManager().makeSensorDataRef(data);
-        index.getSensorDataRef().add(ref);
+        String ref = this.data2ref.get(data);
+        builder.append(ref);
       }
     }
-    return super.getSensorDataManager().marshallSensorDataIndex(index);
+    builder.append(this.indexCloseTag);
+    return builder.toString();
   }
 
 
   /** {@inheritDoc} */
   @Override
-  public synchronized Document getSensorDataIndexDocument(User user, String sdtName) {
-    SensorDataIndex index = new SensorDataIndex();
+  public synchronized String getSensorDataIndex(User user, String sdtName) {
+    StringBuilder builder = new StringBuilder(512);
+    builder.append(this.indexOpenTag);
     if (this.dataMap.containsKey(user)) {
       for (XMLGregorianCalendar timestamp : this.dataMap.get(user).keySet()) {
         SensorData data = this.dataMap.get(user).get(timestamp);
         if (sdtName.equals(SensorDataManager.convertSdtToName(data.getSensorDataType()))) {
-          SensorDataRef ref = getSensorDataManager().makeSensorDataRef(data);
-          index.getSensorDataRef().add(ref);
+          String ref = this.data2ref.get(data);
+          builder.append(ref);
         }
       }
     }
-    return super.getSensorDataManager().marshallSensorDataIndex(index);
+    builder.append(this.indexCloseTag);
+    return builder.toString();
   }
+  
+  /** {@inheritDoc} */
+  @Override
+  public String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns) {
+    StringBuilder builder = new StringBuilder(512);
+    builder.append(this.indexOpenTag);
+    if (this.dataMap.containsKey(user)) {
+      for (XMLGregorianCalendar timestamp : this.dataMap.get(user).keySet()) {
+        SensorData data = this.dataMap.get(user).get(timestamp);
+        String resource = data.getResource();
+        if (Tstamp.inBetween(startTime, endTime, timestamp) &&
+            UriPattern.matches(resource, uriPatterns)) {
+          String ref = this.data2ref.get(data);
+          builder.append(ref);
+        }
+      }
+    }
+    builder.append(this.indexCloseTag);
+    return builder.toString();
+  }
+
   
 
   /** {@inheritDoc} */
@@ -138,9 +177,10 @@ public class InMemoryImplementation extends DbImplementation {
 
   /** {@inheritDoc} */
   @Override
-  public synchronized SensorData getSensorData(User user, XMLGregorianCalendar timestamp) {
+  public synchronized String getSensorData(User user, XMLGregorianCalendar timestamp) {
     if (this.hasSensorData(user, timestamp)) {
-      return this.dataMap.get(user).get(timestamp);
+      SensorData data =  this.dataMap.get(user).get(timestamp);
+      return this.data2xml.get(data);
     }
     else {
       return null;

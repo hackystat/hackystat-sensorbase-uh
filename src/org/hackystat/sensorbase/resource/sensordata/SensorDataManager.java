@@ -105,7 +105,7 @@ public class SensorDataManager {
         if (!userManager.hasUser(email)) {
           throw new IllegalArgumentException("Owner is not a defined User: " + email);
         }
-        this.dbManager.saveSensorData(data, this.makeSensorDataXmlString(data),
+        this.dbManager.storeSensorData(data, this.makeSensorDataXmlString(data),
             this.makeSensorDataRefXmlString(data));
       }
     }
@@ -184,30 +184,30 @@ public class SensorDataManager {
   }
   
   /**
-   * Returns the XML Index for all sensor data.
-   * @return The XML Document instance providing an index of all relevent sensor data resources.
+   * Returns the XML SensorDataIndex for all sensor data.
+   * @return The XML String providing an index of all relevent sensor data resources.
    */
-  public Document getSensorDataIndexDocument() {
-    return dbManager.getSensorDataIndexDocument();
+  public String getSensorDataIndex() {
+    return dbManager.getSensorDataIndex();
   }
   
   /**
-   * Returns the XML Index for all sensor data for this user. 
+   * Returns the XML SensorDataIndex for all sensor data for this user. 
    * @param user The User whose sensor data is to be returned. 
-   * @return The XML Document instance providing an index of all relevent sensor data resources.
+   * @return The XML String providing an index of all relevent sensor data resources.
    */
-  public Document getSensorDataIndexDocument(User user) {
-    return dbManager.getSensorDataIndexDocument(user);
+  public String getSensorDataIndex(User user) {
+    return dbManager.getSensorDataIndex(user);
   }
   
   /**
-   * Returns the XML Index for all sensor data for this user and sensor data type.
+   * Returns the XML SensorDataIndex for all sensor data for this user and sensor data type.
    * @param user The User whose sensor data is to be returned. 
    * @param sdtName The sensor data type name.
-   * @return The XML Document instance providing an index of all relevent sensor data resources.
+   * @return The XML String providing an index of all relevent sensor data resources.
    */
-  public Document getSensorDataIndexDocument(User user, String sdtName) {
-    return this.dbManager.getSensorDataIndexDocument(user, sdtName);
+  public String getSensorDataIndex(User user, String sdtName) {
+    return this.dbManager.getSensorDataIndex(user, sdtName);
   }
   
   /**
@@ -269,7 +269,7 @@ public class SensorDataManager {
    */
   public void putSensorData(SensorData data) {
     try {
-      this.dbManager.saveSensorData(data, this.makeSensorDataXmlString(data),
+      this.dbManager.storeSensorData(data, this.makeSensorDataXmlString(data),
           this.makeSensorDataRefXmlString(data));
     }
     catch (Exception e) {
@@ -299,12 +299,12 @@ public class SensorDataManager {
   }
   
   /**
-   * Returns the SensorData instance corresponding to [user, timestamp], or null if not found.
+   * Returns the SensorData XML String corresponding to [user, timestamp], or null if not found.
    * @param user The user 
    * @param timestamp The timestamp. 
-   * @return The SensorData instance, or null if not found. 
+   * @return The SensorData XML String, or null if not found. 
    */
-  public SensorData getSensorData(User user, XMLGregorianCalendar timestamp) {
+  public String getSensorData(User user, XMLGregorianCalendar timestamp) {
     return this.dbManager.getSensorData(user, timestamp);
   }
   

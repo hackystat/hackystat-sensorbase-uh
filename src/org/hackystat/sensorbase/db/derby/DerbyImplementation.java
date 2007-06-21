@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -20,7 +21,7 @@ import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
-import org.w3c.dom.Document;
+import org.hackystat.sensorbase.uripattern.UriPattern;
 
 /**
  * Provides a implementation of DbImplementation using Derby in embedded mode.
@@ -185,7 +186,7 @@ public class DerbyImplementation extends DbImplementation {
 
   /** {@inheritDoc} */
  @Override
-  public boolean saveSensorData(SensorData data, String xmlSensorData, String xmlSensorDataRef) {
+  public boolean storeSensorData(SensorData data, String xmlSensorData, String xmlSensorDataRef) {
     Connection conn = null;
     PreparedStatement s = null;
     try {
@@ -251,21 +252,29 @@ public class DerbyImplementation extends DbImplementation {
 
   /** {@inheritDoc} */
   @Override
-  public Document getSensorDataIndexDocument() {
+  public String getSensorDataIndex() {
     // TODO Auto-generated method stub
     return null;
   }
   
   /** {@inheritDoc} */
   @Override
-  public Document getSensorDataIndexDocument(User user) {
+  public String getSensorDataIndex(User user) {
     // TODO Auto-generated method stub
     return null;
   }
 
   /** {@inheritDoc} */
   @Override
-  public Document getSensorDataIndexDocument(User user, String sdtName) {
+  public String getSensorDataIndex(User user, String sdtName) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  
+  /** {@inheritDoc} */
+  @Override
+  public String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns) {
     // TODO Auto-generated method stub
     return null;
   }
@@ -286,7 +295,7 @@ public class DerbyImplementation extends DbImplementation {
 
   /** {@inheritDoc} */
   @Override
-  public SensorData getSensorData(User user, XMLGregorianCalendar timestamp) {
+  public String getSensorData(User user, XMLGregorianCalendar timestamp) {
     // TODO Auto-generated method stub
     return null;
   }

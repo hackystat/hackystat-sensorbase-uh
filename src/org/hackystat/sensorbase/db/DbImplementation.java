@@ -1,5 +1,6 @@
 package org.hackystat.sensorbase.db;
 
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -13,7 +14,7 @@ import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
 import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
-import org.w3c.dom.Document;
+import org.hackystat.sensorbase.uripattern.UriPattern;
 
 /**
  * Provides a specification of the operations that must be implemented by every
@@ -47,29 +48,29 @@ public abstract class DbImplementation {
    * @param xmlSensorDataRef The corresponding SensorDataRef marshalled into an XML String
    * @return True if the sensor data was successfully inserted.
    */
-  public abstract boolean saveSensorData(SensorData data, String xmlSensorData, 
+  public abstract boolean storeSensorData(SensorData data, String xmlSensorData, 
       String xmlSensorDataRef);
   
   /**
-   * Returns a Document representing a SensorDataIndex with all Sensor Data. 
-   * @return The Document containing an index to all Sensor Data.
+   * Returns the XML SensorDataIndex for all sensor data in this server.
+   * @return The XML String containing an index to all Sensor Data.
    */
-  public abstract Document getSensorDataIndexDocument();
+  public abstract String getSensorDataIndex();
   
   /**
-   * Returns the XML Index for all sensor data for this user. 
+   * Returns the XML SensorDataIndex for all sensor data for this user. 
    * @param user The User whose sensor data is to be returned. 
-   * @return The XML Document instance providing an index of all relevent sensor data resources.
+   * @return The XML String providing an index of all relevent sensor data resources.
    */
-  public abstract Document getSensorDataIndexDocument(User user);
+  public abstract String getSensorDataIndex(User user);
   
   /**
-   * Returns the XML Index for all sensor data for this user and sensor data type.
+   * Returns the XML SensorDataIndex for all sensor data for this user and sensor data type.
    * @param user The User whose sensor data is to be returned. 
    * @param sdtName The sensor data type name.
-   * @return The XML Document instance providing an index of all relevent sensor data resources.
+   * @return The XML String providing an index of all relevent sensor data resources.
    */
-  public abstract Document getSensorDataIndexDocument(User user, String sdtName);
+  public abstract String getSensorDataIndex(User user, String sdtName);
   
   /**
    * Returns true if the passed [key, timestamp] has sensor data defined for it.
@@ -88,12 +89,12 @@ public abstract class DbImplementation {
   public abstract void deleteData(User user, XMLGregorianCalendar timestamp);
  
   /**
-   * Returns the SensorData instance, or null if not found.
+   * Returns the SensorData instance as XML string, or null if not found.
    * @param user The user.
    * @param timestamp The timestamp associated with this sensor data.
-   * @return The SensorData instance, or null.
+   * @return The SensorData XML string, or null.
    */
-  public abstract SensorData getSensorData(User user, XMLGregorianCalendar timestamp);
+  public abstract String getSensorData(User user, XMLGregorianCalendar timestamp);
   
   /**
    * Returns a (possibly empty) set of SensorData instances associated with the 
@@ -105,6 +106,19 @@ public abstract class DbImplementation {
    */
   public abstract Set<SensorData> getSensorData(User user, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime);
+  
+
+  /**
+   * Returns an XML SensorDataIndex representing the SensorData for the given user between
+   * start and end time whose resource string matches at least one of the UriPatterns.
+   * @param user The user whose SensorData will be returned.
+   * @param startTime The earliest Sensor Data to be returned.
+   * @param endTime The latest SensorData to be returned.
+   * @param uriPatterns At least one UriPattern must match the SensorData resource field.
+   * @return An XML String containing a SensorDataIndex of matching SensorData. 
+   */
+  public abstract String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns);
   
   /** Keeps a pointer to this Server for use in accessing the managers. */
   private Server server;

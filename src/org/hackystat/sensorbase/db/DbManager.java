@@ -10,7 +10,6 @@ import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
-import org.w3c.dom.Document;
 
 /**
  * Provides an interface to storage for the four resources managed by the SensorBase.
@@ -52,8 +51,7 @@ public class DbManager {
    * @return True if this DB was freshly created or not.
    */
   public boolean isFreshDb() {
-    return true;  // only until the persistent storage impl is finished.
-    //return this.derbyImpl.isFreshlyCreated();
+    return true;  
   }
 
   /**
@@ -63,36 +61,36 @@ public class DbManager {
    * @param xmlSensorData The sensor data resource as an XML String.  
    * @param xmlSensorDataRef The sensor data resource as an XML resource reference
    */
-  public void saveSensorData(SensorData data, String xmlSensorData, String xmlSensorDataRef) {
-    this.derbyImpl.saveSensorData(data, xmlSensorData, xmlSensorDataRef);
-    this.inMemoryImpl.saveSensorData(data, xmlSensorData, xmlSensorDataRef);
+  public void storeSensorData(SensorData data, String xmlSensorData, String xmlSensorDataRef) {
+    this.derbyImpl.storeSensorData(data, xmlSensorData, xmlSensorDataRef);
+    this.inMemoryImpl.storeSensorData(data, xmlSensorData, xmlSensorDataRef);
   }
   
   /**
-   * Returns the XML Index for all sensor data.
-   * @return The XML Document instance providing an index of all relevent sensor data resources.
+   * Returns the XML SensorDataIndex for all sensor data.
+   * @return An XML String providing an index of all relevent sensor data resources.
    */
-  public Document getSensorDataIndexDocument() {
-    return this.inMemoryImpl.getSensorDataIndexDocument();
+  public String getSensorDataIndex() {
+    return this.inMemoryImpl.getSensorDataIndex();
   }
   
   /**
-   * Returns the XML Index for all sensor data for this user. 
+   * Returns the XML SensorDataIndex for all sensor data for this user. 
    * @param user The User whose sensor data is to be returned. 
-   * @return The XML Document instance providing an index of all relevent sensor data resources.
+   * @return The XML String providing an index of all relevent sensor data resources.
    */
-  public Document getSensorDataIndexDocument(User user) {
-    return this.inMemoryImpl.getSensorDataIndexDocument(user);
+  public String getSensorDataIndex(User user) {
+    return this.inMemoryImpl.getSensorDataIndex(user);
   }
   
   /**
-   * Returns the XML Index for all sensor data for this user and sensor data type.
+   * Returns the XML SensorDataIndex for all sensor data for this user and sensor data type.
    * @param user The User whose sensor data is to be returned. 
    * @param sdtName The sensor data type name.
    * @return The XML Document instance providing an index of all relevent sensor data resources.
    */
-  public Document getSensorDataIndexDocument(User user, String sdtName) {
-    return this.inMemoryImpl.getSensorDataIndexDocument(user, sdtName);
+  public String getSensorDataIndex(User user, String sdtName) {
+    return this.inMemoryImpl.getSensorDataIndex(user, sdtName);
   }
   
   /**
@@ -132,13 +130,12 @@ public class DbManager {
   }
   
   /**
-   * Returns the SensorData instance, or null.
-   * present in this manager.
+   * Returns the SensorData instance as an XML string, or null.
    * @param user The user.
    * @param timestamp The timestamp associated with this sensor data.
-   * @return The SensorData instance, or null.
+   * @return The SensorData instance as an XML string, or null.
    */
-  public SensorData getSensorData(User user, XMLGregorianCalendar timestamp) {
+  public String getSensorData(User user, XMLGregorianCalendar timestamp) {
     return this.inMemoryImpl.getSensorData(user, timestamp);
   }
   
@@ -154,5 +151,5 @@ public class DbManager {
       XMLGregorianCalendar endTime) {
     return this.inMemoryImpl.getSensorData(user, startTime, endTime);
   }
-
+  
 }

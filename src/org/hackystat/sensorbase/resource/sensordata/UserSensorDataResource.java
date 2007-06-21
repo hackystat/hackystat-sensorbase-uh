@@ -12,7 +12,6 @@ import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
-import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Variant;
 
@@ -69,20 +68,20 @@ public class UserSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.uriUser);
       return null;
     } 
-    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
       return null;
     }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       // sensordata/{email}
       if ((this.sdtName == null) && (this.timestamp == null)) {
-        return new DomRepresentation(MediaType.TEXT_XML, 
-            super.sensorDataManager.getSensorDataIndexDocument(this.user));
+        String xmlData = super.sensorDataManager.getSensorDataIndex(this.user);
+        return super.getStringRepresentation(xmlData);
       }
       // sensordata/{email}?sdt={sensordatatype}
       else if (this.timestamp == null) {
-        return new DomRepresentation(MediaType.TEXT_XML, 
-            super.sensorDataManager.getSensorDataIndexDocument(this.user, this.sdtName));
+        String xmlData = super.sensorDataManager.getSensorDataIndex(this.user);
+        return super.getStringRepresentation(xmlData);
       }
       // sensordata/{email}/{timestamp}
       else {
@@ -95,16 +94,15 @@ public class UserSensorDataResource extends SensorBaseResource {
           getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Timestamp " + timestamp);
           return null;
         }
-        // Now, see if we actually have one.
+        // Now, see if we actually have the SensorData.
         if (!super.sensorDataManager.hasSensorData(user, tstamp)) {
           getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND, "Unknown Sensor Data");
           return null;
         }
-        // We have one, so make its representation and return it.
+        // We have the SensorData, so retrieve its xml string representation and return it.
         try {
-          SensorData data = super.sensorDataManager.getSensorData(this.user, tstamp);
-          return new DomRepresentation(MediaType.TEXT_XML, 
-              SensorDataManager.marshallSensorData(data));
+          String xmlData = super.sensorDataManager.getSensorData(this.user, tstamp);
+          return getStringRepresentation(xmlData);
         }
         catch (Exception e) {
           // The marshallSensorData threw an exception, which is unrecoverable.

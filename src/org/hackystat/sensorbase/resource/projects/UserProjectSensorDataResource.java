@@ -65,7 +65,7 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");
       return null;
     }  
-    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
       return null;
     }

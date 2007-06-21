@@ -71,7 +71,7 @@ public class UserResource extends SensorBaseResource {
    */
   @Override
   public void delete() {
-    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
       String msg = "User is not admin and authenticated user does not not match user in URI";
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return;
