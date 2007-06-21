@@ -67,11 +67,11 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     }
   
   /**
-   * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org/SampleSdt returns data.
+   * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org?sdt=TestSdt returns data.
    * @throws Exception If problems occur.
    */
   @Test public void getUserSdtSensorDataIndex() throws Exception {
-    Response response = makeRequest(Method.GET, sensordata + user + "/TestSdt", user);
+    Response response = makeRequest(Method.GET, sensordata + user + "?sdt=TestSdt", user);
     
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET index 3", response.getStatus().isSuccess());
@@ -83,12 +83,12 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     }
   
   /**
-   * Test GET host/sensorbase/sensordata/TestUser@hackystat.org/TestSdt/2007-04-30T09:00:00.000
+   * Test GET host/sensorbase/sensordata/TestUser@hackystat.org/2007-04-30T09:00:00.000
    * and see that it returns data.
    * @throws Exception If problems occur.
    */
   @Test public void getUserSensorData() throws Exception {
-    String uri = sensordata + user + "/TestSdt/2007-04-30T09:00:00.000";
+    String uri = sensordata + user + "/2007-04-30T09:00:00.000";
     Response response = makeRequest(Method.GET, uri, user);
     
     // Test that the request was received and processed by the server OK. 
@@ -103,7 +103,7 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
   
   /**
    * Test that PUT and DELETE of 
-   * host/sensorbase/sensordata/TestUser@hackystat.org/TestSdt/2007-04-30T02:00:00.000 works.
+   * host/sensorbase/sensordata/TestUser@hackystat.org/2007-04-30T02:00:00.000 works.
    * @throws Exception If problems occur.
    */
   @Test public void putSensorData() throws Exception {
@@ -129,7 +129,7 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     // Now convert the Sensor Data instance to XML.
     Document doc = SensorDataManager.marshallSensorData(data);
     Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
-    String uri = sensordata + user + "/" + sdt + "/" + timestamp;
+    String uri = sensordata + user + "/" + timestamp;
     Response response = makeRequest(Method.PUT, uri, user, representation);
 
     // Test that the PUT request was received and processed by the server OK. 
@@ -150,5 +150,4 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     response = makeRequest(Method.DELETE, uri, user);
     assertTrue("Testing for OK second DELETE SensorData", response.getStatus().isSuccess());
   }
-
 }

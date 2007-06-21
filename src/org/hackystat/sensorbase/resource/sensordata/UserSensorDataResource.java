@@ -20,8 +20,8 @@ import org.restlet.resource.Variant;
  * The resource for all URIs that extend sensordata, including;
  * <ul>
  * <li> host/sensordata/{user}
- * <li> host/sensordata/{user}/{sensordatatype}
- * <li> host/sensordata/{user}/{sensordatatype}/{timestamp}
+ * <li> host/sensordata/{user}?sdt={sensordatatype}
+ * <li> host/sensordata/{user}/{timestamp}
  * </ul>
  * 
  * @author Philip Johnson
@@ -52,11 +52,11 @@ public class UserSensorDataResource extends SensorBaseResource {
    * Returns a SensorDataIndex when a GET is called with:
    * <ul>
    * <li> sensordata/{email}
-   * <li> sensordata/{email/{sensordatatype}
+   * <li> sensordata/{email}?sdt={sensordatatype}
    * </ul>
    * Returns a SensorData when a GET is called with:
    * <ul>
-   * <li> sensordata/{email}/{sensordatatype}/{timestamp}
+   * <li> sensordata/{email}/{timestamp}
    * </ul>
    * <p>
    * The user must be defined, and the authenticated user must be the uriUser or the Admin.
@@ -79,12 +79,12 @@ public class UserSensorDataResource extends SensorBaseResource {
         return new DomRepresentation(MediaType.TEXT_XML, 
             super.sensorDataManager.getSensorDataIndexDocument(this.user));
       }
-      // sensordata/{email}/{sensordatatype}
+      // sensordata/{email}?sdt={sensordatatype}
       else if (this.timestamp == null) {
         return new DomRepresentation(MediaType.TEXT_XML, 
             super.sensorDataManager.getSensorDataIndexDocument(this.user, this.sdtName));
       }
-      // sensordata/{email}/{sensordatatype}/{timestamp}
+      // sensordata/{email}/{timestamp}
       else {
         // First, try to parse the timestamp string, and return error if it doesn't parse.
         XMLGregorianCalendar tstamp;
@@ -96,13 +96,20 @@ public class UserSensorDataResource extends SensorBaseResource {
           return null;
         }
         // Now, see if we actually have one.
-        if (!super.sensorDataManager.hasSensorData(user, sdtName, tstamp)) {
+        if (!super.sensorDataManager.hasSensorData(user, tstamp)) {
           getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND, "Unknown Sensor Data");
           return null;
         }
         // We have one, so make its representation and return it.
-        return new DomRepresentation(MediaType.TEXT_XML, 
-            super.sensorDataManager.marshallSensorData(this.user, this.sdtName, tstamp));
+        try {
+          SensorData data = super.sensorDataManager.getSensorData(this.user, tstamp);
+          return new DomRepresentation(MediaType.TEXT_XML, 
+              SensorDataManager.marshallSensorData(data));
+        }
+        catch (Exception e) {
+          // The marshallSensorData threw an exception, which is unrecoverable.
+          return null;
+        }
       }
     }
     return null;

@@ -279,26 +279,34 @@ public class SensorDataManager {
   }
   
   /**
-   * Returns true if the passed [key, sdtName, timestamp] has sensor data defined for it.
+   * Returns true if the passed [user, timestamp] has sensor data defined for it.
    * @param user The user.
-   * @param sdt The sensor data type name.
    * @param timestamp The timestamp
-   * @return True if there is any sensor data for this [key, sdtName, timestamp].
+   * @return True if there is any sensor data for this [user, timestamp].
    */
-  public boolean hasSensorData(User user, String sdt, XMLGregorianCalendar timestamp) {
-    return this.dbManager.hasSensorData(user, sdt, timestamp);
+  public boolean hasSensorData(User user, XMLGregorianCalendar timestamp) {
+    return this.dbManager.hasSensorData(user, timestamp);
   }
   
   /**
-   * Returns true if the passed [user, sdtName, timestamp] has sensor data defined for it.
+   * Returns true if the passed [user, timestamp] has sensor data defined for it.
    * Note that this method returns false if timestamp cannot be converted into XMLGregorianCalendar.
    * @param user The user.
-   * @param sdtName The sensor data type name.
    * @param timestamp The timestamp as a string.
-   * @return True if there is any sensor data for this [key, sdtName, timestamp].
+   * @return True if there is any sensor data for this [user, timestamp].
    */
-  public boolean hasSensorData(User user, String sdtName, String timestamp) {
-    return this.dbManager.hasSensorData(user, sdtName, timestamp);
+  public boolean hasSensorData(User user, String timestamp) {
+    return this.dbManager.hasSensorData(user, timestamp);
+  }
+  
+  /**
+   * Returns the SensorData instance corresponding to [user, timestamp], or null if not found.
+   * @param user The user 
+   * @param timestamp The timestamp. 
+   * @return The SensorData instance, or null if not found. 
+   */
+  public SensorData getSensorData(User user, XMLGregorianCalendar timestamp) {
+    return this.dbManager.getSensorData(user, timestamp);
   }
   
   /**
@@ -346,33 +354,6 @@ public class SensorDataManager {
     DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
     Document doc = documentBuilder.newDocument();
     marshaller.marshal(data, doc);
-    return doc;
-  }
-  
-  /**
-   * Returns the XML representation of the sensor data represented by user, SDT, timestamp.
-   * @param user The User
-   * @param sdtName The SDT name.
-   * @param timestamp The timestamp.
-   * @return The XML representation of that sensor data, or null if not found.
-   */
-  public Document marshallSensorData(User user, String sdtName, 
-      XMLGregorianCalendar timestamp) {
-    // Return null if name is not an SDT
-    if (!this.hasSensorData(user, sdtName, timestamp)) {
-      return null;
-    }
-    Document doc = null;
-    try {
-      SensorData data = this.dbManager.getSensorData(user, timestamp);
-      doc = this.documentBuilder.newDocument();
-      this.marshaller.marshal(data, doc);
-    }
-    catch (Exception e ) {
-      String msg = "Failed to marshall the sensor data: " + user + " " + sdtName + " " + timestamp;
-      SensorBaseLogger.getLogger().warning(msg + "/n" + StackTrace.toString(e));
-      throw new RuntimeException(msg, e);
-    }
     return doc;
   }
   

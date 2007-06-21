@@ -95,26 +95,13 @@ public class DbManager {
   }
   
   /**
-   * Returns true if the passed [key, sdtName, timestamp] has sensor data defined for it.
+   * Returns true if the passed [user, timestamp] has sensor data defined for it.
    * @param user The user.
-   * @param sdt The sensor data type name.
    * @param timestamp The timestamp
-   * @return True if there is any sensor data for this [key, sdtName, timestamp].
+   * @return True if there is any sensor data for this [user, timestamp].
    */
-  public boolean hasSensorData(User user, String sdt, XMLGregorianCalendar timestamp) {
-    return this.inMemoryImpl.hasSensorData(user, sdt, timestamp);
-  }
-  
-  /**
-   * Returns true if the passed [user, sdtName, timestamp] has sensor data defined for it.
-   * Note that this method returns false if timestamp cannot be converted into XMLGregorianCalendar.
-   * @param user The user.
-   * @param sdtName The sensor data type name.
-   * @param timestamp The timestamp as a string.
-   * @return True if there is any sensor data for this [key, sdtName, timestamp].
-   */
-  public boolean hasSensorData(User user, String sdtName, String timestamp) {
-    return this.inMemoryImpl.hasSensorData(user, sdtName, timestamp);
+  public boolean hasSensorData(User user, XMLGregorianCalendar timestamp) {
+    return this.inMemoryImpl.hasSensorData(user, timestamp);
   }  
   
   /**

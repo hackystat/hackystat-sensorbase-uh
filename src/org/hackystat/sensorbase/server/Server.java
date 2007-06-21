@@ -139,8 +139,8 @@ public class Server extends Application {
     authRouter.attach("/users/{user}", UserResource.class);
     authRouter.attach("/sensordata", SensorDataResource.class);
     authRouter.attach("/sensordata/{user}", UserSensorDataResource.class);
-    authRouter.attach("/sensordata/{user}/{sensordatatype}", UserSensorDataResource.class);
-    authRouter.attach("/sensordata/{user}/{sensordatatype}/{timestamp}", 
+    authRouter.attach("/sensordata/{user}?sdt={sensordatatype}", UserSensorDataResource.class);
+    authRouter.attach("/sensordata/{user}/{timestamp}", 
         UserSensorDataResource.class);
     authRouter.attach("/projects", ProjectsResource.class);
     authRouter.attach("/projects/{user}", UserProjectsResource.class);

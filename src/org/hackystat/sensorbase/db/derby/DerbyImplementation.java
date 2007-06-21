@@ -75,6 +75,9 @@ public class DerbyImplementation extends DbImplementation {
   
   /** The SQL state indicating that INSERT tried to add data to a table with a preexisting key. */
   private static final String DUPLICATE_KEY = "23505";
+  
+  /** The key for putting/retrieving the directory where Derby will create its databases. */
+  private static final String derbySystemKey = "derby.system.home";
 
   /**
    * Instantiates the Derby implementation.  Throws a Runtime exception if the Derby
@@ -83,6 +86,10 @@ public class DerbyImplementation extends DbImplementation {
    */
   public DerbyImplementation(Server server) {
     super(server);
+    // Set the directory where the DB will be created and/or accessed.
+    // This must happen before loading the driver. 
+    String dbDir = ServerProperties.get(DB_DIR_KEY);
+    System.getProperties().put(derbySystemKey, dbDir);
     // Try to load the derby driver. 
     try {
       Class.forName(driver); 
@@ -99,17 +106,15 @@ public class DerbyImplementation extends DbImplementation {
   @Override
   public void initialize() {
     try {
-      // Set the directory where the DB will be created and/or accessed.
-      String dbDir = ServerProperties.get(DB_DIR_KEY);
-      System.getProperties().put("derby.system.home", dbDir);
       // Initialize the database table structure if necessary.
       this.isFreshlyCreated = !isPreExisting();
-      String dbStatusMsg = (this.isFreshlyCreated) ? "DB uninitialized." : "DB initialized.";
+      String dbStatusMsg = (this.isFreshlyCreated) ? 
+          "DB uninitialized." : "DB previously initialized.";
       this.logger.info(dbStatusMsg);
       if (this.isFreshlyCreated) {
-        this.logger.info("About to create DB in: " + dbDir);
+        this.logger.info("About to create DB in: " + System.getProperty(derbySystemKey));
         createTables();
-        this.logger.info("DB initialized.");
+        this.logger.info("DB initialized and tables created.");
       }
     }
     catch (Exception e) {
