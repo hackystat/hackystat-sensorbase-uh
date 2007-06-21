@@ -24,27 +24,27 @@ import org.w3c.dom.Document;
 public abstract class DbImplementation {
   
   /**
-   * To be called as part of the startup process for a DB implementation. This method should:
+   * To be called as part of the startup process for a storage system. This method should:
    * <ul>
-   * <li> Check to see if a database has been created.
-   * <li> If no database exists, it should create one and initialize the tables.
+   * <li> Check to see if this storage system has already been created during a previous session.
+   * <li> If no storage system exists, it should create one and initialize it appropriately.
    * </ul>
    */
   public abstract void initialize();
   
   /**
-   * Returns true if the initialize() method created a fresh database with empty tables. 
+   * Returns true if the initialize() method did indeed create a fresh storage system.
    * This is used by the ResourceManagers to determine if they should read in default data or not.
-   * @return True if the database is freshly created.
+   * @return True if the storage system is freshly created.
    */
   public abstract boolean isFreshlyCreated();
   
   /**
-   * Persists a SensorData instance.  If the Owner/Timestamp already exists in the table, it is
-   * overwritten.
+   * Persists a SensorData instance.  If SensorData with this [email, timestamp] 
+   * already exists in the storage system, it should be overwritten.
    * @param data The sensor data. 
-   * @param xmlSensorData The sensor data resource as an XML String.  
-   * @param xmlSensorDataRef The sensor data resource as an XML resource reference
+   * @param xmlSensorData The SensorData marshalled into an XML String.  
+   * @param xmlSensorDataRef The corresponding SensorDataRef marshalled into an XML String
    * @return True if the sensor data was successfully inserted.
    */
   public abstract boolean saveSensorData(SensorData data, String xmlSensorData, 
@@ -78,15 +78,6 @@ public abstract class DbImplementation {
    * @return True if there is any sensor data for this [key, sdtName, timestamp].
    */
   public abstract boolean hasSensorData(User user, XMLGregorianCalendar timestamp);
-  
-  /**
-   * Returns true if the passed [user, timestamp] has sensor data defined for it.
-   * Note that this method returns false if timestamp cannot be converted into XMLGregorianCalendar.
-   * @param user The user.
-   * @param timestamp The timestamp as a string.
-   * @return True if there is any sensor data for this [key, sdtName, timestamp].
-   */
-  public abstract boolean hasSensorData(User user, String timestamp);
 
   /**
    * Ensures that sensor data with the given user and timestamp is no longer
@@ -122,7 +113,7 @@ public abstract class DbImplementation {
   protected Logger logger;
   
   /**
-   * Stores the server instance. 
+   * Constructs a new DbImplementation.
    * @param server The server. 
    */
   public DbImplementation(Server server) {
@@ -131,7 +122,7 @@ public abstract class DbImplementation {
   }
   
   /**
-   * Returns the UserManager.
+   * Returns the UserManager associated with this server.
    * Since the DbManager is initialized before all other managers, we will simply 
    * get these other Managers on demand and not cache them. 
    * @return The User Manager. 
@@ -141,7 +132,7 @@ public abstract class DbImplementation {
   }
   
   /**
-   * Returns the SensorDataManager.
+   * Returns the SensorDataManager associated with this server. 
    * Since the DbManager is initialized before all other managers, we will simply 
    * get these other Managers on demand and not cache them. 
    * @return The Sensor Data Manager. 
@@ -151,7 +142,7 @@ public abstract class DbImplementation {
   }
   
   /**
-   * Returns the SdtManager.
+   * Returns the SdtManager associated with this server. 
    * Since the DbManager is initialized before all other managers, we will simply 
    * get these other Managers on demand and not cache them. 
    * @return The SdtManager. 
@@ -161,7 +152,7 @@ public abstract class DbImplementation {
   }
   
   /**
-   * Returns the ProjectManager.
+   * Returns the ProjectManager associated with this server. 
    * Since the DbManager is initialized before all other managers, we will simply 
    * get these other Managers on demand and not cache them. 
    * @return The ProjectManager. 

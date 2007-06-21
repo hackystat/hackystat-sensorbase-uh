@@ -126,43 +126,6 @@ public class InMemoryImplementation extends DbImplementation {
     return super.getSensorDataManager().marshallSensorDataIndex(index);
   }
   
-  /**
-   * Returns true if the passed [key, sdtName, timestamp] has sensor data defined for it.
-   * @param user The user.
-   * @param sdt The sensor data type name.
-   * @param timestamp The timestamp
-   * @return True if there is any sensor data for this [key, sdtName, timestamp].
-   */
-  public synchronized boolean hasSensorData(User user, String sdt, XMLGregorianCalendar timestamp) {
-    if (this.dataMap.containsKey(user) &&
-        this.dataMap.get(user).containsKey(timestamp)) {
-      SensorData data = this.getSensorData(user, timestamp);
-      if (sdt.equals(SensorDataManager.convertSdtToName(data.getSensorDataType()))) {
-        return true;
-      }
-    }
-    return false;
-  }
-  
-  /**
-   * Returns true if the passed [user, sdtName, timestamp] has sensor data defined for it.
-   * Note that this method returns false if timestamp cannot be converted into XMLGregorianCalendar.
-   * @param user The user.
-   * @param sdtName The sensor data type name.
-   * @param timestamp The timestamp as a string.
-   * @return True if there is any sensor data for this [key, sdtName, timestamp].
-   */
-  public synchronized boolean hasSensorData(User user, String sdtName, String timestamp) {
-    try {
-      XMLGregorianCalendar tstamp = Tstamp.makeTimestamp(timestamp);
-      return 
-      this.hasSensorData(user, sdtName, tstamp);
-    }
-    catch (Exception e) {
-      return false;
-    }
-  }  
-  
 
   /** {@inheritDoc} */
   @Override
@@ -200,23 +163,10 @@ public class InMemoryImplementation extends DbImplementation {
     return dataSet;
   }
 
-  
+
   /** {@inheritDoc} */
   @Override
   public boolean hasSensorData(User user, XMLGregorianCalendar timestamp) {
     return this.dataMap.containsKey(user) && this.dataMap.get(user).containsKey(timestamp);
   }
-
-
-  /** {@inheritDoc} */
-  @Override
-  public boolean hasSensorData(User user, String timestamp) {
-    try {
-      XMLGregorianCalendar tstamp = Tstamp.makeTimestamp(timestamp);
-      return this.hasSensorData(user, tstamp);
-    }
-    catch (Exception e) {
-      return false;
-    }
-  }  
 }

@@ -279,13 +279,6 @@ public class DerbyImplementation extends DbImplementation {
 
   /** {@inheritDoc} */
   @Override
-  public boolean hasSensorData(User user, String timestamp) {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void deleteData(User user, XMLGregorianCalendar timestamp) {
     // TODO Auto-generated method stub
     

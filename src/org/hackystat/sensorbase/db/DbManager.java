@@ -6,6 +6,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.db.derby.DerbyImplementation;
 import org.hackystat.sensorbase.db.inmemory.InMemoryImplementation;
+import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
@@ -112,7 +113,13 @@ public class DbManager {
    * @return True if there is any sensor data for this [key, timestamp].
    */
   public boolean hasSensorData(User user, String timestamp) {
-    return this.inMemoryImpl.hasSensorData(user, timestamp);
+    try {
+      XMLGregorianCalendar tstamp = Tstamp.makeTimestamp(timestamp);
+      return this.inMemoryImpl.hasSensorData(user, tstamp);
+    }
+    catch (Exception e) {
+      return false;
+    }
   }  
   
   /**

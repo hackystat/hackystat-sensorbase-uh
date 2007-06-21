@@ -219,11 +219,11 @@ public class SensorDataManager {
    */
   public SensorDataRef makeSensorDataRef(User user, String sdt, XMLGregorianCalendar timestamp) {
     SensorDataRef ref = new SensorDataRef();
-    ref.setOwner(user.getEmail());
+    String email = user.getEmail();
+    ref.setOwner(email);
     ref.setSensorDataType(sdt);
     ref.setTimestamp(timestamp);
-    ref.setHref(this.server.getHostName() + "sensordata/" + user.getEmail() + "/" + sdt + "/" +
-        timestamp.toString()); 
+    ref.setHref(this.server.getHostName() + "sensordata/" + email + "/"  + timestamp.toString()); 
     return ref;
   }
   
@@ -240,8 +240,7 @@ public class SensorDataManager {
     ref.setOwner(email);
     ref.setSensorDataType(sdt);
     ref.setTimestamp(timestamp);
-    ref.setHref(this.server.getHostName() + "sensordata/" + email + "/" + sdt + "/" +
-        timestamp.toString()); 
+    ref.setHref(this.server.getHostName() + "sensordata/" + email + "/" +  timestamp.toString()); 
     return ref;
   }
   
