@@ -115,6 +115,11 @@ public class UriPattern implements Comparable {
     return false;
   }
 
+  /**
+   * Returns a List of UriPatterns extracted from the passed Project.
+   * @param project The project containing a list of UriPattern strings. 
+   * @return The List of UriPattern instances. 
+   */
   public static List<UriPattern> getPatterns(Project project) {
     List<UriPattern> patterns = new ArrayList<UriPattern>();
     for (String uriPatternString : project.getUriPatterns().getUriPattern()) {

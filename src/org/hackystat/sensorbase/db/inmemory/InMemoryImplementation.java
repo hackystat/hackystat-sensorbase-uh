@@ -62,12 +62,12 @@ public class InMemoryImplementation extends DbImplementation {
   public synchronized boolean storeSensorData(SensorData data, String xmlSensorData, 
       String xmlSensorDataRef) {
     String owner = data.getOwner();
-    String ownerUri = SensorDataManager.convertOwnerToUri(owner);
-    String ownerEmail = SensorDataManager.convertOwnerToEmail(owner);
+    String ownerUri = super.getSensorDataManager().convertOwnerToUri(owner);
+    String ownerEmail = super.getSensorDataManager().convertOwnerToEmail(owner);
     User user = super.getUserManager().getUser(ownerEmail);
 
     String sdt = data.getSensorDataType();
-    String sdtUri = SensorDataManager.convertSdtToUri(sdt);
+    String sdtUri = super.getSensorDataManager().convertSdtToUri(sdt);
 
     // Now update the SensorData instance with the URI versions of the owner and SDT.
     data.setOwner(ownerUri);
@@ -127,7 +127,8 @@ public class InMemoryImplementation extends DbImplementation {
     if (this.dataMap.containsKey(user)) {
       for (XMLGregorianCalendar timestamp : this.dataMap.get(user).keySet()) {
         SensorData data = this.dataMap.get(user).get(timestamp);
-        if (sdtName.equals(SensorDataManager.convertSdtToName(data.getSensorDataType()))) {
+        SensorDataManager manager = super.getSensorDataManager();
+        if (sdtName.equals(manager.convertSdtToName(data.getSensorDataType()))) {
           String ref = this.data2ref.get(data);
           builder.append(ref);
         }

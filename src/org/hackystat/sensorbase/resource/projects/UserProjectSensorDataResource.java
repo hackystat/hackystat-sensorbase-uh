@@ -101,13 +101,13 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
         if (startTime == null) {
           // Return all sensor data for this user and project if no query parameters.
           String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName);
-          return this.getStringRepresentation(data);
+          return SensorBaseResource.getStringRepresentation(data);
         }
         else {
           // Return the sensor data starting at startTime and ending with endTime. 
           String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName,
               this.startTime, this.endTime);
-          return this.getStringRepresentation(data);
+          return SensorBaseResource.getStringRepresentation(data);
         }
       }
       catch (Exception e) {

@@ -82,6 +82,16 @@ public class DerbyImplementation extends DbImplementation {
   
   /** The key for putting/retrieving the directory where Derby will create its databases. */
   private static final String derbySystemKey = "derby.system.home";
+  
+  /** The logger message for connection closing errors. */
+  private static final String errorClosingMsg = "Derby: Error while closing. \n";
+  /** The logger message when executing a query. */
+  private static final String executeQueryMsg = "Derby: Executing query ";
+  
+  /** Required by PMD since this string occurs multiple times in this file. */
+  private static final String ownerEquals = " owner = '";
+  /** Required by PMD as above. */
+  private static final String andClause = "' AND ";
 
   /**
    * Instantiates the Derby implementation.  Throws a Runtime exception if the Derby
@@ -99,7 +109,7 @@ public class DerbyImplementation extends DbImplementation {
       Class.forName(driver); 
     } 
     catch (java.lang.ClassNotFoundException e) {
-      String msg = "Exception during DbManager initialization: Derby not on CLASSPATH.";
+      String msg = "Derby: Exception during DbManager initialization: Derby not on CLASSPATH.";
       this.logger.warning(msg + "\n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
@@ -113,16 +123,15 @@ public class DerbyImplementation extends DbImplementation {
       // Initialize the database table structure if necessary.
       this.isFreshlyCreated = !isPreExisting();
       String dbStatusMsg = (this.isFreshlyCreated) ? 
-          "DB uninitialized." : "DB previously initialized.";
+          "Derby: uninitialized." : "Derby: previously initialized.";
       this.logger.info(dbStatusMsg);
       if (this.isFreshlyCreated) {
-        this.logger.info("About to create DB in: " + System.getProperty(derbySystemKey));
+        this.logger.info("Derby: creating DB in: " + System.getProperty(derbySystemKey));
         createTables();
-        this.logger.info("DB initialized and tables created.");
       }
     }
     catch (Exception e) {
-      String msg = "Exception during DerbyImplementation initialization:";
+      String msg = "Derby: Exception during DerbyImplementation initialization:";
       this.logger.warning(msg + "\n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
@@ -206,7 +215,7 @@ public class DerbyImplementation extends DbImplementation {
       s.setString(8, xmlSensorDataRef);
       s.setTimestamp(9, new Timestamp(new Date().getTime()));
       s.executeUpdate();
-      this.logger.info("DB: Inserted " + data.getOwner() + " " + data.getTimestamp());
+      this.logger.fine("Derby: Inserted " + data.getOwner() + " " + data.getTimestamp());
     }
     catch (SQLException e) {
       if (DUPLICATE_KEY.equals(e.getSQLState())) {
@@ -227,10 +236,10 @@ public class DerbyImplementation extends DbImplementation {
           s.setString(8, data.getOwner());
           s.setTimestamp(9, Tstamp.makeTimestamp(data.getTimestamp()));
           s.executeUpdate();
-          this.logger.info("DB: Updated " + data.getOwner() + " " + data.getTimestamp());
+          this.logger.fine("Derby: Updated " + data.getOwner() + " " + data.getTimestamp());
         }
         catch (SQLException f) {
-          this.logger.info("DB: Error " + StackTrace.toString(f));
+          this.logger.info("Derby: Error " + StackTrace.toString(f));
         }
       }
     }
@@ -240,7 +249,7 @@ public class DerbyImplementation extends DbImplementation {
         conn.close();
       }
       catch (SQLException e) {
-        this.logger.warning("Couldn't close the DB" + StackTrace.toString(e));
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
       }
     }
     return true;
@@ -277,7 +286,7 @@ public class DerbyImplementation extends DbImplementation {
       }
     }
     catch (SQLException e) {
-      this.logger.info("DB: Error in getSensorDataIndex()" + StackTrace.toString(e));
+      this.logger.info("Derby: Error in getSensorDataIndex()" + StackTrace.toString(e));
     }
     finally {
       try {
@@ -286,7 +295,7 @@ public class DerbyImplementation extends DbImplementation {
         conn.close();
       }
       catch (SQLException e) {
-        this.logger.warning("Error closing the DB" + StackTrace.toString(e));
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
       }
     }
     builder.append(sensorDataIndexCloseTag);
@@ -312,7 +321,7 @@ public class DerbyImplementation extends DbImplementation {
   public String getSensorDataIndex(User user, String sdtName) {
     String st = 
       "SELECT XmlSensorDataRef FROM SensorData WHERE " 
-      + " owner='" + user.getEmail() + "', " 
+      + ownerEquals + user.getEmail() + "', " 
       + " sdt='" + sdtName + "'";
     return getSensorDataIndex(st);
   }
@@ -332,10 +341,10 @@ public class DerbyImplementation extends DbImplementation {
       // First, get all of the SensorData during the time interval.
       String statement = 
         "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
-        + " owner='" + user.getEmail() + "' AND " 
+        + ownerEquals + user.getEmail() + andClause 
         + " Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
         + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
-      SensorBaseLogger.getLogger().info(statement);
+      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
       s = conn.prepareStatement(statement);
       rs = s.executeQuery();
       // Now, add only the SensorData whose Resource matches one of the UriPatterns. 
@@ -347,7 +356,7 @@ public class DerbyImplementation extends DbImplementation {
       }
     }
     catch (SQLException e) {
-      this.logger.info("DB: Error in getSensorDataIndex()" + StackTrace.toString(e));
+      this.logger.info("Derby: Error in getSensorDataIndex()" + StackTrace.toString(e));
     }
     finally {
       try {
@@ -356,7 +365,7 @@ public class DerbyImplementation extends DbImplementation {
         conn.close();
       }
       catch (SQLException e) {
-        this.logger.warning("Error closing the DB" + StackTrace.toString(e));
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
       }
     }
     builder.append(sensorDataIndexCloseTag);
@@ -366,15 +375,68 @@ public class DerbyImplementation extends DbImplementation {
   /** {@inheritDoc} */
   @Override
   public boolean hasSensorData(User user, XMLGregorianCalendar timestamp) {
-    // TODO Auto-generated method stub
-    return false;
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    boolean isFound = false;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      // 
+      String statement = 
+        "SELECT XmlSensorDataRef FROM SensorData WHERE "
+        + ownerEquals + user.getEmail() + andClause 
+        + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
+      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      // If a record was retrieved, we'll enter the loop, otherwise we won't. 
+      while (rs.next()) {
+        isFound = true;
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in hasSensorData()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning("Derby: Error closing the connection" + StackTrace.toString(e));
+      }
+    }
+    return isFound;
   }
 
   /** {@inheritDoc} */
   @Override
   public void deleteData(User user, XMLGregorianCalendar timestamp) {
-    // TODO Auto-generated method stub
-    
+    Connection conn = null;
+    PreparedStatement s = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      String statement =
+        "DELETE FROM SensorData WHERE "
+        + ownerEquals + user.getEmail() + andClause 
+        + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
+      SensorBaseLogger.getLogger().fine("Derby: " + statement);
+      s = conn.prepareStatement(statement);
+      s.executeUpdate();
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in deleteData()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
   }
 
   /** {@inheritDoc} */
@@ -388,9 +450,9 @@ public class DerbyImplementation extends DbImplementation {
       conn = DriverManager.getConnection(connectionURL);
       String statement =
         "SELECT XmlSensorData FROM SensorData WHERE "
-        + " owner='" + user.getEmail() + "' AND " 
+        + ownerEquals + user.getEmail() + andClause 
         + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
-      SensorBaseLogger.getLogger().info(statement);
+      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
       s = conn.prepareStatement(statement);
       rs = s.executeQuery();
       while (rs.next()) {
@@ -407,7 +469,7 @@ public class DerbyImplementation extends DbImplementation {
         conn.close();
       }
       catch (SQLException e) {
-        this.logger.warning("Error closing the DB" + StackTrace.toString(e));
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
       }
     }
     return builder.toString();

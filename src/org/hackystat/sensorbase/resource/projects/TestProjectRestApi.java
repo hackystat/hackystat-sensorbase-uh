@@ -11,7 +11,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.hackystat.sensorbase.resource.projects.jaxb.Members;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
-import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.server.ServerProperties;
@@ -160,8 +159,8 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     assertTrue("Testing for successful GET 5", response.getStatus().isSuccess());
 
     // Ensure that we got the sensor data.
-    DomRepresentation data = response.getEntityAsDom();
-    SensorDataIndex index = SensorDataManager.unmarshallSensorDataIndex(data.getDocument());
+    String xmlString = response.getEntity().getText();
+    SensorDataIndex index = sensorDataManager.makeSensorDataIndex(xmlString);
     assertEquals("Checking that we retrieved 1 sensor data.", 1, index.getSensorDataRef().size());
     
     //Now try for TestUser2, who should not have any associated sensor data. 
@@ -287,8 +286,8 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     assertTrue("Testing for successful GET Default Project 2", response.getStatus().isSuccess());
     
     // Ensure that we got all 3 sensor data instances.
-    DomRepresentation data = response.getEntityAsDom();
-    SensorDataIndex index = SensorDataManager.unmarshallSensorDataIndex(data.getDocument());
+    String xmlString = response.getEntity().getText();
+    SensorDataIndex index = sensorDataManager.makeSensorDataIndex(xmlString);
     assertEquals("Checking that we retrieved 3 sensor data.", 3, index.getSensorDataRef().size());
   }
 }

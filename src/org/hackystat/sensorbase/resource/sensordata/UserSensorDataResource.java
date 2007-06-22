@@ -152,7 +152,7 @@ public class UserSensorDataResource extends SensorBaseResource {
     // Try to make the XML payload into sensor data, return failure if this fails. 
     try { 
       entityString = entity.getText();
-      data = SensorDataManager.unmarshallSensorData(entityString);
+      data = this.sensorDataManager.makeSensorData(entityString);
     }
     catch (Exception e) {
       SensorBaseLogger.getLogger().warning("Bad Sensor Data in PUT: " + StackTrace.toString(e));

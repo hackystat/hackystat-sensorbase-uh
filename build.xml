@@ -77,6 +77,7 @@
     <fileset file="${env.JAXB_HOME}/lib/jaxb-impl.jar"/> 
     <fileset file="${env.JAXB_HOME}/lib/jsr173_1.0_api.jar"/> 
     <fileset file="${env.DERBY_HOME}/lib/derby.jar"/> 
+    <fileset file="${env.FINDBUGS_HOME}/lib/annotations.jar"/> 
   </path> 
 
   <target name="compile" description="Compiles the code.">

@@ -4,9 +4,6 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.db.derby.DerbyImplementation;
-import org.hackystat.sensorbase.db.inmemory.InMemoryImplementation;
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
@@ -29,7 +26,7 @@ public class DbManager {
   private DerbyImplementation derbyImpl;
 
   /** The InMemory Storage system. */
-  private InMemoryImplementation inMemoryImpl;
+  //private InMemoryImplementation inMemoryImpl;
   
   /** The SensorDataIndex open tag. */
   public static final String sensorDataIndexOpenTag = "<SensorDataIndex>";
@@ -45,8 +42,8 @@ public class DbManager {
     this.server = server;
     this.derbyImpl = new DerbyImplementation(this.server);
     this.derbyImpl.initialize();
-    this.inMemoryImpl = new InMemoryImplementation(this.server);
-    this.inMemoryImpl.initialize();
+    //this.inMemoryImpl = new InMemoryImplementation(this.server);
+    //this.inMemoryImpl.initialize();
   }
   
   /**
@@ -70,7 +67,7 @@ public class DbManager {
    */
   public void storeSensorData(SensorData data, String xmlSensorData, String xmlSensorDataRef) {
     this.derbyImpl.storeSensorData(data, xmlSensorData, xmlSensorDataRef);
-    this.inMemoryImpl.storeSensorData(data, xmlSensorData, xmlSensorDataRef);
+    //this.inMemoryImpl.storeSensorData(data, xmlSensorData, xmlSensorDataRef);
   }
   
   /**
@@ -121,25 +118,9 @@ public class DbManager {
    * @return True if there is any sensor data for this [user, timestamp].
    */
   public boolean hasSensorData(User user, XMLGregorianCalendar timestamp) {
-    return this.inMemoryImpl.hasSensorData(user, timestamp);
+    return this.derbyImpl.hasSensorData(user, timestamp);
   }  
   
-  /**
-   * Returns true if the passed [user, timestamp] has sensor data defined for it.
-   * Note that this method returns false if timestamp cannot be converted into XMLGregorianCalendar.
-   * @param user The user.
-   * @param timestamp The timestamp as a string.
-   * @return True if there is any sensor data for this [key, timestamp].
-   */
-  public boolean hasSensorData(User user, String timestamp) {
-    try {
-      XMLGregorianCalendar tstamp = Tstamp.makeTimestamp(timestamp);
-      return this.inMemoryImpl.hasSensorData(user, tstamp);
-    }
-    catch (Exception e) {
-      return false;
-    }
-  }  
   
   /**
    * Ensures that sensor data with the given user and timestamp no longer exists.
@@ -147,7 +128,8 @@ public class DbManager {
    * @param timestamp The timestamp associated with this sensor data.
    */
   public void deleteData(User user, XMLGregorianCalendar timestamp) {
-    this.inMemoryImpl.deleteData(user, timestamp);
+    //this.inMemoryImpl.deleteData(user, timestamp);
+    this.derbyImpl.deleteData(user, timestamp);
   }
   
   /**

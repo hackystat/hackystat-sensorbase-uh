@@ -88,7 +88,7 @@ public abstract class SensorBaseResource extends Resource {
    * @param xmlData The xml data as a string. 
    * @return A StringRepresentation of that xmldata. 
    */
-  protected StringRepresentation getStringRepresentation(String xmlData) {
+  public static StringRepresentation getStringRepresentation(String xmlData) {
     StringBuilder builder = new StringBuilder(500);
     builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
     builder.append(xmlData);

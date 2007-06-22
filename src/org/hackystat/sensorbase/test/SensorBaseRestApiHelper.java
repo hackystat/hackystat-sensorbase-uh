@@ -1,5 +1,6 @@
 package org.hackystat.sensorbase.test;
 
+import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
 import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
@@ -29,6 +30,9 @@ public class SensorBaseRestApiHelper {
   
   /** The Client instance used in these tests. */
   private static Client client;
+  
+  /** Make a Manager available to this test class. */
+  protected static SensorDataManager sensorDataManager; 
  
   /**
    * Starts the server going for these tests. 
@@ -37,6 +41,8 @@ public class SensorBaseRestApiHelper {
   @BeforeClass public static void setupServer() throws Exception {
     SensorBaseRestApiHelper.server = Server.newInstance();
     SensorBaseRestApiHelper.client = new Client(Protocol.HTTP);
+    SensorBaseRestApiHelper.sensorDataManager = 
+      (SensorDataManager)server.getContext().getAttributes().get("SensorDataManager");
   }
   
   /**

@@ -7,18 +7,16 @@ import static org.junit.Assert.assertTrue;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.Property;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.Properties;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.junit.Test;
-import org.restlet.data.MediaType;
 import org.restlet.data.Method;
 import org.restlet.data.Response;
-import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.XmlRepresentation;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 
@@ -106,6 +104,19 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     assertTrue("Testing for successful GET index 4.1", response.getStatus().isSuccess());
     }
   
+  /**
+   * Test GET host/sensorbase/sensordata/TestUser@hackystat.org/1007-04-30T09:00:00.000
+   * returns a Client Error Bad Request (data not found).
+   * @throws Exception If problems occur.
+   */
+  @Test public void getNonExistingUserSensorData() throws Exception {
+    String uri = sensordata + user + "/1007-04-30T09:00:00.000";
+    Response response = makeRequest(Method.GET, uri, user);
+    
+    // Test that the request was received and processed by the server OK. 
+    assertTrue("Testing for unsuccessful GET index 4.1", response.getStatus().isClientError());
+    }
+  
   
   /**
    * Test that PUT and DELETE of 
@@ -133,8 +144,8 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     data.setProperties(properties);
     
     // Now convert the Sensor Data instance to XML.
-    Document doc = SensorDataManager.marshallSensorData(data);
-    Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
+    String xmlData = SensorBaseRestApiHelper.sensorDataManager.makeSensorData(data);
+    Representation representation = SensorBaseResource.getStringRepresentation(xmlData);
     String uri = sensordata + user + "/" + timestamp;
     Response response = makeRequest(Method.PUT, uri, user, representation);
 

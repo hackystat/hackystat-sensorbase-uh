@@ -33,19 +33,14 @@ import org.w3c.dom.Document;
 
 /**
  * Provides a manager for the Sensor Data resource. 
+ * See https://jaxb.dev.java.net/guide/Performance_and_thread_safety.html for info 
+ * on JAXB performance and thread safety.
  * @author Philip Johnson
  */
 public class SensorDataManager {
-  private static final String jaxbPackage = "org.hackystat.sensorbase.resource.sensordata.jaxb";
   
-  /** The JAXB marshaller for SensorData. */
-  private Marshaller marshaller; 
-  
-  /** The JAXB ummarshaller for SensorData. */
-  private Unmarshaller unmarshaller;
-  
-  /** The DocumentBuilder for documents. */
-  private DocumentBuilder documentBuilder; 
+  /** Holds the class-wide JAXBContext, which is thread-safe. */
+  private JAXBContext jc;
   
   /** The Server associated with this SensorDataManager. */
   Server server; 
@@ -67,12 +62,9 @@ public class SensorDataManager {
     UserManager userManager = (UserManager)server.getContext().getAttributes().get("UserManager");
     try {
       // Initialize marshaller, unmarshaller, and documentBuilder. 
-      JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
-      this.unmarshaller = jc.createUnmarshaller();
-      this.marshaller = jc.createMarshaller(); 
+      this.jc  = JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordata.jaxb");
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       dbf.setNamespaceAware(true);
-      this.documentBuilder = dbf.newDocumentBuilder();
 
       if (this.dbManager.isFreshDb()) {
         loadDefaultSensorData(userManager); // NOPMD (Incorrect overridable method warning)
@@ -98,6 +90,7 @@ public class SensorDataManager {
     if (defaultsFile.exists()) {
       SensorBaseLogger.getLogger().info("Loading SensorData defaults: " 
           + defaultsFile.getPath());
+      Unmarshaller unmarshaller = jc.createUnmarshaller();
       SensorDatas sensorDatas = (SensorDatas) unmarshaller.unmarshal(defaultsFile);
       // Initialize the database.
       for (SensorData data : sensorDatas.getSensorData()) {
@@ -105,10 +98,23 @@ public class SensorDataManager {
         if (!userManager.hasUser(email)) {
           throw new IllegalArgumentException("Owner is not a defined User: " + email);
         }
-        this.dbManager.storeSensorData(data, this.makeSensorDataXmlString(data),
-            this.makeSensorDataRefXmlString(data));
+        this.dbManager.storeSensorData(data, this.makeSensorData(data), 
+            this.makeSensorDataRefString(data));
       }
     }
+  }
+  
+  /**
+   * Checks the ServerProperties for the XML_DIR property.
+   * If this property is null, returns the File for ./xml/defaults/sensordatatypes.defaults.xml.
+   * @return The File instance (which might not point to an existing file.)
+   */
+  private File findDefaultsFile() {
+    String defaultsPath = "/defaults/sensordata.defaults.xml";
+    String xmlDir = ServerProperties.get(XML_DIR_KEY);
+    return (xmlDir == null) ?
+        new File (System.getProperty("user.dir") + "/xml" + defaultsPath) :
+          new File (xmlDir + defaultsPath);
   }
   
 
@@ -118,7 +124,7 @@ public class SensorDataManager {
    * @param owner The owner string. 
    * @return The email address corresponding to the owner string. 
    */
-  public static String convertOwnerToEmail(String owner) {
+  public String convertOwnerToEmail(String owner) {
     if (owner.startsWith(http)) {
       int lastSlash = owner.lastIndexOf('/');
       if (lastSlash < 0) {
@@ -136,7 +142,7 @@ public class SensorDataManager {
    * @param owner The owner string. 
    * @return The URI corresponding to the owner string. 
    */
-  public static String convertOwnerToUri(String owner) {
+  public String convertOwnerToUri(String owner) {
     return (owner.startsWith(http)) ? owner :
       ServerProperties.getFullHost() + "users/" + owner;
   }
@@ -147,7 +153,7 @@ public class SensorDataManager {
    * @param sdt The sdt string. 
    * @return The sdt name corresponding to the sdt string. 
    */
-  public static String convertSdtToName(String sdt) {
+  public String convertSdtToName(String sdt) {
     if (sdt.startsWith(http)) {
       int lastSlash = sdt.lastIndexOf('/');
       if (lastSlash < 0) {
@@ -165,23 +171,11 @@ public class SensorDataManager {
    * @param sdt The sdt string. 
    * @return The URI corresponding to the sdt string. 
    */
-  public static String convertSdtToUri(String sdt) {
+  public String convertSdtToUri(String sdt) {
     return (sdt.startsWith(http)) ? sdt :
       ServerProperties.getFullHost() + "sensordatatypes/" + sdt;
   }  
 
-  /**
-   * Checks the ServerProperties for the XML_DIR property.
-   * If this property is null, returns the File for ./xml/defaults/sensordatatypes.defaults.xml.
-   * @return The File instance (which might not point to an existing file.)
-   */
-  private File findDefaultsFile() {
-    String defaultsPath = "/defaults/sensordata.defaults.xml";
-    String xmlDir = ServerProperties.get(XML_DIR_KEY);
-    return (xmlDir == null) ?
-        new File (System.getProperty("user.dir") + "/xml" + defaultsPath) :
-          new File (xmlDir + defaultsPath);
-  }
   
   /**
    * Returns the XML SensorDataIndex for all sensor data.
@@ -224,58 +218,6 @@ public class SensorDataManager {
     return this.dbManager.getSensorDataIndex(user, startTime, endTime, uriPatterns);
   }  
   
-  /**
-   * Returns a SensorDataRef instance constructed from the email, sdtName, and timestamp.
-   * @param user The user.
-   * @param sdt The sensor data type name.
-   * @param timestamp The Timestamp.
-   * @return A SensorDataRef instance. 
-   */
-  public SensorDataRef makeSensorDataRef(User user, String sdt, XMLGregorianCalendar timestamp) {
-    SensorDataRef ref = new SensorDataRef();
-    String email = user.getEmail();
-    ref.setOwner(email);
-    ref.setSensorDataType(sdt);
-    ref.setTimestamp(timestamp);
-    ref.setHref(this.server.getHostName() + "sensordata/" + email + "/"  + timestamp.toString()); 
-    return ref;
-  }
-  
-  /**
-   * Returns a SensorDataRef instance constructed from a SensorData instance.
-   * @param data The sensor data instance. 
-   * @return A SensorDataRef instance. 
-   */
-  public SensorDataRef makeSensorDataRef(SensorData data) {
-    SensorDataRef ref = new SensorDataRef();
-    String email = convertOwnerToEmail(data.getOwner());
-    String sdt = convertSdtToName(data.getSensorDataType());
-    XMLGregorianCalendar timestamp = data.getTimestamp();
-    ref.setOwner(email);
-    ref.setSensorDataType(sdt);
-    ref.setTimestamp(timestamp);
-    ref.setHref(this.server.getHostName() + "sensordata/" + email + "/" +  timestamp.toString()); 
-    return ref;
-  }
-  
-  /**
-   * Converts a SensorDataIndex instance into a Document and returns it.
-   * @param index The SensorDataIndex instance. 
-   * @return The Document.
-   */
-  public Document marshallSensorDataIndex(SensorDataIndex index) {
-    Document doc;
-    try {
-      doc = this.documentBuilder.newDocument();
-      this.marshaller.marshal(index, doc);
-    } 
-    catch (Exception e ) {
-      String msg = "Failed to marshall sensor data index into a Document";
-      SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
-      throw new RuntimeException(msg, e);
-    }
-    return doc;
-  }
   
   /**
    * Updates the Manager with this sensor data. Any old definition is overwritten.
@@ -283,8 +225,8 @@ public class SensorDataManager {
    */
   public void putSensorData(SensorData data) {
     try {
-      this.dbManager.storeSensorData(data, this.makeSensorDataXmlString(data),
-          this.makeSensorDataRefXmlString(data));
+      this.dbManager.storeSensorData(data, this.makeSensorData(data),
+          this.makeSensorDataRefString(data));
     }
     catch (Exception e) {
       SensorBaseLogger.getLogger().warning("Failed to put sensor data " + StackTrace.toString(e));
@@ -298,17 +240,6 @@ public class SensorDataManager {
    * @return True if there is any sensor data for this [user, timestamp].
    */
   public boolean hasSensorData(User user, XMLGregorianCalendar timestamp) {
-    return this.dbManager.hasSensorData(user, timestamp);
-  }
-  
-  /**
-   * Returns true if the passed [user, timestamp] has sensor data defined for it.
-   * Note that this method returns false if timestamp cannot be converted into XMLGregorianCalendar.
-   * @param user The user.
-   * @param timestamp The timestamp as a string.
-   * @return True if there is any sensor data for this [user, timestamp].
-   */
-  public boolean hasSensorData(User user, String timestamp) {
     return this.dbManager.hasSensorData(user, timestamp);
   }
   
@@ -340,60 +271,26 @@ public class SensorDataManager {
    * @param timestamp The timestamp associated with this sensor data, as a string.
    */
   public void deleteData(User user, String timestamp) {
-    if (this.dbManager.hasSensorData(user, timestamp)) {
-      try {
-        XMLGregorianCalendar tstamp = Tstamp.makeTimestamp(timestamp);
-        deleteData(user, tstamp);
-      }
-      catch (Exception e) { // NOPMD
-        // data cannot be in map by definition.
-      }
+    try {
+      XMLGregorianCalendar tstamp = Tstamp.makeTimestamp(timestamp);
+      deleteData(user, tstamp);
+    }
+    catch (Exception e) { // NOPMD
+      // data cannot be in map by definition.
     }
   }
   
-  /**
-   * Utility function for testing purposes that takes a Sensor Data instance and returns it in XML.
-   * Note that this does not affect the state of any SensorDataManager instance. 
-   * @param data The Sensor Data instance. 
-   * @return The XML Document instance corresponding to this sensor data. 
-   * @exception Exception If problems occur marshalling the sensor data or building the Document.
-   */
-  public static Document marshallSensorData(SensorData data) throws Exception {
-    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
-    Marshaller marshaller = jc.createMarshaller(); 
-    
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setNamespaceAware(true);
-    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
-    Document doc = documentBuilder.newDocument();
-    marshaller.marshal(data, doc);
-    return doc;
-  }
-  
-  /**
-   * Takes an XML Document representing a SensorData and converts it to an instance. 
-   * Note that this does not affect the state of any SensorDataManager instance. 
-   * @param doc The XML Document representing a SensorData. 
-   * @return The corresponding SensorData instance. 
-   * @throws Exception If problems occur during unmarshalling. 
-   */
-  public static SensorData unmarshallSensorData(Document doc) throws Exception {
-    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
-    Unmarshaller unmarshaller = jc.createUnmarshaller();
-    return (SensorData) unmarshaller.unmarshal(doc);
-  }
-  
+
   /**
    * Takes an XML Document representing a SensorDataIndex and converts it to an instance. 
    * Note that this does not affect the state of any SensorDataManager instance. 
-   * @param doc The XML Document representing a SensorDataIndex. 
+   * @param xmlString The XML string representing a SensorDataIndex. 
    * @return The corresponding SensorDataIndex instance. 
    * @throws Exception If problems occur during unmarshalling. 
    */
-  public static SensorDataIndex unmarshallSensorDataIndex(Document doc) throws Exception {
-    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+  public SensorDataIndex makeSensorDataIndex(String xmlString) throws Exception {
     Unmarshaller unmarshaller = jc.createUnmarshaller();
-    return (SensorDataIndex) unmarshaller.unmarshal(doc);
+    return (SensorDataIndex) unmarshaller.unmarshal(new StringReader(xmlString));
   }
   
   /**
@@ -404,20 +301,19 @@ public class SensorDataManager {
    * @return The corresponding SensorData instance. 
    * @throws Exception If problems occur during unmarshalling.
    */
-  public static SensorData unmarshallSensorData(String xmlString) throws Exception {
-    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+  public SensorData makeSensorData(String xmlString) throws Exception {
     Unmarshaller unmarshaller = jc.createUnmarshaller();
     return (SensorData)unmarshaller.unmarshal(new StringReader(xmlString));
   }
   
   /**
    * Returns the passed SensorData instance as a String encoding of its XML representation.
+   * Final because it's called in constructor.
    * @param data The SensorData instance. 
    * @return The XML String representation.
    * @throws Exception If problems occur during translation. 
    */
-  public final String makeSensorDataXmlString (SensorData data) throws Exception {
-    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
+  public final String makeSensorData (SensorData data) throws Exception {
     Marshaller marshaller = jc.createMarshaller(); 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
@@ -439,13 +335,13 @@ public class SensorDataManager {
   /**
    * Returns the passed SensorData instance as a String encoding of its XML representation 
    * as a SensorDataRef object.
+   * Final because it's called in constructor.
    * @param data The SensorData instance. 
    * @return The XML String representation of it as a SensorDataRef
    * @throws Exception If problems occur during translation. 
    */
-  public final String makeSensorDataRefXmlString (SensorData data) throws Exception {
+  public final String makeSensorDataRefString (SensorData data) throws Exception {
     SensorDataRef ref = makeSensorDataRef(data);
-    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
     Marshaller marshaller = jc.createMarshaller(); 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
@@ -462,6 +358,23 @@ public class SensorDataManager {
     // Now remove the processing instruction.  This approach seems like a total hack.
     xmlString = xmlString.substring(xmlString.indexOf('>') + 1);
     return xmlString;
-
   }
+  
+  /**
+   * Returns a SensorDataRef instance constructed from a SensorData instance.
+   * @param data The sensor data instance. 
+   * @return A SensorDataRef instance. 
+   */
+  public SensorDataRef makeSensorDataRef(SensorData data) {
+    SensorDataRef ref = new SensorDataRef();
+    String email = convertOwnerToEmail(data.getOwner());
+    String sdt = convertSdtToName(data.getSensorDataType());
+    XMLGregorianCalendar timestamp = data.getTimestamp();
+    ref.setOwner(email);
+    ref.setSensorDataType(sdt);
+    ref.setTimestamp(timestamp);
+    ref.setHref(this.server.getHostName() + "sensordata/" + email + "/" +  timestamp.toString()); 
+    return ref;
+  }
+ 
 }
