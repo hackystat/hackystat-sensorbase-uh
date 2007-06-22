@@ -1,7 +1,10 @@
 package org.hackystat.sensorbase.uripattern;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
+
+import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 
 
 /**
@@ -112,6 +115,13 @@ public class UriPattern implements Comparable {
     return false;
   }
 
+  public static List<UriPattern> getPatterns(Project project) {
+    List<UriPattern> patterns = new ArrayList<UriPattern>();
+    for (String uriPatternString : project.getUriPatterns().getUriPattern()) {
+      patterns.add(new UriPattern(uriPatternString));
+    }
+    return patterns;
+  }
 
   /**
    * Returns true if the passed path matches this UriPattern.

@@ -5,8 +5,8 @@ import static org.hackystat.sensorbase.server.ServerProperties.XML_DIR_KEY;
 import java.io.File;
 import java.io.StringReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
@@ -26,9 +26,6 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Properties;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
-import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
-import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
-import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
 import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
@@ -149,59 +146,29 @@ public class ProjectManager {
     return marshallProject(project);
   }
   
+  
   /**
-   * Returns an XML SensorDataIndex for all data associated with this User and Project.
+   * Returns an XML SensorDataIndex String for all data associated with this User and Project.
    * Assumes that User and Project are valid.
    * @param user The User. 
    * @param projectName the Project name.
-   * @return The XML Document instance providing an index to all current SDTs.
-   * @throws Exception every time. 
+   * @return The XML SensorDataIndex string providing an index to all data for this user/project.
+   * @throws Exception If things go wrong. 
    */
-  public synchronized Document getProjectSensorDataIndexDocument(User user, 
-      String projectName) throws Exception {
-    String email = user.getEmail();
-    SensorDataIndex index = new SensorDataIndex();
+  public synchronized String getProjectSensorDataIndex(User user, String projectName) 
+  throws Exception {
     SensorDataManager sensorDataManager = 
       (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
-        
     Project project = this.getProject(user, projectName);
     XMLGregorianCalendar startTime = project.getStartTime();
     XMLGregorianCalendar endTime = project.getEndTime();
-    Set<SensorData> dataSet = sensorDataManager.getSensorData(user, startTime, endTime);
-    for (SensorData data : dataSet) {
-      if (uriPatternsMatch(project, data)) {
-        String sdt = data.getSensorDataType();
-        XMLGregorianCalendar timestamp = data.getTimestamp();
-        SensorDataRef ref = new SensorDataRef();
-        ref.setOwner(email);
-        ref.setSensorDataType(sdt);
-        ref.setTimestamp(timestamp);
-        ref.setHref(server.getHostName() + "sensordata/" + email + "/" + sdt + "/" + timestamp);
-        index.getSensorDataRef().add(ref);
-      }
-    }
-    return sensorDataManager.marshallSensorDataIndex(index);
+    List<UriPattern> patterns = UriPattern.getPatterns(project);
+    return sensorDataManager.getSensorDataIndex(user, startTime, endTime, patterns);
   }
   
+
   /**
-   * Returns true if at least one of the Project UriPatterns matches the SensorData's resource.
-   * @param project The project. 
-   * @param data The sensor data.
-   * @return True if the sensor data's resource matches this Project's UriPatterns.
-   */
-  private boolean uriPatternsMatch(Project project, SensorData data) {
-    for (String uriPatternString : project.getUriPatterns().getUriPattern()) {
-      UriPattern uriPattern = new UriPattern(uriPatternString); 
-      if (uriPattern.matches(data.getResource())) {
-        return true;
-      }
-    }
-    // No UriPattern matches, so return false. 
-    return false;
-  }
-  
-  /**
-   * Returns the XML SensorDataIndex for the data associated with this Project within the 
+   * Returns the XML SensorDataIndex string for the data associated with this Project within the 
    * specified start and end times.
    * Note that the Project start and end times may further constrain the returned set of data. 
    * This method chooses the greater of startString and the Project startTime, and the lesser of
@@ -211,13 +178,12 @@ public class ProjectManager {
    * @param projectName the Project name.
    * @param startString The startTime as a string. 
    * @param endString The endTime as a string.
-   * @return The XML Document instance providing an index to the sensor data in this project
+   * @return The XML String providing a SensorDataIndex to the sensor data in this project
    * starting at startTime and ending at endTime. 
    * @throws Exception if startString or endString are not XMLGregorianCalendars.
-   */
-  public synchronized Document getProjectSensorDataIndexDocument(User user, 
+   */  
+  public synchronized String getProjectSensorDataIndex(User user, 
       String projectName, String startString, String endString) throws Exception {
-    SensorDataIndex index = new SensorDataIndex();
     SensorDataManager sensorDataManager = 
       (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
     Project project = this.getProject(user, projectName);
@@ -229,22 +195,9 @@ public class ProjectManager {
     // make endTime the lesser of endTime and the Project endTime.
     endTime = (Tstamp.lessThan(endTime, project.getEndTime())) ? 
         endTime : project.getEndTime();
-        
-    Set<SensorData> dataSet = sensorDataManager.getSensorData(user, startTime, endTime);
-    String email = user.getEmail();
-    for (SensorData data : dataSet) {
-      if (uriPatternsMatch(project, data)) {
-        String sdt = data.getSensorDataType();
-        XMLGregorianCalendar timestamp = data.getTimestamp();
-        SensorDataRef ref = new SensorDataRef();
-        ref.setOwner(email);
-        ref.setSensorDataType(sdt);
-        ref.setTimestamp(timestamp);
-        ref.setHref(server.getHostName() + "sensordata/" + email + "/" + sdt + "/" + timestamp);
-        index.getSensorDataRef().add(ref);
-      }
-    }
-    return sensorDataManager.marshallSensorDataIndex(index);
+    List<UriPattern> patterns = UriPattern.getPatterns(project);
+    return sensorDataManager.getSensorDataIndex(user, startTime, endTime, patterns);
+    
   }
   
   /**

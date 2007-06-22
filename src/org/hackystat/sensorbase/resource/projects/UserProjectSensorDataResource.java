@@ -8,7 +8,6 @@ import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
-import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Variant;
 
@@ -101,14 +100,14 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
       try {
         if (startTime == null) {
           // Return all sensor data for this user and project if no query parameters.
-          return new DomRepresentation(MediaType.TEXT_XML, 
-              super.projectManager.getProjectSensorDataIndexDocument(this.user, this.projectName));
+          String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName);
+          return this.getStringRepresentation(data);
         }
         else {
           // Return the sensor data starting at startTime and ending with endTime. 
-          return new DomRepresentation(MediaType.TEXT_XML, 
-              super.projectManager.getProjectSensorDataIndexDocument(this.user, this.projectName,
-                  this.startTime, this.endTime));
+          String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName,
+              this.startTime, this.endTime);
+          return this.getStringRepresentation(data);
         }
       }
       catch (Exception e) {

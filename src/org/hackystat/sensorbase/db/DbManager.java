@@ -1,15 +1,16 @@
 package org.hackystat.sensorbase.db;
 
-import java.util.Set;
-
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.db.derby.DerbyImplementation;
 import org.hackystat.sensorbase.db.inmemory.InMemoryImplementation;
+import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
+import org.hackystat.sensorbase.uripattern.UriPattern;
 
 /**
  * Provides an interface to storage for the four resources managed by the SensorBase.
@@ -29,6 +30,12 @@ public class DbManager {
 
   /** The InMemory Storage system. */
   private InMemoryImplementation inMemoryImpl;
+  
+  /** The SensorDataIndex open tag. */
+  public static final String sensorDataIndexOpenTag = "<SensorDataIndex>";
+  
+  /** The SensorDataIndex close tag. */
+  public static final String sensorDataIndexCloseTag = "</SensorDataIndex>";
 
   /**
    * Creates a new DbManager which manages access to the underlying persistency layer(s).
@@ -71,7 +78,7 @@ public class DbManager {
    * @return An XML String providing an index of all relevent sensor data resources.
    */
   public String getSensorDataIndex() {
-    return this.inMemoryImpl.getSensorDataIndex();
+    return this.derbyImpl.getSensorDataIndex();
   }
   
   /**
@@ -80,7 +87,7 @@ public class DbManager {
    * @return The XML String providing an index of all relevent sensor data resources.
    */
   public String getSensorDataIndex(User user) {
-    return this.inMemoryImpl.getSensorDataIndex(user);
+    return this.derbyImpl.getSensorDataIndex(user);
   }
   
   /**
@@ -90,7 +97,21 @@ public class DbManager {
    * @return The XML Document instance providing an index of all relevent sensor data resources.
    */
   public String getSensorDataIndex(User user, String sdtName) {
-    return this.inMemoryImpl.getSensorDataIndex(user, sdtName);
+    return this.derbyImpl.getSensorDataIndex(user, sdtName);
+  }
+  
+  /**
+   * Returns the XML SensorDataIndex for all sensor data matching this user, start/end time, and 
+   * whose resource string matches at least one in the list of UriPatterns. 
+   * @param user The user. 
+   * @param startTime The start time. 
+   * @param endTime The end time. 
+   * @param uriPatterns A list of UriPatterns. 
+   * @return The XML SensorDataIndex string corresponding to the matching sensor data. 
+   */
+  public String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns) {
+    return this.derbyImpl.getSensorDataIndex(user, startTime, endTime, uriPatterns);
   }
   
   /**
@@ -136,20 +157,7 @@ public class DbManager {
    * @return The SensorData instance as an XML string, or null.
    */
   public String getSensorData(User user, XMLGregorianCalendar timestamp) {
-    return this.inMemoryImpl.getSensorData(user, timestamp);
-  }
-  
-  /**
-   * Returns a (possibly empty) set of SensorData instances associated with the 
-   * given user between the startTime and endTime. 
-   * @param user The user
-   * @param startTime The start time.
-   * @param endTime The end time.
-   * @return The set of SensorData instances. 
-   */
-  public Set<SensorData> getSensorData(User user, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime) {
-    return this.inMemoryImpl.getSensorData(user, startTime, endTime);
+    return this.derbyImpl.getSensorData(user, timestamp);
   }
   
 }

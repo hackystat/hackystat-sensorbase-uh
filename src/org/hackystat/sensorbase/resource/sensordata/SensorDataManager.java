@@ -5,8 +5,7 @@ import static org.hackystat.sensorbase.server.ServerProperties.XML_DIR_KEY;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.Set;
-
+import java.util.List;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
@@ -29,6 +28,7 @@ import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
+import org.hackystat.sensorbase.uripattern.UriPattern;
 import org.w3c.dom.Document;
 
 /**
@@ -209,6 +209,20 @@ public class SensorDataManager {
   public String getSensorDataIndex(User user, String sdtName) {
     return this.dbManager.getSensorDataIndex(user, sdtName);
   }
+  
+  /**
+   * Returns the XML SensorDataIndex for all sensor data matching this user, start/end time, and 
+   * whose resource string matches at least one in the list of UriPatterns. 
+   * @param user The user. 
+   * @param startTime The start time. 
+   * @param endTime The end time. 
+   * @param uriPatterns A list of UriPatterns. 
+   * @return The XML SensorDataIndex string corresponding to the matching sensor data. 
+   */
+  public String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns) {
+    return this.dbManager.getSensorDataIndex(user, startTime, endTime, uriPatterns);
+  }  
   
   /**
    * Returns a SensorDataRef instance constructed from the email, sdtName, and timestamp.
@@ -450,18 +464,4 @@ public class SensorDataManager {
     return xmlString;
 
   }
-  
-  /**
-   * Returns a (possibly empty) set of SensorData instances associated with the 
-   * given user between the startTime and endTime. 
-   * @param user The user
-   * @param startTime The start time.
-   * @param endTime The end time.
-   * @return The set of SensorData instances. 
-   */
-  public Set<SensorData> getSensorData(User user, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime) {
-    return this.dbManager.getSensorData(user, startTime, endTime);
-  }
-
 }

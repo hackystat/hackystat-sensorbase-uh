@@ -1,7 +1,6 @@
 package org.hackystat.sensorbase.db;
 
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -73,6 +72,18 @@ public abstract class DbImplementation {
   public abstract String getSensorDataIndex(User user, String sdtName);
   
   /**
+   * Returns an XML SensorDataIndex representing the SensorData for the given user between
+   * start and end time whose resource string matches at least one of the UriPatterns.
+   * @param user The user whose SensorData will be returned.
+   * @param startTime The earliest Sensor Data to be returned.
+   * @param endTime The latest SensorData to be returned.
+   * @param uriPatterns At least one UriPattern must match the SensorData resource field.
+   * @return An XML String containing a SensorDataIndex of matching SensorData. 
+   */
+  public abstract String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns);
+  
+  /**
    * Returns true if the passed [key, timestamp] has sensor data defined for it.
    * @param user The user.
    * @param timestamp The timestamp
@@ -95,30 +106,6 @@ public abstract class DbImplementation {
    * @return The SensorData XML string, or null.
    */
   public abstract String getSensorData(User user, XMLGregorianCalendar timestamp);
-  
-  /**
-   * Returns a (possibly empty) set of SensorData instances associated with the 
-   * given user between the startTime and endTime. 
-   * @param user The user
-   * @param startTime The start time.
-   * @param endTime The end time.
-   * @return The set of SensorData instances. 
-   */
-  public abstract Set<SensorData> getSensorData(User user, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime);
-  
-
-  /**
-   * Returns an XML SensorDataIndex representing the SensorData for the given user between
-   * start and end time whose resource string matches at least one of the UriPatterns.
-   * @param user The user whose SensorData will be returned.
-   * @param startTime The earliest Sensor Data to be returned.
-   * @param endTime The latest SensorData to be returned.
-   * @param uriPatterns At least one UriPattern must match the SensorData resource field.
-   * @return An XML String containing a SensorDataIndex of matching SensorData. 
-   */
-  public abstract String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns);
   
   /** Keeps a pointer to this Server for use in accessing the managers. */
   private Server server;

@@ -1,20 +1,23 @@
 package org.hackystat.sensorbase.db.derby;
 
+import static org.hackystat.sensorbase.db.DbManager.sensorDataIndexCloseTag;
+import static org.hackystat.sensorbase.db.DbManager.sensorDataIndexOpenTag;
 import static org.hackystat.sensorbase.server.ServerProperties.DB_DIR_KEY;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.db.DbImplementation;
+import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
@@ -127,10 +130,10 @@ public class DerbyImplementation extends DbImplementation {
   }
   
   /**
-   * Determine if the database has already been initialized.  
-   * Checks to see if a dummy insert on the table will work OK.
-   * @return True if the database has been initialized.
-   * @throws SQLException If problems occur accessing the database. 
+   * Determine if the database has already been initialized with correct table definitions. 
+   * Table schemas are checked by seeing if a dummy insert on the table will work OK.
+   * @return True if the database exists and tables are set up correctly.
+   * @throws SQLException If problems occur accessing the database or the tables are set right. 
    */
   private boolean isPreExisting() throws SQLException {
     Connection conn = null;
@@ -143,7 +146,7 @@ public class DerbyImplementation extends DbImplementation {
     catch (SQLException e) {
       String theError = (e).getSQLState();
       if ("42X05".equals(theError)) {
-        // If table exists will get -  WARNING 02000: No row was found 
+        // Database doesn't exist.
         return false;
       }  
       else if ("42X14".equals(theError) || "42821".equals(theError))  {
@@ -159,7 +162,7 @@ public class DerbyImplementation extends DbImplementation {
       s.close();
       conn.close();
     }
-    // Got the warning, so OK.
+    // If table exists will get -  WARNING 02000: No row was found 
     return true;
   }
   
@@ -250,33 +253,114 @@ public class DerbyImplementation extends DbImplementation {
     return this.isFreshlyCreated;
   }
 
+
+  /**
+   * Given a String representing the SQL statement that returns a ResultSet 
+   * containing a XmlSensorDataRef column, constructs the XML SensorDataIndex string containing
+   * those columms and returns it. 
+   * @param statement The SQL Statement to be used to retrieve XmlSensorDataRef strings. 
+   * @return The aggregate SensorDataIndex XML string. 
+   */
+  private String getSensorDataIndex(String statement) {
+    StringBuilder builder = new StringBuilder(512);
+    builder.append(sensorDataIndexOpenTag);
+    // Retrieve all the SensorData
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      while (rs.next()) {
+        builder.append(rs.getString("XmlSensorDataRef"));
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("DB: Error in getSensorDataIndex()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning("Error closing the DB" + StackTrace.toString(e));
+      }
+    }
+    builder.append(sensorDataIndexCloseTag);
+    return builder.toString();
+  }
+  
   /** {@inheritDoc} */
   @Override
   public String getSensorDataIndex() {
-    // TODO Auto-generated method stub
-    return null;
+    String st = "SELECT XmlSensorDataRef FROM SensorData";
+    return getSensorDataIndex(st);
   }
   
   /** {@inheritDoc} */
   @Override
   public String getSensorDataIndex(User user) {
-    // TODO Auto-generated method stub
-    return null;
+    String st = "SELECT XmlSensorDataRef FROM SensorData WHERE owner='" + user.getEmail() + "'"; 
+    return getSensorDataIndex(st);
   }
 
   /** {@inheritDoc} */
   @Override
   public String getSensorDataIndex(User user, String sdtName) {
-    // TODO Auto-generated method stub
-    return null;
+    String st = 
+      "SELECT XmlSensorDataRef FROM SensorData WHERE " 
+      + " owner='" + user.getEmail() + "', " 
+      + " sdt='" + sdtName + "'";
+    return getSensorDataIndex(st);
   }
   
   /** {@inheritDoc} */
   @Override
   public String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime, List<UriPattern> uriPatterns) {
-    // TODO Auto-generated method stub
-    return null;
+    StringBuilder builder = new StringBuilder(512);
+    builder.append(sensorDataIndexOpenTag);
+    // Retrieve all the SensorData
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      // First, get all of the SensorData during the time interval.
+      String statement = 
+        "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
+        + " owner='" + user.getEmail() + "' AND " 
+        + " Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
+        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
+      SensorBaseLogger.getLogger().info(statement);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      // Now, add only the SensorData whose Resource matches one of the UriPatterns. 
+      while (rs.next()) {
+        String resource = rs.getString("Resource");
+        if (UriPattern.matches(resource, uriPatterns)) {
+          builder.append(rs.getString("XmlSensorDataRef"));
+        }
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("DB: Error in getSensorDataIndex()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning("Error closing the DB" + StackTrace.toString(e));
+      }
+    }
+    builder.append(sensorDataIndexCloseTag);
+    return builder.toString();
   }
 
   /** {@inheritDoc} */
@@ -296,15 +380,36 @@ public class DerbyImplementation extends DbImplementation {
   /** {@inheritDoc} */
   @Override
   public String getSensorData(User user, XMLGregorianCalendar timestamp) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public Set<SensorData> getSensorData(User user, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime) {
-    // TODO Auto-generated method stub
-    return null;
+    StringBuilder builder = new StringBuilder(512);
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      String statement =
+        "SELECT XmlSensorData FROM SensorData WHERE "
+        + " owner='" + user.getEmail() + "' AND " 
+        + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
+      SensorBaseLogger.getLogger().info(statement);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      while (rs.next()) {
+        builder.append(rs.getString("XmlSensorData"));
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("DB: Error in getSensorData()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning("Error closing the DB" + StackTrace.toString(e));
+      }
+    }
+    return builder.toString();
   }
 }
