@@ -5,6 +5,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.db.derby.DerbyImplementation;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
+import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.uripattern.UriPattern;
@@ -67,12 +68,23 @@ public class DbManager {
    */
   public void storeSensorData(SensorData data, String xmlSensorData, String xmlSensorDataRef) {
     this.derbyImpl.storeSensorData(data, xmlSensorData, xmlSensorDataRef);
-    //this.inMemoryImpl.storeSensorData(data, xmlSensorData, xmlSensorDataRef);
+  }
+  
+  /**
+   * Persists a SensorDataType instance.  If the SDT name already exists in the table, it is
+   * overwritten.
+   * @param sdt The sensor data. 
+   * @param xmlSensorDataType The SDT resource as an XML String.  
+   * @param xmlSensorDataTypeRef The SDT as an XML resource reference
+   */
+  public void storeSensorDataType(SensorDataType sdt, String xmlSensorDataType, 
+      String xmlSensorDataTypeRef) {
+    this.derbyImpl.storeSensorDataType(sdt, xmlSensorDataType, xmlSensorDataTypeRef);
   }
   
   /**
    * Returns the XML SensorDataIndex for all sensor data.
-   * @return An XML String providing an index of all relevent sensor data resources.
+   * @return An XML String providing an index of all sensor data resources.
    */
   public String getSensorDataIndex() {
     return this.derbyImpl.getSensorDataIndex();
@@ -112,6 +124,14 @@ public class DbManager {
   }
   
   /**
+   * Returns the XML SensorDataTypeIndex for all sensor data.
+   * @return An XML String providing an index of all SDT resources.
+   */
+  public String getSensorDataTypeIndex() {
+    return this.derbyImpl.getSensorDataTypeIndex();
+  }
+  
+  /**
    * Returns true if the passed [user, timestamp] has sensor data defined for it.
    * @param user The user.
    * @param timestamp The timestamp
@@ -127,9 +147,16 @@ public class DbManager {
    * @param user The user.
    * @param timestamp The timestamp associated with this sensor data.
    */
-  public void deleteData(User user, XMLGregorianCalendar timestamp) {
-    //this.inMemoryImpl.deleteData(user, timestamp);
-    this.derbyImpl.deleteData(user, timestamp);
+  public void deleteSensorData(User user, XMLGregorianCalendar timestamp) {
+    this.derbyImpl.deleteSensorData(user, timestamp);
+  }
+  
+  /**
+   * Ensures that the SensorDataType with the given name no longer exists.
+   * @param sdtName The SDT name.
+   */
+  public void deleteSensorDataType(String sdtName) {
+    this.derbyImpl.deleteSensorDataType(sdtName);
   }
   
   /**
@@ -140,6 +167,15 @@ public class DbManager {
    */
   public String getSensorData(User user, XMLGregorianCalendar timestamp) {
     return this.derbyImpl.getSensorData(user, timestamp);
+  }
+  
+  /**
+   * Returns the SensorDataType instance as an XML string, or null.
+   * @param sdtName The name of the SDT to retrieve.
+   * @return The SensorDataType instance as an XML string, or null.
+   */
+  public String getSensorDataType(String sdtName) {
+    return this.derbyImpl.getSensorDataType(sdtName);
   }
   
 }

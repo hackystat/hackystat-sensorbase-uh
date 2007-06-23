@@ -69,14 +69,8 @@ public class Server extends Application {
     server.component.getServers().add(Protocol.HTTP, port);
     server.component.getDefaultHost()
       .attach("/" + ServerProperties.get(CONTEXT_ROOT_KEY), server);
-    server.component.start();
-    SensorBaseLogger.getLogger().warning("Started SensorBase (Version " + getVersion() + ")");
-    SensorBaseLogger.getLogger().warning("Host: " + server.hostName);
-    SensorBaseLogger.setLoggingLevel(ServerProperties.get(LOGGING_LEVEL_KEY));
-    ServerProperties.echoProperties();
-    disableRestletLogging();
+ 
     
-
     try {
       Mailer.getInstance();
     }
@@ -97,6 +91,15 @@ public class Server extends Application {
     attributes.put("UserManager", new UserManager(server));
     attributes.put("ProjectManager", new ProjectManager(server));
     attributes.put("SensorDataManager", new SensorDataManager(server));
+    
+    // Now let's open for business. 
+    SensorBaseLogger.getLogger().warning("Host: " + server.hostName);
+    SensorBaseLogger.setLoggingLevel(ServerProperties.get(LOGGING_LEVEL_KEY));
+    ServerProperties.echoProperties();
+    SensorBaseLogger.getLogger().warning("SensorBase (Version " + getVersion() + ") now running.");
+    server.component.start();
+    disableRestletLogging();
+    
     return server;
   }
 

@@ -10,6 +10,7 @@ import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
+import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
@@ -97,7 +98,7 @@ public abstract class DbImplementation {
    * @param user The user.
    * @param timestamp The timestamp associated with this sensor data.
    */
-  public abstract void deleteData(User user, XMLGregorianCalendar timestamp);
+  public abstract void deleteSensorData(User user, XMLGregorianCalendar timestamp);
  
   /**
    * Returns the SensorData instance as XML string, or null if not found.
@@ -106,6 +107,37 @@ public abstract class DbImplementation {
    * @return The SensorData XML string, or null.
    */
   public abstract String getSensorData(User user, XMLGregorianCalendar timestamp);
+  
+  /**
+   * Returns the XML SensorDataTypeIndex for all SDTs in this server.
+   * @return The XML String containing an index to all SensorDataTypes.
+   */
+  public abstract String getSensorDataTypeIndex();
+  
+  /**
+   * Persists a SensorDataType instance.  If a SensorDataType with this name
+   * already exists in the storage system, it will be overwritten.
+   * @param sdt The sensor data type 
+   * @param xmlSensorDataType The SensorDataType marshalled into an XML String.  
+   * @param xmlSensorDataTypeRef The corresponding SensorDataTypeRef marshalled into an XML String
+   * @return True if the SDT was successfully inserted.
+   */
+  public abstract boolean storeSensorDataType(SensorDataType sdt, String xmlSensorDataType, 
+      String xmlSensorDataTypeRef);
+  
+  /**
+   * Ensures that the SensorDataType with the given name is no longer present in this manager.
+   * @param sdtName The SDT name.
+   */
+  public abstract void deleteSensorDataType(String sdtName);
+  
+  /**
+   * Returns the SensorDataType instance as XML string, or null if not found.
+   * @param sdtName The SDT name.
+   * @return The SensorDataType XML string, or null.
+   */
+  public abstract String getSensorDataType(String sdtName);
+  
   
   /** Keeps a pointer to this Server for use in accessing the managers. */
   private Server server;

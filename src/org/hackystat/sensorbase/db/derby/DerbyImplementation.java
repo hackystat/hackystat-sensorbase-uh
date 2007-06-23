@@ -21,6 +21,7 @@ import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
+import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
@@ -44,39 +45,6 @@ public class DerbyImplementation extends DbImplementation {
   /** Indicates whether this database was initialized or was pre-existing. */
   private boolean isFreshlyCreated;
   
-  /** The SQL string for creating the SensorData table. */
-  private static final String createSensorDataTableStatement = 
-    "create table SensorData  "
-    + "("
-    + " Owner VARCHAR(64) NOT NULL, "
-    + " Tstamp TIMESTAMP NOT NULL, "
-    + " Sdt VARCHAR(64) NOT NULL, "
-    + " Runtime TIMESTAMP NOT NULL, "
-    + " Tool VARCHAR(64) NOT NULL, "
-    + " Resource VARCHAR(512) NOT NULL, "
-    + " XmlSensorData VARCHAR(32000) NOT NULL, "
-    + " XmlSensorDataRef VARCHAR(1000) NOT NULL, "
-    + " LastMod TIMESTAMP NOT NULL, "
-    + " PRIMARY KEY (Owner, Tstamp) "
-    + ")" ;
-  
-  /** An SQL string to test whether the SensorData table exists and has the correct schema. */
-  private static final String testSensorDataTableStatement = 
-    " UPDATE SensorData SET "
-    + " Owner = 'TestUser', " 
-    + " Tstamp = '" + new Timestamp(new Date().getTime()).toString() + "', "
-    + " Sdt = 'testSdt',"
-    + " Runtime = '" + new Timestamp(new Date().getTime()).toString() + "', "
-    + " Tool = 'testTool', "
-    + " Resource = 'testResource', "
-    + " XmlSensorData = 'testXmlResource', "
-    + " XmlSensorDataRef = 'testXmlRef', "
-    + " LastMod = '" + new Timestamp(new Date().getTime()).toString() + "' "
-    + " WHERE 1=3";
-  
-  private static final String indexSensorDataTableStatement = 
-    "CREATE UNIQUE INDEX SensorDataIndex ON SensorData(Owner, Tstamp)";
-  
   /** The SQL state indicating that INSERT tried to add data to a table with a preexisting key. */
   private static final String DUPLICATE_KEY = "23505";
   
@@ -85,11 +53,13 @@ public class DerbyImplementation extends DbImplementation {
   
   /** The logger message for connection closing errors. */
   private static final String errorClosingMsg = "Derby: Error while closing. \n";
+  
   /** The logger message when executing a query. */
   private static final String executeQueryMsg = "Derby: Executing query ";
   
   /** Required by PMD since this string occurs multiple times in this file. */
   private static final String ownerEquals = " owner = '";
+  
   /** Required by PMD as above. */
   private static final String andClause = "' AND ";
 
@@ -151,6 +121,7 @@ public class DerbyImplementation extends DbImplementation {
       conn = DriverManager.getConnection(connectionURL);
       s = conn.createStatement();
       s.execute(testSensorDataTableStatement);
+      s.execute(testSensorDataTypeTableStatement);
     }  
     catch (SQLException e) {
       String theError = (e).getSQLState();
@@ -187,6 +158,8 @@ public class DerbyImplementation extends DbImplementation {
       s = conn.createStatement();
       s.execute(createSensorDataTableStatement);
       s.execute(indexSensorDataTableStatement);
+      s.execute(createSensorDataTypeTableStatement);
+      s.execute(indexSensorDataTypeTableStatement);
       s.close();
     }
     finally {
@@ -194,6 +167,42 @@ public class DerbyImplementation extends DbImplementation {
       conn.close();
     }
   }
+  
+  // ********************   Start  Sensor Data specific stuff here *****************  //
+  
+  /** The SQL string for creating the SensorData table. */
+  private static final String createSensorDataTableStatement = 
+    "create table SensorData  "
+    + "("
+    + " Owner VARCHAR(64) NOT NULL, "
+    + " Tstamp TIMESTAMP NOT NULL, "
+    + " Sdt VARCHAR(64) NOT NULL, "
+    + " Runtime TIMESTAMP NOT NULL, "
+    + " Tool VARCHAR(64) NOT NULL, "
+    + " Resource VARCHAR(512) NOT NULL, "
+    + " XmlSensorData VARCHAR(32000) NOT NULL, "
+    + " XmlSensorDataRef VARCHAR(1000) NOT NULL, "
+    + " LastMod TIMESTAMP NOT NULL, "
+    + " PRIMARY KEY (Owner, Tstamp) "
+    + ")" ;
+  
+  /** An SQL string to test whether the SensorData table exists and has the correct schema. */
+  private static final String testSensorDataTableStatement = 
+    " UPDATE SensorData SET "
+    + " Owner = 'TestUser', " 
+    + " Tstamp = '" + new Timestamp(new Date().getTime()).toString() + "', "
+    + " Sdt = 'testSdt',"
+    + " Runtime = '" + new Timestamp(new Date().getTime()).toString() + "', "
+    + " Tool = 'testTool', "
+    + " Resource = 'testResource', "
+    + " XmlSensorData = 'testXmlResource', "
+    + " XmlSensorDataRef = 'testXmlRef', "
+    + " LastMod = '" + new Timestamp(new Date().getTime()).toString() + "' "
+    + " WHERE 1=3";
+  
+  /** The statement that sets up an index for the SensorData table. */
+  private static final String indexSensorDataTableStatement = 
+    "CREATE UNIQUE INDEX SensorDataIndex ON SensorData(Owner, Tstamp)";
 
 
   /** {@inheritDoc} */
@@ -412,7 +421,7 @@ public class DerbyImplementation extends DbImplementation {
 
   /** {@inheritDoc} */
   @Override
-  public void deleteData(User user, XMLGregorianCalendar timestamp) {
+  public void deleteSensorData(User user, XMLGregorianCalendar timestamp) {
     Connection conn = null;
     PreparedStatement s = null;
     try {
@@ -455,12 +464,183 @@ public class DerbyImplementation extends DbImplementation {
       SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
       s = conn.prepareStatement(statement);
       rs = s.executeQuery();
-      while (rs.next()) {
+      while (rs.next()) { // guaranteed to be only one row in table because owner/tstamp is PK.
         builder.append(rs.getString("XmlSensorData"));
       }
     }
     catch (SQLException e) {
       this.logger.info("DB: Error in getSensorData()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    return builder.toString();
+  }
+
+  // ********************   Start SensorDataType specific stuff here *****************  //
+
+  /** The SQL string for creating the SensorDataType table. */
+  private static final String createSensorDataTypeTableStatement = 
+    "create table SensorDataType  "
+    + "("
+    + " Name VARCHAR(64) NOT NULL, "
+    + " XmlSensorDataType VARCHAR(32000) NOT NULL, "
+    + " XmlSensorDataTypeRef VARCHAR(1000) NOT NULL, "
+    + " LastMod TIMESTAMP NOT NULL, "
+    + " PRIMARY KEY (Name) "
+    + ")" ;
+  
+  /** An SQL string to test whether the SensorDataType table exists and has the correct schema. */
+  private static final String testSensorDataTypeTableStatement = 
+    " UPDATE SensorDataType SET "
+    + " Name = 'TestSdt', " 
+    + " XmlSensorDataType = 'testXmlResource', "
+    + " XmlSensorDataTypeRef = 'testXmlRef', "
+    + " LastMod = '" + new Timestamp(new Date().getTime()).toString() + "' "
+    + " WHERE 1=3";
+  
+  /** Generates an index on the Name column for this table. */
+  private static final String indexSensorDataTypeTableStatement = 
+    "CREATE UNIQUE INDEX SensorDataTypeIndex ON SensorDataType(Name)";
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean storeSensorDataType(SensorDataType sdt, String xmlSensorDataType, 
+      String xmlSensorDataTypeRef) {
+    Connection conn = null;
+    PreparedStatement s = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement("INSERT INTO SensorDataType VALUES (?, ?, ?, ?)");
+      // Order: Name XmlSensorData XmlSensorDataRef LastMod
+      s.setString(1, sdt.getName());
+      s.setString(2, xmlSensorDataType);
+      s.setString(3, xmlSensorDataTypeRef);
+      s.setTimestamp(4, new Timestamp(new Date().getTime()));
+      s.executeUpdate();
+      this.logger.fine("Derby: Inserted SDT" + sdt.getName());
+    }
+    catch (SQLException e) {
+      if (DUPLICATE_KEY.equals(e.getSQLState())) {
+        try {
+          // Do an update, not an insert.
+          s = conn.prepareStatement(
+              "UPDATE SensorDataType SET "
+              + " XmlSensorDataType=?, " 
+              + " XmlSensorDataTypeRef=?, "
+              + " LastMod=?"
+              + " WHERE Name=?");
+          s.setString(1, xmlSensorDataType);
+          s.setString(2, xmlSensorDataTypeRef);
+          s.setTimestamp(3, new Timestamp(new Date().getTime()));
+          s.setString(4, sdt.getName());
+          s.executeUpdate();
+          this.logger.fine("Derby: Updated SDT " + sdt.getName());
+        }
+        catch (SQLException f) {
+          this.logger.info("Derby: Error " + StackTrace.toString(f));
+        }
+      }
+    }
+    finally {
+      try {
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    return true;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void deleteSensorDataType(String sdtName) {
+    Connection conn = null;
+    PreparedStatement s = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      String statement = "DELETE FROM SensorDataType WHERE Name='" + sdtName + "'";
+      SensorBaseLogger.getLogger().fine("Derby: " + statement);
+      s = conn.prepareStatement(statement);
+      s.executeUpdate();
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in deleteSensorDataType()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getSensorDataTypeIndex() {
+    StringBuilder builder = new StringBuilder(512);
+    builder.append("<SensorDataTypeIndex>");
+    // Retrieve all the SensorData
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement("SELECT XmlSensorDataTypeRef FROM SensorDataType");
+      rs = s.executeQuery();
+      while (rs.next()) {
+        builder.append(rs.getString("XmlSensorDataTypeRef"));
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in getSensorDataTypeIndex()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    builder.append("</SensorDataTypeIndex>");
+    return builder.toString();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getSensorDataType(String sdtName) {
+    StringBuilder builder = new StringBuilder(512);
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      String statement = 
+        "SELECT XmlSensorDataType FROM SensorDataType WHERE Name = '" + sdtName + "'";
+      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      while (rs.next()) { // guaranteed to be only one row in table because name is PK.
+        builder.append(rs.getString("XmlSensorDataType"));
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("DB: Error in getSensorDataType()" + StackTrace.toString(e));
     }
     finally {
       try {

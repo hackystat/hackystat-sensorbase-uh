@@ -182,6 +182,7 @@ public class UserSensorDataResource extends SensorBaseResource {
    * Implement the DELETE method that ensures the specified sensor data instance no longer exists.
    * <ul>
    * <li> The user must exist.
+   * <li> The timestamp must be well-formed.
    * <li> The authenticated user must be the uriUser or the admin. 
    * </ul>
    */
@@ -196,7 +197,15 @@ public class UserSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
       return;
     }
-    super.sensorDataManager.deleteData(this.user, this.timestamp);      
+    XMLGregorianCalendar tstamp;
+    try {
+      tstamp = Tstamp.makeTimestamp(this.timestamp);
+    }
+    catch (Exception e) { 
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad timestamp " + this.timestamp);
+      return;
+    }
+    super.sensorDataManager.deleteData(this.user, tstamp);      
     getResponse().setStatus(Status.SUCCESS_OK);
   }
 }

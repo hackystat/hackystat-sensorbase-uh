@@ -4,18 +4,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.Property;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.RequiredField;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.junit.Test;
-import org.restlet.data.MediaType;
 import org.restlet.data.Method;
 import org.restlet.data.Response;
-import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.XmlRepresentation;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 /**
@@ -44,7 +42,7 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
     }
   
   /**
-   * Test that GET host/sensorbase/sensordatatypes/SampleSdt returns the SampleSdt SDT.
+   * Test that GET host/sensorbase/sensordatatypes/TestSdt returns the TestSdt SDT.
    * @throws Exception If problems occur.
    */
   @Test public void getIndividualSdt() throws Exception {
@@ -52,11 +50,9 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Testing for successful GET TestSdt", response.getStatus().isSuccess());
-    DomRepresentation data = response.getEntityAsDom();
-    assertEquals("Checking SDT", "TestSdt", data.getText("SensorDataType/@Name"));
-    
+    String xmlData = response.getEntity().getText();
     //Make it into a Java SDT and ensure the fields are there as expected. 
-    SensorDataType sdt = SdtManager.unmarshallSdt(data.getDocument());
+    SensorDataType sdt = sdtManager.makeSensorDataType(xmlData);
     assertEquals("Checking name", "TestSdt", sdt.getName());
     assertTrue("Checking description", sdt.getDescription().startsWith("SDT"));
     RequiredField reqField = sdt.getRequiredFields().getRequiredField().get(0);
@@ -75,8 +71,8 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
     // First, create a sample SDT. Note that our XmlSchema is too lenient right now. 
     SensorDataType sdt = new SensorDataType();
     sdt.setName("TestSdt2");
-    Document doc = SdtManager.marshallSdt(sdt);
-    Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
+    String xmlData = SensorBaseRestApiHelper.sdtManager.makeSensorDataType(sdt);
+    Representation representation = SensorBaseResource.getStringRepresentation(xmlData);
     String uri = "sensordatatypes/TestSdt2";
     Response response = makeAdminRequest(Method.PUT, uri, representation);
 

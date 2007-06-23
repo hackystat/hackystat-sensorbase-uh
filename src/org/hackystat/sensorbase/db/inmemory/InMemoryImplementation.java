@@ -9,6 +9,7 @@ import org.hackystat.sensorbase.db.DbImplementation;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
+import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.uripattern.UriPattern;
@@ -162,7 +163,7 @@ public class InMemoryImplementation extends DbImplementation {
 
   /** {@inheritDoc} */
   @Override
-  public synchronized void deleteData(User user, XMLGregorianCalendar timestamp) {
+  public synchronized void deleteSensorData(User user, XMLGregorianCalendar timestamp) {
     if (this.hasSensorData(user, timestamp)) {
       this.dataMap.get(user).remove(timestamp);
     }
@@ -185,5 +186,34 @@ public class InMemoryImplementation extends DbImplementation {
   @Override
   public boolean hasSensorData(User user, XMLGregorianCalendar timestamp) {
     return this.dataMap.containsKey(user) && this.dataMap.get(user).containsKey(timestamp);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean storeSensorDataType(SensorDataType sdt, String xmlSensorDataType, 
+      String xmlSensorDataTypeRef) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void deleteSensorDataType(String sdtName) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getSensorDataTypeIndex() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getSensorDataType(String sdtName) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

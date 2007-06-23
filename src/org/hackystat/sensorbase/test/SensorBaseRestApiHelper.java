@@ -1,6 +1,9 @@
 package org.hackystat.sensorbase.test;
 
+import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
+import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
+import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
 import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
@@ -33,7 +36,16 @@ public class SensorBaseRestApiHelper {
   
   /** Make a Manager available to this test class. */
   protected static SensorDataManager sensorDataManager; 
- 
+
+  /** Make a Manager available to this test class. */
+  protected static UserManager userManager; 
+
+  /** Make a Manager available to this test class. */
+  protected static SdtManager sdtManager; 
+
+  /** Make a Manager available to this test class. */
+  protected static ProjectManager projectManager; 
+
   /**
    * Starts the server going for these tests. 
    * @throws Exception If problems occur setting up the server. 
@@ -43,6 +55,12 @@ public class SensorBaseRestApiHelper {
     SensorBaseRestApiHelper.client = new Client(Protocol.HTTP);
     SensorBaseRestApiHelper.sensorDataManager = 
       (SensorDataManager)server.getContext().getAttributes().get("SensorDataManager");
+    SensorBaseRestApiHelper.userManager = 
+      (UserManager)server.getContext().getAttributes().get("UserManager");
+    SensorBaseRestApiHelper.sdtManager = 
+      (SdtManager)server.getContext().getAttributes().get("SdtManager");
+    SensorBaseRestApiHelper.projectManager = 
+      (ProjectManager)server.getContext().getAttributes().get("ProjectManager");
   }
   
   /**

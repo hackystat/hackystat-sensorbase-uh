@@ -9,7 +9,6 @@ import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
-import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Variant;
 
@@ -45,7 +44,8 @@ public class SensorDataTypeResource extends SensorBaseResource {
       return null;
     } 
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      return new DomRepresentation(MediaType.TEXT_XML, super.sdtManager.marshallSdt(this.sdtName));
+      String xmlData = super.sdtManager.getSensorDataType(this.sdtName);
+      return super.getStringRepresentation(xmlData);
     }
     return null;
   }
@@ -80,7 +80,7 @@ public class SensorDataTypeResource extends SensorBaseResource {
     // Try to make the XML payload into an SDT, return failure if this fails. 
     try { 
       entityString = entity.getText();
-      sdt = SdtManager.unmarshallSdt(entityString);
+      sdt = super.sdtManager.makeSensorDataType(entityString);
     }
     catch (Exception e) {
       SensorBaseLogger.getLogger().warning("Bad Sdt Definition in PUT: " + StackTrace.toString(e));

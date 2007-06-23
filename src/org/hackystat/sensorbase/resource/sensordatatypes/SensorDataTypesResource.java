@@ -5,7 +5,6 @@ import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
-import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Variant;
 
@@ -33,8 +32,8 @@ public class SensorDataTypesResource extends SensorBaseResource {
   @Override
   public Representation getRepresentation(Variant variant) {
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      return new DomRepresentation(MediaType.TEXT_XML, 
-          super.sdtManager.getSensorDataTypeIndexDocument());
+      String xmlData = super.sdtManager.getSensorDataTypeIndex();
+      return super.getStringRepresentation(xmlData);
     }
     return null;
   }
