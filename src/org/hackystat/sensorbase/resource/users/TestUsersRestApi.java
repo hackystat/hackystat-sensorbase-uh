@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.Property;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -14,13 +15,11 @@ import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 
 import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
 import org.junit.Test;
-import org.restlet.data.MediaType;
 import org.restlet.data.Method;
 import org.restlet.data.Response;
 import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.XmlRepresentation;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 /**
@@ -61,11 +60,8 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
 
     // Test that the request was received and processed by the server OK. 
     assertTrue("Unsuccessful GET TestUser", response.getStatus().isSuccess());
-    DomRepresentation data = response.getEntityAsDom();
-    assertEquals("Failed to find email", testUserEmail, data.getText("User/Email"));
-    
-    //Make it into a Java SDT and ensure the fields are there as expected. 
-    User user = UserManager.unmarshallUser(data.getDocument());
+    String xmlData = response.getEntity().getText();
+    User user = userManager.makeUser(xmlData);
     assertEquals("Bad email", testUserEmail, user.getEmail());
     assertEquals("Bad password", testUserEmail, user.getPassword());
   }
@@ -154,8 +150,8 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
     property.setKey("testKey");
     property.setValue("testValue");
     properties.getProperty().add(property);
-    Document doc = UserManager.marshallProperties(properties);
-    Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
+    String xmlData = userManager.makeProperties(properties);
+    Representation representation = SensorBaseResource.getStringRepresentation(xmlData);
 
     response = makeRequest(Method.POST, testEmailUri, testEmail, representation);
 

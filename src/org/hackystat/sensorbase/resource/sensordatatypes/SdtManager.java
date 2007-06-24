@@ -32,12 +32,10 @@ import org.w3c.dom.Document;
 /**
  * Provides a manager for the SensorDataType resource.
  * As with all of the Resource managers the methods in this class can be grouped into 
- * three general categories:
+ * three general categories, of which this Manager uses the following:
  * <ul>
- * <li> URI/Name conversion methods (convert*): these methods translate between the URI and 
- * Name-based representations of SensorDataType and User resources. 
- * <li> Database access methods (get*, has*, put*):  these methods communicate with the underlying 
- * storage system. 
+ * <li> Database access methods (get*, has*, put*, delete*):  these methods communicate with the 
+ * underlying storage system (or cache). 
  * <li> XML/Java translation methods (make*): these methods translate between the XML String
  * representation of a resource and its Java class instance representation. 
  * </ul>
@@ -46,7 +44,7 @@ import org.w3c.dom.Document;
  * on JAXB performance and thread safety.
  * <p>
  * All public methods of this class are synchronized so that we can maintain the cache along with
- * the underlying persistent store. 
+ * the underlying persistent store in a thread-safe fashion.
  * 
  * @author Philip Johnson
  *
@@ -172,7 +170,7 @@ public class SdtManager {
    * @param sdtName The name of the SDT. 
    * @return Its string representation, or null if not found. 
    */
-  public synchronized String getSensorDataType(String sdtName) {
+  public synchronized String getSensorDataTypeString(String sdtName) {
     SensorDataType sdt = this.name2sdt.get(sdtName);
     return (sdt == null) ? null : this.sdt2xml.get(sdt);
   }
@@ -308,7 +306,7 @@ public class SdtManager {
   public synchronized SensorDataTypeRef makeSensorDataTypeRef(SensorDataType sdt) {
     SensorDataTypeRef ref = new SensorDataTypeRef();
     ref.setName(sdt.getName());
-    ref.setHref(this.server.getHostName() + "sensordatatype/" + sdt.getName()); 
+    ref.setHref(this.server.getHostName() + "sensordatatypes/" + sdt.getName()); 
     return ref;
   }
   

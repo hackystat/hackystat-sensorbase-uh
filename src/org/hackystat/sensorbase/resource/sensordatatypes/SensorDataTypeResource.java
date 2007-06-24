@@ -44,7 +44,7 @@ public class SensorDataTypeResource extends SensorBaseResource {
       return null;
     } 
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      String xmlData = super.sdtManager.getSensorDataType(this.sdtName);
+      String xmlData = super.sdtManager.getSensorDataTypeString(this.sdtName);
       return super.getStringRepresentation(xmlData);
     }
     return null;

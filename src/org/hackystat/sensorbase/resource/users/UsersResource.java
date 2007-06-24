@@ -12,7 +12,6 @@ import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
-import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Variant;
 
@@ -50,7 +49,8 @@ public class UsersResource extends SensorBaseResource {
       return null;
     }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      return new DomRepresentation(MediaType.TEXT_XML, super.userManager.getUserIndexDocument());
+      String xmlData = super.userManager.getUserIndex();
+      return super.getStringRepresentation(xmlData);      
     }
     return null;
   }

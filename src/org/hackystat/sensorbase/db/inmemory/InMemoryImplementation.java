@@ -216,4 +216,28 @@ public class InMemoryImplementation extends DbImplementation {
     // TODO Auto-generated method stub
     return null;
   }
+  /** {@inheritDoc} */
+  @Override
+  public void deleteUser(String email) {
+    // TODO Auto-generated method stub
+    
+  }
+  /** {@inheritDoc} */
+  @Override
+  public String getUser(String email) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  /** {@inheritDoc} */
+  @Override
+  public String getUserIndex() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  /** {@inheritDoc} */
+  @Override
+  public boolean storeUser(User user, String xmlUser, String xmlUserRef) {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }

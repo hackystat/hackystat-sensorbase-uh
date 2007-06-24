@@ -62,6 +62,8 @@ public class DerbyImplementation extends DbImplementation {
   
   /** Required by PMD as above. */
   private static final String andClause = "' AND ";
+  
+  private static final String derbyError = "Derby: Error ";
 
   /**
    * Instantiates the Derby implementation.  Throws a Runtime exception if the Derby
@@ -122,6 +124,7 @@ public class DerbyImplementation extends DbImplementation {
       s = conn.createStatement();
       s.execute(testSensorDataTableStatement);
       s.execute(testSensorDataTypeTableStatement);
+      s.execute(testUserTableStatement);
     }  
     catch (SQLException e) {
       String theError = (e).getSQLState();
@@ -160,6 +163,8 @@ public class DerbyImplementation extends DbImplementation {
       s.execute(indexSensorDataTableStatement);
       s.execute(createSensorDataTypeTableStatement);
       s.execute(indexSensorDataTypeTableStatement);
+      s.execute(createUserTableStatement);
+      s.execute(indexUserTableStatement);
       s.close();
     }
     finally {
@@ -248,7 +253,7 @@ public class DerbyImplementation extends DbImplementation {
           this.logger.fine("Derby: Updated " + data.getOwner() + " " + data.getTimestamp());
         }
         catch (SQLException f) {
-          this.logger.info("Derby: Error " + StackTrace.toString(f));
+          this.logger.info(derbyError + StackTrace.toString(f));
         }
       }
     }
@@ -545,7 +550,7 @@ public class DerbyImplementation extends DbImplementation {
           this.logger.fine("Derby: Updated SDT " + sdt.getName());
         }
         catch (SQLException f) {
-          this.logger.info("Derby: Error " + StackTrace.toString(f));
+          this.logger.info(derbyError + StackTrace.toString(f));
         }
       }
     }
@@ -653,5 +658,188 @@ public class DerbyImplementation extends DbImplementation {
       }
     }
     return builder.toString();
+  }
+  
+  // ********************   Start  User specific stuff here *****************  //
+  /** The SQL string for creating the HackyUser table. So named because 'User' is reserved. */
+  private static final String createUserTableStatement = 
+    "create table HackyUser  "
+    + "("
+    + " Email VARCHAR(128) NOT NULL, "
+    + " Password VARCHAR(128) NOT NULL, "
+    + " Role CHAR(16), "
+    + " XmlUser VARCHAR(32000) NOT NULL, "
+    + " XmlUserRef VARCHAR(1000) NOT NULL, "
+    + " LastMod TIMESTAMP NOT NULL, "
+    + " PRIMARY KEY (Email) "
+    + ")" ;
+  
+  /** An SQL string to test whether the User table exists and has the correct schema. */
+  private static final String testUserTableStatement = 
+    " UPDATE HackyUser SET "
+    + " Email = 'TestEmail@foo.com', " 
+    + " Password = 'changeme', " 
+    + " Role = 'basic', " 
+    + " XmlUser = 'testXmlResource', "
+    + " XmlUserRef = 'testXmlRef', "
+    + " LastMod = '" + new Timestamp(new Date().getTime()).toString() + "' "
+    + " WHERE 1=3";
+  
+  /** Generates an index on the Name column for this table. */
+  private static final String indexUserTableStatement = 
+    "CREATE UNIQUE INDEX UserIndex ON HackyUser(Email)";
+
+  /** {@inheritDoc} */
+  @Override
+  public void deleteUser(String email) {
+    Connection conn = null;
+    PreparedStatement s = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      String statement = "DELETE FROM HackyUser WHERE Email='" + email + "'";
+      SensorBaseLogger.getLogger().fine("Derby: " + statement);
+      s = conn.prepareStatement(statement);
+      s.executeUpdate();
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in deleteUser()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getUser(String email) {
+    StringBuilder builder = new StringBuilder(512);
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      String statement = 
+        "SELECT XmlUser FROM HackyUser WHERE Email = '" + email + "'";
+      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      while (rs.next()) { // guaranteed to be only one row in table because email is PK.
+        builder.append(rs.getString("XmlUser"));
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("DB: Error in getUser()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    return builder.toString();
+  }
+
+
+  /** {@inheritDoc} */
+  @Override
+  public String getUserIndex() {
+    StringBuilder builder = new StringBuilder(512);
+    builder.append("<UserIndex>");
+    // Retrieve all the SensorData
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement("SELECT XmlUserRef FROM HackyUser");
+      rs = s.executeQuery();
+      while (rs.next()) {
+        builder.append(rs.getString("XmlUserRef"));
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in getUserIndex()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    builder.append("</UserIndex>");
+    return builder.toString();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean storeUser(User user, String xmlUser, String xmlUserRef) {
+    Connection conn = null;
+    PreparedStatement s = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement("INSERT INTO HackyUser VALUES (?, ?, ?, ?, ?, ?)");
+      // Order: Email Password Role XmlUser XmlUserRef LastMod
+      s.setString(1, user.getEmail());
+      s.setString(2, user.getPassword());
+      s.setString(3, user.getRole());
+      s.setString(4, xmlUser);
+      s.setString(5, xmlUserRef);
+      s.setTimestamp(6, new Timestamp(new Date().getTime()));
+      s.executeUpdate();
+      this.logger.fine("Derby: Inserted User" + user.getEmail());
+    }
+    catch (SQLException e) {
+      if (DUPLICATE_KEY.equals(e.getSQLState())) {
+        try {
+          // Do an update, not an insert.
+          s = conn.prepareStatement(
+              "UPDATE HackyUser SET "
+              + " Password=?, " 
+              + " Role=?, " 
+              + " XmlUser=?, " 
+              + " XmlUserRef=?, "
+              + " LastMod=?"
+              + " WHERE Email=?");
+          s.setString(1, user.getPassword());
+          s.setString(2, user.getRole());
+          s.setString(3, xmlUser);
+          s.setString(4, xmlUserRef);
+          s.setTimestamp(5, new Timestamp(new Date().getTime()));
+          s.setString(6, user.getEmail());
+          s.executeUpdate();
+          this.logger.fine("Derby: Updated User " + user.getEmail());
+        }
+        catch (SQLException f) {
+          this.logger.info(derbyError + StackTrace.toString(f));
+        }
+      }
+      else {
+        this.logger.info(derbyError + StackTrace.toString(e));
+      }
+    }
+    finally {
+      try {
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    return true;
   }
 }

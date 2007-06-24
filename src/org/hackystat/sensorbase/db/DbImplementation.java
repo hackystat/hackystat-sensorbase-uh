@@ -41,17 +41,6 @@ public abstract class DbImplementation {
   public abstract boolean isFreshlyCreated();
   
   /**
-   * Persists a SensorData instance.  If SensorData with this [email, timestamp] 
-   * already exists in the storage system, it should be overwritten.
-   * @param data The sensor data. 
-   * @param xmlSensorData The SensorData marshalled into an XML String.  
-   * @param xmlSensorDataRef The corresponding SensorDataRef marshalled into an XML String
-   * @return True if the sensor data was successfully inserted.
-   */
-  public abstract boolean storeSensorData(SensorData data, String xmlSensorData, 
-      String xmlSensorDataRef);
-  
-  /**
    * Returns the XML SensorDataIndex for all sensor data in this server.
    * @return The XML String containing an index to all Sensor Data.
    */
@@ -85,22 +74,6 @@ public abstract class DbImplementation {
       XMLGregorianCalendar endTime, List<UriPattern> uriPatterns);
   
   /**
-   * Returns true if the passed [key, timestamp] has sensor data defined for it.
-   * @param user The user.
-   * @param timestamp The timestamp
-   * @return True if there is any sensor data for this [key, sdtName, timestamp].
-   */
-  public abstract boolean hasSensorData(User user, XMLGregorianCalendar timestamp);
-
-  /**
-   * Ensures that sensor data with the given user and timestamp is no longer
-   * present in this manager.
-   * @param user The user.
-   * @param timestamp The timestamp associated with this sensor data.
-   */
-  public abstract void deleteSensorData(User user, XMLGregorianCalendar timestamp);
- 
-  /**
    * Returns the SensorData instance as XML string, or null if not found.
    * @param user The user.
    * @param timestamp The timestamp associated with this sensor data.
@@ -109,10 +82,46 @@ public abstract class DbImplementation {
   public abstract String getSensorData(User user, XMLGregorianCalendar timestamp);
   
   /**
+   * Returns true if the passed [key, timestamp] has sensor data defined for it.
+   * @param user The user.
+   * @param timestamp The timestamp
+   * @return True if there is any sensor data for this [key, sdtName, timestamp].
+   */
+  public abstract boolean hasSensorData(User user, XMLGregorianCalendar timestamp);
+  
+  /**
+   * Persists a SensorData instance.  If SensorData with this [email, timestamp] 
+   * already exists in the storage system, it should be overwritten.
+   * @param data The sensor data. 
+   * @param xmlSensorData The SensorData marshalled into an XML String.  
+   * @param xmlSensorDataRef The corresponding SensorDataRef marshalled into an XML String
+   * @return True if the sensor data was successfully inserted.
+   */
+  public abstract boolean storeSensorData(SensorData data, String xmlSensorData, 
+      String xmlSensorDataRef);
+  
+
+  /**
+   * Ensures that sensor data with the given user and timestamp is no longer
+   * present in this manager.
+   * @param user The user.
+   * @param timestamp The timestamp associated with this sensor data.
+   */
+  public abstract void deleteSensorData(User user, XMLGregorianCalendar timestamp);
+  
+  /**
    * Returns the XML SensorDataTypeIndex for all SDTs in this server.
    * @return The XML String containing an index to all SensorDataTypes.
    */
   public abstract String getSensorDataTypeIndex();
+  
+  /**
+   * Returns the SensorDataType instance as XML string, or null if not found.
+   * @param sdtName The SDT name.
+   * @return The SensorDataType XML string, or null.
+   */
+  public abstract String getSensorDataType(String sdtName);
+  
   
   /**
    * Persists a SensorDataType instance.  If a SensorDataType with this name
@@ -132,11 +141,33 @@ public abstract class DbImplementation {
   public abstract void deleteSensorDataType(String sdtName);
   
   /**
-   * Returns the SensorDataType instance as XML string, or null if not found.
-   * @param sdtName The SDT name.
-   * @return The SensorDataType XML string, or null.
+   * Returns the XML UserIndex for all Users in this server.
+   * @return The XML String containing an index to all Users.
    */
-  public abstract String getSensorDataType(String sdtName);
+  public abstract String getUserIndex();
+  
+  /**
+   * Returns the User instance as XML string, or null if not found.
+   * @param email The user's email.
+   * @return The User XML string, or null.
+   */
+  public abstract String getUser(String email);
+  
+  /**
+   * Persists a User instance.  If a User with this name
+   * already exists in the storage system, it will be overwritten.
+   * @param user The user
+   * @param xmlUser The User marshalled into an XML String.  
+   * @param xmlUserRef The corresponding UserRef marshalled into an XML String
+   * @return True if the user was successfully inserted.
+   */
+  public abstract boolean storeUser(User user, String xmlUser, String xmlUserRef);
+  
+  /**
+   * Ensures that the User with the given email is no longer present in this manager.
+   * @param email The user's email address.
+   */
+  public abstract void deleteUser(String email);
   
   
   /** Keeps a pointer to this Server for use in accessing the managers. */

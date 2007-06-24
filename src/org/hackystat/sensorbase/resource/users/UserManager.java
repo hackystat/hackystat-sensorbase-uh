@@ -2,20 +2,28 @@ package org.hackystat.sensorbase.resource.users;
 
 import java.io.File;
 import java.io.StringReader;
-import java.util.Iterator;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
+import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
+import org.hackystat.sensorbase.resource.users.jaxb.Property;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
@@ -29,83 +37,114 @@ import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_PASSWORD_KE
 import org.w3c.dom.Document;
 
 /**
- * Manages access to both the User and Users resources. 
+ * Manages access to the User resources. 
  * Loads default definitions if available. 
  * @author Philip Johnson
  */
-public class UserManager implements Iterable<User> {
+public class UserManager {
   
-  private static String jaxbPackage = "org.hackystat.sensorbase.resource.users.jaxb";
+  /** Holds the class-wide JAXBContext, which is thread-safe. */
+  private JAXBContext jaxbContext;
+  
+  /** The Server associated with this SdtManager. */
+  Server server; 
+  
+  /** The DbManager associated with this server. */
+  DbManager dbManager;
+  
+  /** The SensorDataTypeIndex open tag. */
+  public static final String userIndexOpenTag = "<UserIndex>";
+  
+  /** The SensorDataTypeIndex close tag. */
+  public static final String userIndexCloseTag = "</UserIndex>";
+  
+  /** The initial size for Collection instances that hold the Users. */
+  private static final int userSetSize = 127;
   
   /** The in-memory repository of Users, keyed by Email. */
-  private Map<String, User> userMap = new ConcurrentHashMap<String, User>();
-
-  /** The JAXB marshaller for Users. */
-  private Marshaller marshaller; 
+  private Map<String, User> email2user = new HashMap<String, User>(userSetSize);
   
-  /** The JAXB ummarshaller for Users. */
-  private Unmarshaller unmarshaller;
+  /** The in-memory repository of User XML strings, keyed by User. */
+  private Map<User, String> user2xml = new HashMap<User, String>(userSetSize);
   
-  /** The DocumentBuilder for documents. */
-  private DocumentBuilder documentBuilder; 
-  
-  /** The Server associated with this Manager. */
-  Server server; 
+  /** The in-memory repository of UserRef XML strings, keyed by User. */
+  private Map<User, String> user2ref = new HashMap<User, String>(userSetSize);
   
   /** 
    * The constructor for UserManagers. 
-   * There is one UserManager per Server. 
    * @param server The Server instance associated with this UserManager. 
    */
   public UserManager(Server server) {
     this.server = server;
+    this.dbManager = (DbManager)this.server.getContext().getAttributes().get("DbManager");
     try {
-      
-      // Initialize marshaller and unmarshaller. 
-      JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
-      this.unmarshaller = jc.createUnmarshaller();
-      this.marshaller = jc.createMarshaller(); 
-
-      // Get the default User definitions from the XML defaults file. 
-      File defaultsFile = findDefaultsFile();
-      // Initialize the SDTs if we've found a default file. 
-      if (defaultsFile.exists()) {
-        SensorBaseLogger.getLogger().info("Loading User defaults from " + defaultsFile.getPath());  
-        Users users = (Users) unmarshaller.unmarshal(defaultsFile);
-        
-        // Initialize the sdtMap and define the default project.
-        for (User user : users.getUser()) {
-          userMap.put(user.getEmail(), user);
-        }
-      }
-      // Initialize admin User
-      initializeAdminUser();
-      // Initialize documentBuilder
-      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-      dbf.setNamespaceAware(true);
-      this.documentBuilder = dbf.newDocumentBuilder();
+      this.jaxbContext = 
+        JAXBContext.newInstance("org.hackystat.sensorbase.resource.users.jaxb");
+      loadDefaultUsers(); //NOPMD it's throwing a false warning. 
+      initializeCache();  //NOPMD 
+      initializeAdminUser(); //NOPMD
     }
     catch (Exception e) {
       String msg = "Exception during UserManager initialization processing";
-      SensorBaseLogger.getLogger().warning(msg + "/n" + StackTrace.toString(e));
+      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
   }
+
+  /**
+   * Loads the default Users from the defaults file and adds them to the database. 
+   * @throws Exception If problems occur. 
+   */
+  private final void loadDefaultUsers() throws Exception {
+    // Get the default User definitions from the XML defaults file. 
+    File defaultsFile = findDefaultsFile();
+    // Add these users to the database if we've found a default file. 
+    if (defaultsFile.exists()) {
+      SensorBaseLogger.getLogger().info("Loading User defaults from " + defaultsFile.getPath()); 
+      Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+      Users users = (Users) unmarshaller.unmarshal(defaultsFile);
+      for (User user : users.getUser()) {
+        this.dbManager.storeUser(user, this.makeUser(user), this.makeUserRefString(user));
+      }
+    }
+  }
+  
+  /** Read in all Users from the database and initialize the in-memory cache. */
+  private final void initializeCache() {
+    try {
+      UserIndex index = makeUserIndex(this.dbManager.getUserIndex());
+      SensorBaseLogger.getLogger().warning("User index: " + index);
+      for (UserRef ref : index.getUserRef()) {
+        String email = ref.getEmail();
+        String userString = this.dbManager.getUser(email);
+        User user = makeUser(userString);
+        this.updateCache(user);
+      }
+    }
+    catch (Exception e) {
+      SensorBaseLogger.getLogger().warning("Failed to initialize users " + StackTrace.toString(e));
+    }
+  }
+  
   
   /**
    * Ensures a User exists with the admin role given the data in the sensorbase.properties file. 
    * The admin password will be reset to what was in the sensorbase.properties file. 
+   * Note that the "admin" role is managed non-persistently: it is read into the cache from
+   * the sensorbase.properties at startup, and any persistently stored values for it are 
+   * ignored. This, of course, will eventually cause confusion. 
+   * @throws Exception if problems creating the XML string representations of the admin user.  
    */
-  private void initializeAdminUser() {
+  private final void initializeAdminUser() throws Exception {
     String adminEmail = ServerProperties.get(ADMIN_EMAIL_KEY);
     String adminPassword = ServerProperties.get(ADMIN_PASSWORD_KEY);
     // First, clear any existing Admin role property.
-    for (User user : this.userMap.values()) {
+    for (User user : this.email2user.values()) {
       user.setRole("basic");
     }
-    // Now define this user with the admin property.
-    if (this.userMap.containsKey(adminEmail)) {
-      User user = this.userMap.get(adminEmail);
+    // Now define the admin user with the admin property.
+    if (this.email2user.containsKey(adminEmail)) {
+      User user = this.email2user.get(adminEmail);
       user.setPassword(adminPassword);
       user.setRole("admin");
     } else {
@@ -113,8 +152,29 @@ public class UserManager implements Iterable<User> {
       admin.setEmail(adminEmail);
       admin.setPassword(adminPassword);
       admin.setRole("admin");
-      this.userMap.put(adminEmail, admin);
+      this.updateCache(admin);
     }
+  }
+
+  /**
+   * Updates the in-memory cache with information about this User. 
+   * @param user The user to be added to the cache.
+   * @throws Exception If problems occur updating the cache. 
+   */
+  private final void updateCache(User user) throws Exception {
+    updateCache(user, this.makeUser(user), this.makeUserRefString(user));
+  }
+  
+  /**
+   * Updates the cache given all the User representations.
+   * @param user The User.
+   * @param userXml The User as an XML string. 
+   * @param userRef The User as an XML reference. 
+   */
+  private void updateCache(User user, String userXml, String userRef) {
+    this.email2user.put(user.getEmail(), user);
+    this.user2xml.put(user, userXml);
+    this.user2ref.put(user, userRef);
   }
   
   /**
@@ -130,64 +190,35 @@ public class UserManager implements Iterable<User> {
           new File (xmlDir + defaultsPath);
   }
 
-
   /**
-   * Returns the XML Index for all current defined Users
-   * @return The XML Document instance providing an index to all current Users.
+   * Returns the XML string containing the UserIndex with all defined Users.
+   * Uses the in-memory cache of UserRef strings.  
+   * @return The XML string providing an index to all current Users.
    */
-  public synchronized Document getUserIndexDocument() {
-    // First, create the freakin index.
-    UserIndex index = new UserIndex();
-    for (User user : this.userMap.values()) {
-      UserRef ref = new UserRef();
-      ref.setEmail(user.getEmail());
-      ref.setHref(this.server.getHostName() + "users/" + user.getEmail());
-      index.getUserRef().add(ref);
+  public synchronized String getUserIndex() {
+    StringBuilder builder = new StringBuilder(512);
+    builder.append(userIndexOpenTag);
+    for (String ref : this.user2ref.values()) {
+      builder.append(ref);
     }
-    // Now convert it to XML.
-    Document doc;
-    try {
-      doc = this.documentBuilder.newDocument();
-      this.marshaller.marshal(index, doc);
-    } 
-    catch (Exception e ) {
-      String msg = "Failed to marshall Users into an Index";
-      SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
-      throw new RuntimeException(msg, e);
-    }
-    return doc;
+    builder.append(userIndexCloseTag);
+    return builder.toString();
   }
   
   /**
-   * Returns the XML representation of the named User.
-   * @param email The email address of the User
-   * @return The XML representation of that User, or null if not found.
-   */
-  public synchronized Document getUserDocument(String email) {
-    // Return null if name is not an SDT
-    if (!userMap.containsKey(email)) {
-      return null;
-    }
-    Document doc = null;
-    try {
-      User user = userMap.get(email);
-      doc = this.documentBuilder.newDocument();
-      this.marshaller.marshal(user, doc);
-    }
-    catch (Exception e ) {
-      String msg = "Failed to marshall the User: " + email;
-      SensorBaseLogger.getLogger().warning(msg + StackTrace.toString(e));
-      throw new RuntimeException(msg, e);
-    }
-    return doc;
-  }
-  
-  /**
-   * Updates the Manager with this SDT. Any old definition is overwritten.
-   * @param user The SensorDataType.
+   * Updates the Manager with this User. Any old definition is overwritten.
+   * @param user The User.
    */
   public synchronized void putUser(User user) {
-    userMap.put(user.getEmail(), user);
+    try {
+    String xmlUser =  this.makeUser(user);
+    String xmlRef =  this.makeUserRefString(user);
+    this.updateCache(user, xmlUser, xmlRef);
+    this.dbManager.storeUser(user, xmlUser, xmlRef);
+    }
+    catch (Exception e) {
+      SensorBaseLogger.getLogger().warning("Failed to put User" + StackTrace.toString(e));
+    }
   }
   
   /**
@@ -196,7 +227,7 @@ public class UserManager implements Iterable<User> {
    * @return True if a User with that email address is known to this Manager.
    */
   public synchronized boolean hasUser(String email) {
-    return (email != null) && (userMap.containsKey(email));
+    return (email != null) && (email2user.containsKey(email));
   }
   
   /**
@@ -204,7 +235,13 @@ public class UserManager implements Iterable<User> {
    * @param email The email address of the User to remove if currently present.
    */
   public synchronized void deleteUser(String email) {
-    userMap.remove(email);
+    User user = this.email2user.get(email);
+    if (user != null) {
+      this.email2user.remove(email);
+      this.user2xml.remove(user);
+      this.user2ref.remove(user);
+    }
+    this.dbManager.deleteUser(email);
   }
   
 
@@ -214,7 +251,40 @@ public class UserManager implements Iterable<User> {
    * @return The User, or null if not found.
    */
   public synchronized User getUser(String email) {
-    return userMap.get(email);
+    return email2user.get(email);
+  }
+  
+  /**
+   * Returns the User Xml String associated with this email address if they are registered.
+   * @param email The email address
+   * @return The User XML string, or null if not found.
+   */
+  public synchronized String getUserString(String email) {
+    User user = email2user.get(email);
+    return (user == null) ? null : user2xml.get(user);
+  }
+  
+  /**
+   * Updates the given User with the passed Properties. 
+   * @param user The User whose properties are to be updated.
+   * @param properties The Properties. 
+   */
+  public synchronized void updateProperties(User user, Properties properties) {
+    for (Property property : properties.getProperty()) {
+      user.getProperties().getProperty().add(property);
+    }
+    this.putUser(user);
+  }
+  
+  /**
+   * Returns a set containing the current User instances. 
+   * For thread safety, a fresh Set of Users is built each time this is called. 
+   * @return A Set containing the current Users. 
+   */
+  public synchronized Set<User> getUsers() {
+    Set<User> userSet = new HashSet<User>(userSetSize); 
+    userSet.addAll(this.email2user.values());
+    return userSet;
   }
   
   /**
@@ -223,7 +293,7 @@ public class UserManager implements Iterable<User> {
    * @return True if found in this Manager.
    */
   public synchronized boolean isUser(String email) {
-    return userMap.containsKey(email);
+    return email2user.containsKey(email);
   }
   
   /**
@@ -234,7 +304,7 @@ public class UserManager implements Iterable<User> {
    * @return True if found in this Manager.
    */
   public synchronized boolean isUser(String email, String password) {
-    User user = this.userMap.get(email);
+    User user = this.email2user.get(email);
     return (user != null) && (password != null) && (password.equals(user.getPassword()));
   }
   
@@ -245,7 +315,7 @@ public class UserManager implements Iterable<User> {
    */
   public synchronized boolean isAdmin(String email) {
     return (email != null) &&
-           userMap.containsKey(email) && 
+           email2user.containsKey(email) && 
            email.equals(ServerProperties.get(ADMIN_EMAIL_KEY));
   }
   
@@ -255,20 +325,13 @@ public class UserManager implements Iterable<User> {
    * @param user The user. 
    * @return True if the user is a test user. 
    */
-  public boolean isTestUser(User user) {
+  public synchronized boolean isTestUser(User user) {
     return user.getEmail().endsWith(ServerProperties.get(TEST_DOMAIN_KEY));
   }
   
-  /**
-   * Returns a thread-safe Iterator over the set of currently defined users. 
-   * @return An iterator. 
-   */
-  public Iterator<User> iterator() {
-    return this.userMap.values().iterator();
-  }
-  
   /** 
-   * If a User with the passed email address exists, then return it.
+   * Registers a User, given their email address.
+   * If a User with the passed email address exists, then return the previously registered User.
    * Otherwise create a new User and return it.
    * If the email address ends with the test domain, then the password will be the email.
    * Otherwise, a unique, randomly generated 12 character key is generated as the password. 
@@ -278,7 +341,7 @@ public class UserManager implements Iterable<User> {
    */
   public synchronized User registerUser(String email) {
     // registering happens rarely, so we'll just iterate through the userMap.
-    for (User user : this.userMap.values()) {
+    for (User user : this.email2user.values()) {
       if (user.getEmail().equals(email)) {
         return user;
       }
@@ -287,11 +350,11 @@ public class UserManager implements Iterable<User> {
     User user = new User();
     user.setEmail(email);
     user.setProperties(new Properties());
-    // Password is either the Email in the case of a test user, or the randomly generated string.
+    // Password is either their Email in the case of a test user, or the randomly generated string.
     String password = 
       email.endsWith(ServerProperties.get(TEST_DOMAIN_KEY)) ? email : PasswordGenerator.make();
     user.setPassword(password);
-    this.userMap.put(email, user);
+    this.putUser(user);
     ProjectManager projectManager = 
       (ProjectManager)this.server.getContext().getAttributes().get("ProjectManager");
     projectManager.addDefaultProject(user);
@@ -299,83 +362,133 @@ public class UserManager implements Iterable<User> {
   } 
   
   /**
-   * Utility function for testing purposes that takes a User instance and returns it in XML.
-   * Note that this does not affect the state of any Manager instance. 
-   * @param user The User instance.
-   * @return The XML Document instance corresponding to this XML. 
-   * @exception Exception If problems occur marshalling the User or building the Document instance. 
-   */
-  public static Document marshallUser(User user) throws Exception {
-    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
-    Marshaller marshaller = jc.createMarshaller(); 
-    
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setNamespaceAware(true);
-    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
-    Document doc = documentBuilder.newDocument();
-    marshaller.marshal(user, doc);
-    return doc;
-  }
-  
-  /**
-   * Utility function for testing purposes that takes a Properties instance and returns it in XML.
-   * Note that this does not affect the state of any Manager instance. 
-   * @param properties The Properties instance.
-   * @return The XML Document instance corresponding to this XML. 
-   * @exception Exception If problems occur marshalling the Properties or building the Document.
-   */
-  public static Document marshallProperties(Properties properties) throws Exception {
-    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
-    Marshaller marshaller = jc.createMarshaller(); 
-    
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    dbf.setNamespaceAware(true);
-    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
-    Document doc = documentBuilder.newDocument();
-    marshaller.marshal(properties, doc);
-    return doc;
-  }
-  
-  /**
-   * Takes an XML Document representing a User and converts it to an instance. 
-   * Note that this does not affect the state of any Manager instance. 
-   * @param doc The XML Document representing a User.
-   * @return The corresponding User instance. 
-   * @throws Exception If problems occur during unmarshalling. 
-   */
-  public static User unmarshallUser(Document doc) throws Exception {
-    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
-    Unmarshaller unmarshaller = jc.createUnmarshaller();
-    return (User) unmarshaller.unmarshal(doc);
-  }
-   
-  
-  /**
-   * Takes a String encoding of a User in XML format and converts it to an instance. 
-   * Note that this does not affect the state of any Manager instance. 
-   * 
-   * @param xmlString The XML string representing a User.
-   * @return The corresponding User instance. 
-   * @throws Exception If problems occur during unmarshalling.
-   */
-  public static User unmarshallUser(String xmlString) throws Exception {
-    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
-    Unmarshaller unmarshaller = jc.createUnmarshaller();
-    return (User)unmarshaller.unmarshal(new StringReader(xmlString));
-  }
-  
-  /**
    * Takes a String encoding of a Properties in XML format and converts it to an instance. 
-   * Note that this does not affect the state of any Manager instance. 
    * 
    * @param xmlString The XML string representing a Properties.
    * @return The corresponding Properties instance. 
    * @throws Exception If problems occur during unmarshalling.
    */
-  public static Properties unmarshallProperties(String xmlString) throws Exception {
-    JAXBContext jc = JAXBContext.newInstance(jaxbPackage);
-    Unmarshaller unmarshaller = jc.createUnmarshaller();
+  public final synchronized Properties makeProperties(String xmlString) throws Exception {
+    Unmarshaller unmarshaller = this.jaxbContext.createUnmarshaller();
     return (Properties)unmarshaller.unmarshal(new StringReader(xmlString));
   }
+  
+  /**
+   * Takes a String encoding of a User in XML format and converts it to an instance. 
+   * 
+   * @param xmlString The XML string representing a User
+   * @return The corresponding User instance. 
+   * @throws Exception If problems occur during unmarshalling.
+   */
+  public final synchronized User makeUser(String xmlString) throws Exception {
+    Unmarshaller unmarshaller = this.jaxbContext.createUnmarshaller();
+    return (User)unmarshaller.unmarshal(new StringReader(xmlString));
+  }
+  
+  /**
+   * Takes a String encoding of a UserIndex in XML format and converts it to an instance. 
+   * 
+   * @param xmlString The XML string representing a UserIndex.
+   * @return The corresponding UserIndex instance. 
+   * @throws Exception If problems occur during unmarshalling.
+   */
+  public final synchronized UserIndex makeUserIndex(String xmlString) 
+  throws Exception {
+    Unmarshaller unmarshaller = this.jaxbContext.createUnmarshaller();
+    return (UserIndex)unmarshaller.unmarshal(new StringReader(xmlString));
+  }
+  
+  /**
+   * Returns the passed User instance as a String encoding of its XML representation.
+   * Final because it's called in constructor.
+   * @param user The User instance. 
+   * @return The XML String representation.
+   * @throws Exception If problems occur during translation. 
+   */
+  public final synchronized String makeUser (User user) throws Exception {
+    Marshaller marshaller = jaxbContext.createMarshaller(); 
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+    Document doc = documentBuilder.newDocument();
+    marshaller.marshal(user, doc);
+    DOMSource domSource = new DOMSource(doc);
+    StringWriter writer = new StringWriter();
+    StreamResult result = new StreamResult(writer);
+    TransformerFactory tf = TransformerFactory.newInstance();
+    Transformer transformer = tf.newTransformer();
+    transformer.transform(domSource, result);
+    String xmlString = writer.toString();
+    // Now remove the processing instruction.  This approach seems like a total hack.
+    xmlString = xmlString.substring(xmlString.indexOf('>') + 1);
+    return xmlString;
+  }
+  
+  /**
+   * Returns the passed Properties instance as a String encoding of its XML representation.
+   * @param properties The Properties instance. 
+   * @return The XML String representation.
+   * @throws Exception If problems occur during translation. 
+   */
+  public synchronized String makeProperties (Properties properties) throws Exception {
+    Marshaller marshaller = jaxbContext.createMarshaller(); 
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+    Document doc = documentBuilder.newDocument();
+    marshaller.marshal(properties, doc);
+    DOMSource domSource = new DOMSource(doc);
+    StringWriter writer = new StringWriter();
+    StreamResult result = new StreamResult(writer);
+    TransformerFactory tf = TransformerFactory.newInstance();
+    Transformer transformer = tf.newTransformer();
+    transformer.transform(domSource, result);
+    String xmlString = writer.toString();
+    // Now remove the processing instruction.  This approach seems like a total hack.
+    xmlString = xmlString.substring(xmlString.indexOf('>') + 1);
+    return xmlString;
+  }
+
+  /**
+   * Returns the passed User instance as a String encoding of its XML representation 
+   * as a UserRef object.
+   * Final because it's called in constructor.
+   * @param user The User instance. 
+   * @return The XML String representation of it as a UserRef
+   * @throws Exception If problems occur during translation. 
+   */
+  public final synchronized String makeUserRefString (User user) 
+  throws Exception {
+    UserRef ref = makeUserRef(user);
+    Marshaller marshaller = jaxbContext.createMarshaller(); 
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+    Document doc = documentBuilder.newDocument();
+    marshaller.marshal(ref, doc);
+    DOMSource domSource = new DOMSource(doc);
+    StringWriter writer = new StringWriter();
+    StreamResult result = new StreamResult(writer);
+    TransformerFactory tf = TransformerFactory.newInstance();
+    Transformer transformer = tf.newTransformer();
+    transformer.transform(domSource, result);
+    String xmlString = writer.toString();
+    // Now remove the processing instruction.  This approach seems like a total hack.
+    xmlString = xmlString.substring(xmlString.indexOf('>') + 1);
+    return xmlString;
+  }
+  
+  /**
+   * Returns a UserRef instance constructed from a User instance.
+   * @param user The User instance. 
+   * @return A UserRef instance. 
+   */
+  public synchronized UserRef makeUserRef(User user) {
+    UserRef ref = new UserRef();
+    ref.setEmail(user.getEmail());
+    ref.setHref(this.server.getHostName() + "users/" + user.getEmail()); 
+    return ref;
+  }
+  
 }
 

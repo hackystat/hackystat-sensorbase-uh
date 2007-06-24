@@ -11,10 +11,10 @@ import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.uripattern.UriPattern;
 
 /**
- * Provides an interface to storage for the four resources managed by the SensorBase.
- * Currently we have two storage mechanisms: a persistent store which is implemented by
- * an embedded Derby database, and a InMemory store which we are using a cache.  In 
- * future, we can enhance this DbManager to enable "swappable" persistent stores and other
+ * Provides an interface to storage for the resources managed by the SensorBase.
+ * Currently we have one storage mechanisms: a persistent store which is implemented by
+ * an embedded Derby database.
+ * In future, we can enhance this DbManager to enable "swappable" persistent stores and other
  * alternatives to storage. 
  * @author Philip Johnson
  */
@@ -23,12 +23,9 @@ public class DbManager {
   /** The Server instance this DbManager is attached to. */
   private Server server;
   
-  /** The Derby Storage system. */
-  private DerbyImplementation derbyImpl;
+  /** The chosen Storage system. */
+  private DbImplementation dbImpl;
 
-  /** The InMemory Storage system. */
-  //private InMemoryImplementation inMemoryImpl;
-  
   /** The SensorDataIndex open tag. */
   public static final String sensorDataIndexOpenTag = "<SensorDataIndex>";
   
@@ -37,14 +34,13 @@ public class DbManager {
 
   /**
    * Creates a new DbManager which manages access to the underlying persistency layer(s).
+   * Instantiates the underlying storage system to use. 
    * @param server The Restlet server instance. 
    */
   public DbManager(Server server) {
     this.server = server;
-    this.derbyImpl = new DerbyImplementation(this.server);
-    this.derbyImpl.initialize();
-    //this.inMemoryImpl = new InMemoryImplementation(this.server);
-    //this.inMemoryImpl.initialize();
+    this.dbImpl = new DerbyImplementation(this.server);
+    this.dbImpl.initialize();
   }
   
   /**
@@ -67,7 +63,7 @@ public class DbManager {
    * @param xmlSensorDataRef The sensor data resource as an XML resource reference
    */
   public void storeSensorData(SensorData data, String xmlSensorData, String xmlSensorDataRef) {
-    this.derbyImpl.storeSensorData(data, xmlSensorData, xmlSensorDataRef);
+    this.dbImpl.storeSensorData(data, xmlSensorData, xmlSensorDataRef);
   }
   
   /**
@@ -79,7 +75,18 @@ public class DbManager {
    */
   public void storeSensorDataType(SensorDataType sdt, String xmlSensorDataType, 
       String xmlSensorDataTypeRef) {
-    this.derbyImpl.storeSensorDataType(sdt, xmlSensorDataType, xmlSensorDataTypeRef);
+    this.dbImpl.storeSensorDataType(sdt, xmlSensorDataType, xmlSensorDataTypeRef);
+  }
+  
+  /**
+   * Persists a User instance.  If the User email already exists in the table, it is
+   * overwritten.
+   * @param user The user instance.
+   * @param xmlUser The User resource as an XML String.  
+   * @param xmlUserRef The User as an XML resource reference
+   */
+  public void storeUser(User user, String xmlUser, String xmlUserRef) {
+    this.dbImpl.storeUser(user, xmlUser, xmlUserRef);
   }
   
   /**
@@ -87,16 +94,17 @@ public class DbManager {
    * @return An XML String providing an index of all sensor data resources.
    */
   public String getSensorDataIndex() {
-    return this.derbyImpl.getSensorDataIndex();
+    return this.dbImpl.getSensorDataIndex();
   }
   
+ 
   /**
    * Returns the XML SensorDataIndex for all sensor data for this user. 
    * @param user The User whose sensor data is to be returned. 
    * @return The XML String providing an index of all relevent sensor data resources.
    */
   public String getSensorDataIndex(User user) {
-    return this.derbyImpl.getSensorDataIndex(user);
+    return this.dbImpl.getSensorDataIndex(user);
   }
   
   /**
@@ -106,7 +114,7 @@ public class DbManager {
    * @return The XML Document instance providing an index of all relevent sensor data resources.
    */
   public String getSensorDataIndex(User user, String sdtName) {
-    return this.derbyImpl.getSensorDataIndex(user, sdtName);
+    return this.dbImpl.getSensorDataIndex(user, sdtName);
   }
   
   /**
@@ -120,7 +128,7 @@ public class DbManager {
    */
   public String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime, List<UriPattern> uriPatterns) {
-    return this.derbyImpl.getSensorDataIndex(user, startTime, endTime, uriPatterns);
+    return this.dbImpl.getSensorDataIndex(user, startTime, endTime, uriPatterns);
   }
   
   /**
@@ -128,7 +136,44 @@ public class DbManager {
    * @return An XML String providing an index of all SDT resources.
    */
   public String getSensorDataTypeIndex() {
-    return this.derbyImpl.getSensorDataTypeIndex();
+    return this.dbImpl.getSensorDataTypeIndex();
+  }
+  
+  /**
+   * Returns the XML UserIndex for all Users..
+   * @return An XML String providing an index of all User resources.
+   */
+  public String getUserIndex() {
+    return this.dbImpl.getUserIndex();
+  }
+  
+  
+  /**
+   * Returns the SensorData instance as an XML string, or null.
+   * @param user The user.
+   * @param timestamp The timestamp associated with this sensor data.
+   * @return The SensorData instance as an XML string, or null.
+   */
+  public String getSensorData(User user, XMLGregorianCalendar timestamp) {
+    return this.dbImpl.getSensorData(user, timestamp);
+  }
+  
+  /**
+   * Returns the SensorDataType instance as an XML string, or null.
+   * @param sdtName The name of the SDT to retrieve.
+   * @return The SensorDataType instance as an XML string, or null.
+   */
+  public String getSensorDataType(String sdtName) {
+    return this.dbImpl.getSensorDataType(sdtName);
+  }
+  
+  /**
+   * Returns the User instance as an XML string, or null.
+   * @param email The email address of the User to retrieve.
+   * @return The User instance as an XML string, or null.
+   */
+  public String getUser(String email) {
+    return this.dbImpl.getUser(email);
   }
   
   /**
@@ -138,7 +183,7 @@ public class DbManager {
    * @return True if there is any sensor data for this [user, timestamp].
    */
   public boolean hasSensorData(User user, XMLGregorianCalendar timestamp) {
-    return this.derbyImpl.hasSensorData(user, timestamp);
+    return this.dbImpl.hasSensorData(user, timestamp);
   }  
   
   
@@ -148,7 +193,7 @@ public class DbManager {
    * @param timestamp The timestamp associated with this sensor data.
    */
   public void deleteSensorData(User user, XMLGregorianCalendar timestamp) {
-    this.derbyImpl.deleteSensorData(user, timestamp);
+    this.dbImpl.deleteSensorData(user, timestamp);
   }
   
   /**
@@ -156,26 +201,15 @@ public class DbManager {
    * @param sdtName The SDT name.
    */
   public void deleteSensorDataType(String sdtName) {
-    this.derbyImpl.deleteSensorDataType(sdtName);
+    this.dbImpl.deleteSensorDataType(sdtName);
   }
   
   /**
-   * Returns the SensorData instance as an XML string, or null.
-   * @param user The user.
-   * @param timestamp The timestamp associated with this sensor data.
-   * @return The SensorData instance as an XML string, or null.
+   * Ensures that the User with the given email address is no longer present in this db.
+   * @param email The user email.
    */
-  public String getSensorData(User user, XMLGregorianCalendar timestamp) {
-    return this.derbyImpl.getSensorData(user, timestamp);
-  }
-  
-  /**
-   * Returns the SensorDataType instance as an XML string, or null.
-   * @param sdtName The name of the SDT to retrieve.
-   * @return The SensorDataType instance as an XML string, or null.
-   */
-  public String getSensorDataType(String sdtName) {
-    return this.derbyImpl.getSensorDataType(sdtName);
+  public void deleteUser(String email) {
+    this.dbImpl.deleteUser(email);
   }
   
 }

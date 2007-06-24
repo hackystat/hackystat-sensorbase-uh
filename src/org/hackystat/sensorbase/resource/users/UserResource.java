@@ -4,14 +4,12 @@ import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
-import org.hackystat.sensorbase.resource.users.jaxb.Property;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
-import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Variant;
 
@@ -49,8 +47,8 @@ public class UserResource extends SensorBaseResource {
       return null;
     }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      return new DomRepresentation(MediaType.TEXT_XML,  
-          super.userManager.getUserDocument(this.uriUser));
+      String xmlData = super.userManager.getUserString(this.uriUser);
+      return super.getStringRepresentation(xmlData);
     }
     return null;
   }
@@ -116,7 +114,7 @@ public class UserResource extends SensorBaseResource {
     // Try to make the XML payload into a Properties instance, return failure if this fails. 
     try { 
       entityString = entity.getText();
-      newProperties = UserManager.unmarshallProperties(entityString);
+      newProperties = super.userManager.makeProperties(entityString);
     }
     catch (Exception e) {
       SensorBaseLogger.getLogger().warning("Bad Properties Definition: " + StackTrace.toString(e));
@@ -124,10 +122,7 @@ public class UserResource extends SensorBaseResource {
       return;
     }
     User user = super.userManager.getUser(this.uriUser);
-    // Update the existing property list with these new properties. 
-    for (Property property : newProperties.getProperty()) {
-      user.getProperties().getProperty().add(property);
-    }
+    super.userManager.updateProperties(user, newProperties);
     getResponse().setStatus(Status.SUCCESS_OK);
   }
 }

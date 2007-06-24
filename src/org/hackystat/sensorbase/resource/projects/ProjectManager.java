@@ -87,7 +87,7 @@ public class ProjectManager {
   
       // Make sure that all defined Users have a Default Project at startup.
       // We do it here to avoid a circular startup dependency between the User and Project Managers.
-      for (User user : userManager) {
+      for (User user : userManager.getUsers()) {
         if (!hasProject(user, "Default")) {
           addDefaultProject(user);
         }
