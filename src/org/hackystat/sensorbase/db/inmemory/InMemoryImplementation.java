@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.db.DbImplementation;
+import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
@@ -237,6 +238,30 @@ public class InMemoryImplementation extends DbImplementation {
   /** {@inheritDoc} */
   @Override
   public boolean storeUser(User user, String xmlUser, String xmlUserRef) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void deleteProject(User owner, String projectName) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public String getProject(User owner, String projectName) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String getProjectIndex() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean storeProject(Project project, String xmlProject, String xmlProjectRef) {
     // TODO Auto-generated method stub
     return false;
   }

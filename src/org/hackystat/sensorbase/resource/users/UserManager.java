@@ -52,10 +52,10 @@ public class UserManager {
   /** The DbManager associated with this server. */
   DbManager dbManager;
   
-  /** The SensorDataTypeIndex open tag. */
+  /** The UserIndex open tag. */
   public static final String userIndexOpenTag = "<UserIndex>";
   
-  /** The SensorDataTypeIndex close tag. */
+  /** The UserIndex close tag. */
   public static final String userIndexCloseTag = "</UserIndex>";
   
   /** The initial size for Collection instances that hold the Users. */
@@ -113,7 +113,6 @@ public class UserManager {
   private final void initializeCache() {
     try {
       UserIndex index = makeUserIndex(this.dbManager.getUserIndex());
-      SensorBaseLogger.getLogger().warning("User index: " + index);
       for (UserRef ref : index.getUserRef()) {
         String email = ref.getEmail();
         String userString = this.dbManager.getUser(email);

@@ -11,18 +11,16 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.hackystat.sensorbase.resource.projects.jaxb.Members;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
+import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.junit.Test;
-import org.restlet.data.MediaType;
 import org.restlet.data.Method;
 import org.restlet.data.Response;
-import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.XmlRepresentation;
-import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 /**
@@ -194,8 +192,10 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     uris.getUriPattern().add("**/test/**");
     project.setUriPatterns(uris);
     
-    Document doc = ProjectManager.marshallProject(project);
-    Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
+    // Now convert the Project instance to XML.
+    String xmlData = SensorBaseRestApiHelper.projectManager.makeProject(project);
+    Representation representation = SensorBaseResource.getStringRepresentation(xmlData);
+
     String uri = projects + user + "/TestProject1";
     Response response = makeRequest(Method.PUT, uri, user, representation);
 
@@ -234,8 +234,10 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     members.getMember().add(user2);
     project.setMembers(members);
     
-    Document doc = ProjectManager.marshallProject(project);
-    Representation representation = new DomRepresentation(MediaType.TEXT_XML, doc);
+    // Now convert the Project instance to XML.
+    String xmlData = SensorBaseRestApiHelper.projectManager.makeProject(project);
+    Representation representation = SensorBaseResource.getStringRepresentation(xmlData);
+
     String uri = projects + user + "/TestProject2";
     Response response = makeRequest(Method.PUT, uri, user, representation);
 

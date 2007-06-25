@@ -10,6 +10,7 @@
   <xs:element name="Owner" type="xs:string"/>
   <xs:element name="UriPattern" type="xs:string"/>
   <xs:attribute name="Name" type="xs:string"/>
+  <xs:attribute name="Owner" type="xs:string"/>
   <xs:attribute name="Href" type="xs:anyURI"/>
   <xs:attribute name="LastMod" type="xs:dateTime"/>
   
@@ -76,6 +77,7 @@
   <xs:element name="ProjectRef">
     <xs:complexType>
       <xs:attribute ref="Name" use="required"/>
+      <xs:attribute ref="Owner" use="required"/>
       <xs:attribute ref="Href" use="required"/>
       <xs:attribute ref="LastMod"/>
     </xs:complexType>

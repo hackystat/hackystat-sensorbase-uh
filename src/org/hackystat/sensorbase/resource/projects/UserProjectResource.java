@@ -10,7 +10,6 @@ import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
-import org.restlet.resource.DomRepresentation;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Variant;
 
@@ -69,8 +68,8 @@ public class UserProjectResource extends SensorBaseResource {
     // Have a user and a project, so proceed.
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       try {
-        return new DomRepresentation(MediaType.TEXT_XML, 
-            super.projectManager.getProjectDocument(this.user, this.projectName));
+        String xmlData = super.projectManager.getProjectString(this.user, this.projectName);
+        return super.getStringRepresentation(xmlData);
       }
       catch (Exception e) {
         String msg = "Couldn't marshall project " + this.projectName + " into XML.";
@@ -118,7 +117,7 @@ public class UserProjectResource extends SensorBaseResource {
     // Try to make the XML payload into an SDT, return failure if this fails. 
     try { 
       entityString = entity.getText();
-      project = ProjectManager.unmarshallProject(entityString);
+      project = super.projectManager.makeProject(entityString);
     }
     catch (Exception e) {
       SensorBaseLogger.getLogger().warning("Bad Project in PUT: " + StackTrace.toString(e));
@@ -183,7 +182,7 @@ public class UserProjectResource extends SensorBaseResource {
       return;
     }    
     if (!super.userManager.isAdmin(this.authUser) && 
-        !super.projectManager.isOwner(this.user, this.projectName)) {
+        !super.projectManager.hasProject(this.user, this.projectName)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "User is not Owner or Admin.");
       return;
     }

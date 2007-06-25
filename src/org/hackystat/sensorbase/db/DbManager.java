@@ -4,6 +4,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.db.derby.DerbyImplementation;
+import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -90,6 +91,17 @@ public class DbManager {
   }
   
   /**
+   * Persists a Project instance.  If the Project already exists in the db, it is
+   * overwritten.
+   * @param project The project instance.
+   * @param xmlProject The Project resource as an XML String.  
+   * @param xmlProjectRef The Project as an XML resource reference
+   */
+  public void storeProject(Project project, String xmlProject, String xmlProjectRef) {
+    this.dbImpl.storeProject(project, xmlProject, xmlProjectRef);
+  }
+  
+  /**
    * Returns the XML SensorDataIndex for all sensor data.
    * @return An XML String providing an index of all sensor data resources.
    */
@@ -147,6 +159,14 @@ public class DbManager {
     return this.dbImpl.getUserIndex();
   }
   
+  /**
+   * Returns the XML Project Index for all Projects.
+   * @return An XML String providing an index of all Project resources.
+   */
+  public String getProjectIndex() {
+    return this.dbImpl.getProjectIndex();
+  }
+  
   
   /**
    * Returns the SensorData instance as an XML string, or null.
@@ -174,6 +194,16 @@ public class DbManager {
    */
   public String getUser(String email) {
     return this.dbImpl.getUser(email);
+  }
+  
+  /**
+   * Returns the Project instance as an XML string, or null.
+   * @param user The User that owns the Project to retrieve.
+   * @param projectName The name of the Project to retrieve.
+   * @return The Project instance as an XML string, or null.
+   */
+  public String getProject(User user, String projectName) {
+    return this.dbImpl.getProject(user, projectName);
   }
   
   /**
@@ -210,6 +240,15 @@ public class DbManager {
    */
   public void deleteUser(String email) {
     this.dbImpl.deleteUser(email);
+  }
+  
+  /**
+   * Ensures that the Project with the given user and name is no longer present in this db.
+   * @param user  The User who owns this Project.
+   * @param projectName The name of the Project to delete.
+   */
+  public void deleteProject(User user, String projectName) {
+    this.dbImpl.deleteProject(user, projectName);
   }
   
 }

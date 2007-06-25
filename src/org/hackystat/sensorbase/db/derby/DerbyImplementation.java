@@ -19,6 +19,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.hackystat.sensorbase.db.DbImplementation;
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
@@ -841,5 +842,34 @@ public class DerbyImplementation extends DbImplementation {
       }
     }
     return true;
+  }
+
+
+  /** {@inheritDoc} */
+  @Override
+  public void deleteProject(User owner, String projectName) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getProject(User owner, String projectName) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String getProjectIndex() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public boolean storeProject(Project project, String xmlProject, String xmlProjectRef) {
+    // TODO Auto-generated method stub
+    return false;
   }
 }

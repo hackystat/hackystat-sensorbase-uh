@@ -7,6 +7,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
+import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
@@ -168,6 +169,37 @@ public abstract class DbImplementation {
    * @param email The user's email address.
    */
   public abstract void deleteUser(String email);
+  
+  /**
+   * Returns the XML ProjectIndex for all Projects in this server.
+   * @return The XML String containing an index to all Projects.
+   */
+  public abstract String getProjectIndex();
+  
+  /**
+   * Returns the Project instance as XML string, or null if not found.
+   * @param owner The user who owns the project.
+   * @param projectName The name of the Project.
+   * @return The Project XML string, or null.
+   */
+  public abstract String getProject(User owner, String projectName);
+  
+  /**
+   * Persists a Project instance.  If a Project with this owner and name
+   * already exists in the storage system, it will be overwritten.
+   * @param project The Project.
+   * @param xmlProject The Project marshalled into an XML String.  
+   * @param xmlProjectRef The corresponding ProjectRef marshalled into an XML String
+   * @return True if the user was successfully inserted.
+   */
+  public abstract boolean storeProject(Project project, String xmlProject, String xmlProjectRef);
+  
+  /**
+   * Ensures that the Project with the given owner and projectName is no longer present in the db.
+   * @param owner The User who owns this project.
+   * @param projectName The name of the Project.
+   */
+  public abstract void deleteProject(User owner, String projectName);
   
   
   /** Keeps a pointer to this Server for use in accessing the managers. */
