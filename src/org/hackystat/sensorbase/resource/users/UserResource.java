@@ -41,7 +41,7 @@ public class UserResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown: " + this.uriUser);
       return null;
     } 
-    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
+    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
       String msg = "User is not admin and authenticated user does not not match user in URI";
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;

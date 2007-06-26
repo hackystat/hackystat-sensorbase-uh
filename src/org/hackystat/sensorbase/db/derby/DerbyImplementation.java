@@ -126,6 +126,7 @@ public class DerbyImplementation extends DbImplementation {
       s.execute(testSensorDataTableStatement);
       s.execute(testSensorDataTypeTableStatement);
       s.execute(testUserTableStatement);
+      s.execute(testProjectTableStatement);
     }  
     catch (SQLException e) {
       String theError = (e).getSQLState();
@@ -166,6 +167,8 @@ public class DerbyImplementation extends DbImplementation {
       s.execute(indexSensorDataTypeTableStatement);
       s.execute(createUserTableStatement);
       s.execute(indexUserTableStatement);
+      s.execute(createProjectTableStatement);
+      s.execute(indexProjectTableStatement);
       s.close();
     }
     finally {
@@ -188,7 +191,7 @@ public class DerbyImplementation extends DbImplementation {
     + " Resource VARCHAR(512) NOT NULL, "
     + " XmlSensorData VARCHAR(32000) NOT NULL, "
     + " XmlSensorDataRef VARCHAR(1000) NOT NULL, "
-    + " LastMod TIMESTAMP NOT NULL, "
+    + " LastMod TIMESTAMP NOT NULL, " //NOPMD (Don't worry about repeat occurrences of this string)
     + " PRIMARY KEY (Owner, Tstamp) "
     + ")" ;
   
@@ -196,15 +199,15 @@ public class DerbyImplementation extends DbImplementation {
   private static final String testSensorDataTableStatement = 
     " UPDATE SensorData SET "
     + " Owner = 'TestUser', " 
-    + " Tstamp = '" + new Timestamp(new Date().getTime()).toString() + "', "
+    + " Tstamp = '" + new Timestamp(new Date().getTime()).toString() + "', " //NOPMD (dup string)
     + " Sdt = 'testSdt',"
     + " Runtime = '" + new Timestamp(new Date().getTime()).toString() + "', "
     + " Tool = 'testTool', "
     + " Resource = 'testResource', "
     + " XmlSensorData = 'testXmlResource', "
     + " XmlSensorDataRef = 'testXmlRef', "
-    + " LastMod = '" + new Timestamp(new Date().getTime()).toString() + "' "
-    + " WHERE 1=3";
+    + " LastMod = '" + new Timestamp(new Date().getTime()).toString() + "' " //NOPMD (dup string)
+    + " WHERE 1=3"; //NOPMD (duplicate string)
   
   /** The statement that sets up an index for the SensorData table. */
   private static final String indexSensorDataTableStatement = 
@@ -436,12 +439,12 @@ public class DerbyImplementation extends DbImplementation {
         "DELETE FROM SensorData WHERE "
         + ownerEquals + user.getEmail() + andClause 
         + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
-      SensorBaseLogger.getLogger().fine("Derby: " + statement);
+      SensorBaseLogger.getLogger().fine("Derby: " + statement); //NOPMD (Dup string)
       s = conn.prepareStatement(statement);
       s.executeUpdate();
     }
     catch (SQLException e) {
-      this.logger.info("Derby: Error in deleteData()" + StackTrace.toString(e));
+      this.logger.info("Derby: Error in deleteSensorData()" + StackTrace.toString(e));
     }
     finally {
       try {
@@ -844,32 +847,189 @@ public class DerbyImplementation extends DbImplementation {
     return true;
   }
 
+  // ********************   Start Project specific stuff here *****************  //
+
+  /** The SQL string for creating the Project table.  */
+  private static final String createProjectTableStatement = 
+    "create table Project  "
+    + "("
+    + " Owner VARCHAR(128) NOT NULL, "
+    + " ProjectName VARCHAR(128) NOT NULL, "
+    + " StartTime TIMESTAMP NOT NULL, "
+    + " EndTime TIMESTAMP NOT NULL, "
+    + " XmlProject VARCHAR(32000) NOT NULL, "
+    + " XmlProjectRef VARCHAR(1000) NOT NULL, "
+    + " LastMod TIMESTAMP NOT NULL, "
+    + " PRIMARY KEY (Owner, ProjectName) "
+    + ")" ;
+  
+  /** An SQL string to test whether the Project table exists and has the correct schema. */
+  private static final String testProjectTableStatement = 
+    " UPDATE Project SET "
+    + " Owner = 'TestEmail@foo.com', " 
+    + " ProjectName = 'TestProject', " 
+    + " StartTime = '" + new Timestamp(new Date().getTime()).toString() + "', "
+    + " EndTime = '" + new Timestamp(new Date().getTime()).toString() + "', "
+    + " XmlProject = 'testXmlResource', "
+    + " XmlProjectRef = 'testXmlRef', "
+    + " LastMod = '" + new Timestamp(new Date().getTime()).toString() + "' "
+    + " WHERE 1=3";
+  
+  /** Generates an index on the Owner/ProjectName columns for this table. */
+  private static final String indexProjectTableStatement = 
+    "CREATE UNIQUE INDEX ProjectIndex ON Project(Owner, ProjectName)";
 
   /** {@inheritDoc} */
   @Override
   public void deleteProject(User owner, String projectName) {
-    // TODO Auto-generated method stub
-    
+    Connection conn = null;
+    PreparedStatement s = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      String statement =
+        "DELETE FROM Project WHERE "
+        + ownerEquals + owner.getEmail() + andClause 
+        + " ProjectName = '" + projectName + "'";
+      SensorBaseLogger.getLogger().fine("Derby: " + statement);
+      s = conn.prepareStatement(statement);
+      s.executeUpdate();
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in deleteProject()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
   }
 
   /** {@inheritDoc} */
   @Override
   public String getProject(User owner, String projectName) {
-    // TODO Auto-generated method stub
-    return null;
+    StringBuilder builder = new StringBuilder(512);
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      String statement =
+        "SELECT XmlProject FROM Project WHERE "
+        + ownerEquals + owner.getEmail() + andClause 
+        + " ProjectName ='" + projectName + "'";
+      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      while (rs.next()) { // guaranteed to be only one row in table because owner/tstamp is PK.
+        builder.append(rs.getString("XmlProject"));
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("DB: Error in getProject()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    return builder.toString();
   }
 
   /** {@inheritDoc} */
   @Override
   public String getProjectIndex() {
-    // TODO Auto-generated method stub
-    return null;
+    StringBuilder builder = new StringBuilder(512);
+    builder.append("<ProjectIndex>");
+    // Retrieve all the SensorData
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement("SELECT XmlProjectRef FROM Project");
+      rs = s.executeQuery();
+      while (rs.next()) {
+        builder.append(rs.getString("XmlProjectRef"));
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in getProjectIndex()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    builder.append("</ProjectIndex>");
+    return builder.toString();
   }
 
   /** {@inheritDoc} */
   @Override
   public boolean storeProject(Project project, String xmlProject, String xmlProjectRef) {
-    // TODO Auto-generated method stub
-    return false;
+    Connection conn = null;
+    PreparedStatement s = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement("INSERT INTO Project VALUES (?, ?, ?, ?, ?, ?, ?)");
+      // Order: Owner ProjectName StartTime EndTime XmlProject XmlProjectRef LastMod
+      s.setString(1, project.getOwner());
+      s.setString(2, project.getName());
+      s.setTimestamp(3, Tstamp.makeTimestamp(project.getStartTime()));
+      s.setTimestamp(4, Tstamp.makeTimestamp(project.getEndTime()));
+      s.setString(5, xmlProject);
+      s.setString(6, xmlProjectRef);
+      s.setTimestamp(7, Tstamp.makeTimestamp(project.getLastMod()));
+      s.executeUpdate();
+      this.logger.fine("Derby: Inserted " + project.getOwner() + " " + project.getName());
+    }
+    catch (SQLException e) {
+      if (DUPLICATE_KEY.equals(e.getSQLState())) {
+        try {
+          // Do an update, not an insert.
+          s = conn.prepareStatement(
+              "UPDATE Project SET "
+              + " StartTime=?, EndTime=?, XmlProject=?, " 
+              + " XmlProjectRef=?, LastMod=?"
+              + " WHERE Owner=? AND ProjectName=?");
+          s.setTimestamp(1, Tstamp.makeTimestamp(project.getStartTime()));
+          s.setTimestamp(2, Tstamp.makeTimestamp(project.getEndTime()));
+          s.setString(3, xmlProject);
+          s.setString(4, xmlProjectRef);
+          s.setTimestamp(5, Tstamp.makeTimestamp(project.getEndTime()));
+          s.setString(6, project.getOwner());
+          s.setString(7, project.getName());
+          s.executeUpdate();
+          this.logger.fine("Derby: Updated " + project.getOwner() + " " + project.getName());
+        }
+        catch (SQLException f) {
+          this.logger.info(derbyError + StackTrace.toString(f));
+        }
+      }
+    }
+    finally {
+      try {
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    return true;
   }
 }

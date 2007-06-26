@@ -1,20 +1,17 @@
 package org.hackystat.sensorbase.resource.sensordatatypes;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
+import org.hackystat.sensorbase.client.SensorBaseClient;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.Property;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.RequiredField;
+import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.RequiredFields;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
+import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeRef;
+import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeIndex;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.junit.Test;
-import org.restlet.data.Method;
-import org.restlet.data.Response;
-import org.restlet.resource.Representation;
-import org.restlet.resource.XmlRepresentation;
-import org.w3c.dom.Node;
 
 /**
  * Tests the SensorBase REST API for both the SensorDataTypes and SensorDataType resources.
@@ -26,33 +23,34 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
   private String user = "TestUser@hackystat.org";
 
   /**
-   * Test that GET host/sensorbase/sensordatatypes returns an index containing SampleSDT.
+   * Test that GET host/sensorbase/sensordatatypes returns an index containing TestSDT, and that 
+   * all SDTs in the index can be retrieved. 
    * @throws Exception If problems occur.
    */
   @Test public void getSdtIndex() throws Exception {
-    Response response = makeRequest(Method.GET, "sensordatatypes", user);
-
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Testing for successful GET index", response.getStatus().isSuccess());
-
-    // Ensure that we can find the SampleSdt definition.
-    XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//SensorDataTypeRef[@Name='TestSdt']");
-    assertNotNull("Checking that we found the TestSdt", node);
+    SensorBaseClient client = new SensorBaseClient(server.getHostName(), user, user);
+    client.authenticate();
+    SensorDataTypeIndex sdtIndex = client.getSensorDataTypeIndex();
+    // Make sure that we can iterate through all of the SDTs OK. 
+    boolean foundTestSdt = false;
+    for (SensorDataTypeRef ref : sdtIndex.getSensorDataTypeRef()) {
+      if ("TestSdt".equals(ref.getName())) {
+        foundTestSdt = true;
+      }
+      // Make sure the href is OK. 
+      client.getUri(ref.getHref());
+    }
+    assertTrue("Checking that we found the TestSdt", foundTestSdt);
     }
   
   /**
    * Test that GET host/sensorbase/sensordatatypes/TestSdt returns the TestSdt SDT.
    * @throws Exception If problems occur.
    */
-  @Test public void getIndividualSdt() throws Exception {
-    Response response = makeRequest(Method.GET, "sensordatatypes/TestSdt", user);
-
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Testing for successful GET TestSdt", response.getStatus().isSuccess());
-    String xmlData = response.getEntity().getText();
-    //Make it into a Java SDT and ensure the fields are there as expected. 
-    SensorDataType sdt = sdtManager.makeSensorDataType(xmlData);
+  @Test public void getSdt() throws Exception {
+    SensorBaseClient client = new SensorBaseClient(server.getHostName(), user, user);
+    client.authenticate();
+    SensorDataType sdt = client.getSensorDataType("TestSdt");
     assertEquals("Checking name", "TestSdt", sdt.getName());
     assertTrue("Checking description", sdt.getDescription().startsWith("SDT"));
     RequiredField reqField = sdt.getRequiredFields().getRequiredField().get(0);
@@ -64,37 +62,25 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
     }
   
   /**
-   * Test that PUT host/sensorbase/sensordatatypes/TestSdt works.
+   * Test that PUT and DELETE host/sensorbase/sensordatatypes/TestSdt are OK.
+   * Note that these operations require admin authentication.
    * @throws Exception If problems occur.
    */
   @Test public void putSdt() throws Exception {
-    // First, create a sample SDT. Note that our XmlSchema is too lenient right now. 
+    // First, create a sample SDT. 
     SensorDataType sdt = new SensorDataType();
-    sdt.setName("TestSdt2");
-    String xmlData = SensorBaseRestApiHelper.sdtManager.makeSensorDataType(sdt);
-    Representation representation = SensorBaseResource.getStringRepresentation(xmlData);
-    String uri = "sensordatatypes/TestSdt2";
-    Response response = makeAdminRequest(Method.PUT, uri, representation);
-
-    // Test that the PUT request was received and processed by the server OK. 
-    assertTrue("Testing for successful PUT TestSdt2", response.getStatus().isSuccess());
-    
-    // Test to see that we can now retrieve it. 
-    response = makeRequest(Method.GET, uri, user);
-    assertTrue("Testing for successful GET TestSdt2", response.getStatus().isSuccess());
-    XmlRepresentation data = response.getEntityAsSax();
-    assertEquals("Checking SDT", "TestSdt2", data.getText("SensorDataType/@Name"));
-    
-    // Test that PUTting it again is OK.
-    response = makeAdminRequest(Method.PUT, uri, representation);
-    assertTrue("Testing for successful update TestSdt2", response.getStatus().isSuccess());
-    
-    // Test that DELETE gets rid of this SDT.
-    response = makeAdminRequest(Method.DELETE, uri);
-    assertTrue("Testing for successful DELETE TestSdt2", response.getStatus().isSuccess());
-    
-    // Test that a second DELETE succeeds even though its no longer there. 
-    response = makeAdminRequest(Method.DELETE, uri);
-    assertTrue("Testing for second DELETE TestSdt2", response.getStatus().isSuccess());
+    String sdtName = "TestSdt2";
+    sdt.setName(sdtName);
+    sdt.setDescription("Sample SDT");
+    RequiredField field = new RequiredField();
+    field.setName("Required");
+    RequiredFields fields = new RequiredFields();
+    fields.getRequiredField().add(field);
+    // Now put it to the server. 
+    SensorBaseClient client = new SensorBaseClient(server.getHostName(), adminEmail, adminPassword);
+    client.authenticate();
+    client.putSensorDataType(sdt);
+    client.getSensorDataType(sdtName);
+    client.deleteSensorDataType(sdtName);
   }
 }

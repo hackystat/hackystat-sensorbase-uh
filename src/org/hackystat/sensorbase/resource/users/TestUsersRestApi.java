@@ -1,26 +1,22 @@
 package org.hackystat.sensorbase.resource.users;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
+import org.hackystat.sensorbase.client.SensorBaseClient;
+import org.hackystat.sensorbase.client.SensorBaseClientException;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.Property;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
+import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
+import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
 import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 
 import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
 import org.junit.Test;
-import org.restlet.data.Method;
-import org.restlet.data.Response;
-import org.restlet.resource.DomRepresentation;
-import org.restlet.resource.Representation;
-import org.restlet.resource.XmlRepresentation;
-import org.w3c.dom.Node;
+
 
 /**
  * Tests the SensorBase REST API for Users and User resources.
@@ -30,73 +26,56 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
 
   /** The TestUser user email. */
   private String testUserEmail = "TestUser@hackystat.org";
-  /** Here because PMD thinks this way is better. */
-  private String usersUri = "users/";
-  /** The URI string for the TestUser user. */
-  private String testUserUri = usersUri + testUserEmail; 
+
 
   /**
-   * Test that GET host/sensorbase/users returns an index containing TestUser.
+   * Test that GET host/sensorbase/users returns an index containing TestUser and
+   * that the HREFs are OK. 
    * @throws Exception If problems occur.
    */
-  @Test public void getUsersIndex() throws Exception {
-    Response response = makeAdminRequest(Method.GET, usersUri);
-
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Unsuccessful GET index", response.getStatus().isSuccess());
-
-    // Ensure that we can find the SampleSdt definition.
-    XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//UserRef[@Email='" + testUserEmail + "']");
-    assertNotNull("Failed to find " + testUserEmail, node);
+  @Test public void getUsersIndex() throws Exception {  
+    SensorBaseClient client = new SensorBaseClient(server.getHostName(), adminEmail, adminPassword);
+    client.authenticate();
+    UserIndex userIndex = client.getUserIndex();
+    // Make sure that we can iterate through all of the SDTs OK. 
+    boolean foundTestUser = false;
+    for (UserRef ref : userIndex.getUserRef()) {
+      if (testUserEmail.equals(ref.getEmail())) {
+        foundTestUser = true;
+      }
+      // Make sure the href is OK. 
+      client.getUri(ref.getHref());
+    }
+    assertTrue("Checking that we found the TestUser", foundTestUser);
   }
-  
+
   /**
-   * Test that GET host/sensorbase/users/TestUser returns the TestUser test user. 
+   * Test that GET host/sensorbase/users/TestUser@hackystat.org returns the TestUser test user. 
    * @throws Exception If problems occur.
    */
   @Test public void getUser() throws Exception {
-    Response response = makeRequest(Method.GET, testUserUri, testUserEmail);
-
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Unsuccessful GET TestUser", response.getStatus().isSuccess());
-    String xmlData = response.getEntity().getText();
-    User user = userManager.makeUser(xmlData);
+    SensorBaseClient client = 
+      new SensorBaseClient(server.getHostName(), testUserEmail, testUserEmail);
+    client.authenticate();
+    User user = client.getUser(testUserEmail);
     assertEquals("Bad email", testUserEmail, user.getEmail());
     assertEquals("Bad password", testUserEmail, user.getPassword());
-  }
-  
-  /**
-   * Test that HEAD host/sensorbase/users/TestUser provides a lightweight way
-   * to check authentication credentials. 
-   * @throws Exception If problems occur.
-   */
-  @Test public void getUserHead() throws Exception {
-    Response response = makeRequest(Method.HEAD, testUserUri, testUserEmail);
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Unsuccessful HEAD TestUser", response.getStatus().isSuccess());
-    // Now check for bad credentials.
-    response = makeRequest(Method.HEAD, testUserUri, "unknownuser");
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Successful Bad HEAD TestUser", response.getStatus().isClientError());
   }
   
   /**
    * Tests the POST method that registers a new user. 
    * @throws Exception If problems occur.
    */
-  @Test public void postUser() throws Exception {
-    String testEmail = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
-    Response response = makeRequest(Method.POST, "users?email=" + testEmail, null);
+  @Test public void registerUser() throws Exception {
+    String testPost = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
+    SensorBaseClient.registerUser(server.getHostName(), testPost);
+    // Now that TestPost is registered, see if we can retrieve him (her?) 
+    SensorBaseClient client = 
+      new SensorBaseClient(server.getHostName(), testPost, testPost);
+    client.authenticate();
+    User user = client.getUser(testPost);
+    assertEquals("Bad email", testPost, user.getEmail());
 
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Unsuccessful POST of TestPost@hackystat.org", response.getStatus().isSuccess());
-
-    // Test that we can now retrieve this user with a GET.
-    response = makeRequest(Method.GET, usersUri + testEmail, testEmail);
-    assertTrue("Unsuccessful GET TestPost", response.getStatus().isSuccess());
-    DomRepresentation data = response.getEntityAsDom();
-    assertEquals("Couldn't find TestPost user", testEmail, data.getText("User/Email"));
   }
   
   /**
@@ -104,31 +83,24 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur. 
    */
   @Test public void deleteUser () throws Exception {
-    String testEmail = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
-    String testEmailUri = usersUri + testEmail;
-    Response response = makeRequest(Method.POST, "users?email=" + testEmail, testUserEmail);
+    String testPost = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
+    SensorBaseClient.registerUser(server.getHostName(), testPost);
+    // Now that TestPost is registered, see if we can delete him (her?) 
+    SensorBaseClient client = 
+      new SensorBaseClient(server.getHostName(), testPost, testPost);
+    client.deleteUser(testPost);
 
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Unsuccessful POST of TestPost", response.getStatus().isSuccess());
-    
-    // Now try to delete
-    response = makeRequest(Method.DELETE, testEmailUri, testEmail);
-    
-    // Test that it was processed OK.
-    assertTrue("Unsuccessful DELETE of TestPost", response.getStatus().isSuccess());
-    
     //Ensure that TestPost is no longer found as a user.
-    response = makeRequest(Method.GET, testEmailUri, testEmail);
-    assertFalse("Illegal GET of TestPost", response.getStatus().isSuccess());
-    
-    // Ensure that TestPost is not listed in the index.
-    response = makeAdminRequest(Method.GET, "users");
-    assertTrue("Unsuccessful GET index", response.getStatus().isSuccess());
+    try {
+      client.authenticate();
+      fail("Authentication should not have succeeded.");
+    }
+    catch (SensorBaseClientException e) { //NOPMD
+      // good, we got here. 
+      // We can't use the JUnit annotation idiom because the code above us could throw
+      // the same exception type, and that would be a valid error. 
+    }
 
-    // Ensure that we can't find the TestPost definition.
-    XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//UserRef[@Email='" + testEmail + "']");
-    assertNull("Incorrectly found TestPost user", node);
   }
   
   /**
@@ -136,31 +108,23 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur. 
    */
   @Test public void postUserProperties () throws Exception {
-    // Create (or recreate) the TestPost user
-    String testEmail = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
-    String testEmailUri = usersUri + testEmail;
-    Response response = makeRequest(Method.POST, "users?email=" + testEmail, null);
+    String testPost = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
+    SensorBaseClient.registerUser(server.getHostName(), testPost);
+    // Now that TestPost is registered, see if we can update his properties. 
 
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Unsuccessful POST of TestPost", response.getStatus().isSuccess());
-    
     // Now create a properties object and post it.
     Properties properties = new Properties();
     Property property = new Property();
     property.setKey("testKey");
     property.setValue("testValue");
     properties.getProperty().add(property);
-    String xmlData = userManager.makeProperties(properties);
-    Representation representation = SensorBaseResource.getStringRepresentation(xmlData);
-
-    response = makeRequest(Method.POST, testEmailUri, testEmail, representation);
-
-    // Test that the POST request was received and processed by the server OK. 
-    assertTrue("Unsuccessful POST TestPost", response.getStatus().isSuccess());
     
-    // Retrieve the User representation and see that this property is there. 
-    response = makeRequest(Method.GET, testEmailUri, testEmail, representation);
-    DomRepresentation data = response.getEntityAsDom();
-    assertEquals("Bad key", "testKey", data.getText("//User/Properties/Property/Key"));
+    SensorBaseClient client = 
+      new SensorBaseClient(server.getHostName(), testPost, testPost);
+    client.updateUserProperties(testPost, properties);
+
+    User user = client.getUser(testPost);
+    Property theProperty = user.getProperties().getProperty().get(0);
+    assertEquals("Got the property", "testValue", theProperty.getValue());
   }
 }

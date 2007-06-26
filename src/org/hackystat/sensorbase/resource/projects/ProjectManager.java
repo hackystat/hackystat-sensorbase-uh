@@ -96,7 +96,7 @@ public class ProjectManager {
         JAXBContext.newInstance("org.hackystat.sensorbase.resource.projects.jaxb");
       loadDefaultProjects(); //NOPMD it's throwing a false warning. 
       initializeCache();  //NOPMD 
-      initializeDefaultProjects();
+      initializeDefaultProjects(); //NOPMD
     }
     catch (Exception e) {
       String msg = "Exception during ProjectManager initialization processing";
@@ -118,6 +118,9 @@ public class ProjectManager {
       Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
       Projects projects = (Projects) unmarshaller.unmarshal(defaultsFile);
       for (Project project : projects.getProject()) {
+        if (project.getLastMod() == null) {
+          project.setLastMod(Tstamp.makeTimestamp());
+        }
         this.dbManager.storeProject(project, this.makeProject(project), 
             this.makeProjectRefString(project));
       }
@@ -128,13 +131,22 @@ public class ProjectManager {
   private final void initializeCache() {
     try {
       ProjectIndex index = makeProjectIndex(this.dbManager.getProjectIndex());
+
       for (ProjectRef ref : index.getProjectRef()) {
         String owner = ref.getOwner();
         User user = this.userManager.getUser(owner);
-        String projectName = ref.getName();
-        String projectString = this.dbManager.getProject(user, projectName);
-        Project project = makeProject(projectString);
-        this.updateCache(project);
+        // Check to make sure user exists.  DB is not normalized! 
+        if (user == null) {
+          String msg = "Project with undefined user '" + owner + "' found while initializing " 
+          + " project cache from database. Project will be ignored.";
+          SensorBaseLogger.getLogger().warning(msg);   
+        }
+        else {
+          String projectName = ref.getName();
+          String projectString = this.dbManager.getProject(user, projectName);
+          Project project = makeProject(projectString);
+          this.updateCache(project);
+        }
       }
     }
     catch (Exception e) {
@@ -286,10 +298,11 @@ public class ProjectManager {
    */
   public synchronized void putProject(Project project) {
     try {
-    String xmlProject =  this.makeProject(project);
-    String xmlRef =  this.makeProjectRefString(project);
-    this.updateCache(project, xmlProject, xmlRef);
-    this.dbManager.storeProject(project, xmlProject, xmlRef);
+      project.setLastMod(Tstamp.makeTimestamp());
+      String xmlProject =  this.makeProject(project);
+      String xmlRef =  this.makeProjectRefString(project);
+      this.updateCache(project, xmlProject, xmlRef);
+      this.dbManager.storeProject(project, xmlProject, xmlRef);
     }
     catch (Exception e) {
       SensorBaseLogger.getLogger().warning("Failed to put Project" + StackTrace.toString(e));
@@ -422,6 +435,7 @@ public class ProjectManager {
     project.setName("Default");
     project.setOwner(owner.getEmail());
     project.setProperties(new Properties());
+    project.setLastMod(Tstamp.makeTimestamp());
     UriPatterns uriPatterns = new UriPatterns();
     uriPatterns.getUriPattern().add("**");
     project.setUriPatterns(uriPatterns);
@@ -444,7 +458,7 @@ public class ProjectManager {
    * @return The project, or null if not found.
    */
   public synchronized Project getProject(User owner, String projectName) {
-    return (hasProject(owner, projectName)) ? owner2name2project.get(owner).get(projectName) : null; 
+    return (hasProject(owner, projectName)) ? owner2name2project.get(owner).get(projectName) : null;
 
   }
   

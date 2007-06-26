@@ -35,8 +35,6 @@ import static org.hackystat.sensorbase.server.ServerProperties.LOGGING_LEVEL_KEY
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
-
-
 /**
  * Sets up the HTTP Server process and dispatching to the associated resources. 
  * @author Philip Johnson

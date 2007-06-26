@@ -29,7 +29,7 @@ import org.restlet.resource.Representation;
  */
 public class SensorBaseRestApiHelper {
   /** The SensorBase server used in these tests. */
-  private static Server server;
+  protected static Server server;
   
   /** The Client instance used in these tests. */
   private static Client client;
@@ -45,6 +45,11 @@ public class SensorBaseRestApiHelper {
 
   /** Make a Manager available to this test class. */
   protected static ProjectManager projectManager; 
+  
+  /** The admin email. */
+  protected static String adminEmail;
+  /** The admin password. */
+  protected static String adminPassword;
 
   /**
    * Starts the server going for these tests. 
@@ -61,6 +66,8 @@ public class SensorBaseRestApiHelper {
       (SdtManager)server.getContext().getAttributes().get("SdtManager");
     SensorBaseRestApiHelper.projectManager = 
       (ProjectManager)server.getContext().getAttributes().get("ProjectManager");
+    SensorBaseRestApiHelper.adminEmail = ServerProperties.get(ADMIN_EMAIL_KEY);
+    SensorBaseRestApiHelper.adminPassword = ServerProperties.get(ADMIN_PASSWORD_KEY);
   }
   
   /**
