@@ -549,11 +549,11 @@ public class ProjectManager {
    */
   public synchronized ProjectRef makeProjectRef(Project project) {
     ProjectRef ref = new ProjectRef();
-    String ownerUri = convertOwnerToUri(project.getOwner());
+    String ownerEmail = convertOwnerToEmail(project.getOwner());
     ref.setName(project.getName());
-    ref.setOwner(convertOwnerToEmail(project.getOwner()));
+    ref.setOwner(ownerEmail);
     ref.setLastMod(project.getLastMod());
-    ref.setHref(this.server.getHostName() + "projects/" + ownerUri + "/" + project.getName()); 
+    ref.setHref(this.server.getHostName() + "projects/" + ownerEmail + "/" + project.getName()); 
     return ref;
   }
   

@@ -1,23 +1,19 @@
 package org.hackystat.sensorbase.resource.sensordata;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
+import org.hackystat.sensorbase.client.SensorBaseClient;
+import org.hackystat.sensorbase.client.SensorBaseClientException;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.Property;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.Properties;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.junit.Test;
-import org.restlet.data.Method;
-import org.restlet.data.Response;
-import org.restlet.resource.Representation;
-import org.restlet.resource.XmlRepresentation;
-import org.w3c.dom.Node;
 
 
 /**
@@ -28,8 +24,7 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
   
   /** The test user. */
   private String user = "TestUser@hackystat.org";
-  private String sensordata = "sensordata/";
-
+  
   /**
    * Test that GET host/sensorbase/sensordata returns an index containing all Sensor Data.
    * Probably want to @ignore this method on real distributions, since the returned dataset could
@@ -37,85 +32,88 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getSensorDataIndex() throws Exception {
-    Response response = makeAdminRequest(Method.GET, "sensordata");
-    
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Testing for successful GET index 1", response.getStatus().isSuccess());
-
-    // Ensure that we can find some sensor data. 
-    XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//SensorDataRef");
-    assertNotNull("Checking that we found at least one sensor data 1.", node);
+    // Create an admin client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);
+    client.authenticate();
+    // Get the index of all sensordata. 
+    SensorDataIndex index = client.getSensorDataIndex();
+    // Make sure that we can iterate through the data and dereference all hrefs. 
+    for (SensorDataRef ref : index.getSensorDataRef()) {
+      client.getUri(ref.getHref());
     }
+    assertTrue("Checking for sensor data 1", index.getSensorDataRef().size() > 1);
+  }
   
   /**
    * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org returns some sensor data. 
    * @throws Exception If problems occur.
    */
   @Test public void getUserSensorDataIndex() throws Exception {
-    Response response = makeRequest(Method.GET, sensordata + user, user);
-    
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Testing for successful GET index 2", response.getStatus().isSuccess());
-
-    // Ensure that we can find some sensor data. 
-    XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//SensorDataRef");
-    assertNotNull("Checking that we found some sensor data 2.", node);
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
+    client.authenticate();
+    // Retrieve the TestUser User resource and test a couple of fields.
+    SensorDataIndex index = client.getSensorDataIndex(user);
+    // Make sure that we can iterate through the data and dereference all hrefs. 
+    for (SensorDataRef ref : index.getSensorDataRef()) {
+      client.getUri(ref.getHref());
     }
+    assertTrue("Checking for sensor data 2", index.getSensorDataRef().size() > 1);
+  }
   
   /**
    * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org?sdt=TestSdt returns data.
    * @throws Exception If problems occur.
    */
   @Test public void getUserSdtSensorDataIndex() throws Exception {
-    Response response = makeRequest(Method.GET, sensordata + user + "?sdt=TestSdt", user);
-    
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Testing for successful GET index 3", response.getStatus().isSuccess());
-
-    // Ensure that we can find the SampleSdt definition.
-    XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//SensorDataRef");
-    assertNotNull("Checking that we found some sensor data 3.", node);
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
+    client.authenticate();
+    // Retrieve the TestUser User resource and test a couple of fields.
+    SensorDataIndex index = client.getSensorDataIndex(user, "TestSdt");
+    // Make sure that we can iterate through the data and dereference all hrefs. 
+    for (SensorDataRef ref : index.getSensorDataRef()) {
+      client.getUri(ref.getHref());
     }
+    assertTrue("Checking for sensor data 3", index.getSensorDataRef().size() > 1);
+  }
   
   /**
    * Test GET host/sensorbase/sensordata/TestUser@hackystat.org/2007-04-30T09:00:00.000
-   * and see that it returns data.
+   * and see that it returns a SensorData instance..
    * @throws Exception If problems occur.
    */
   @Test public void getUserSensorData() throws Exception {
-    String uri = sensordata + user + "/2007-04-30T09:00:00.000";
-    Response response = makeRequest(Method.GET, uri, user);
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
+    client.authenticate();
+    // Retrieve the TestUser User resource and test a couple of fields.
+    XMLGregorianCalendar timestamp = Tstamp.makeTimestamp("2007-04-30T09:00:00.000");
+    SensorData data = client.getSensorData(user, timestamp);
+    assertEquals("Checking timestamp 1", timestamp, data.getTimestamp());
     
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Testing for successful GET index 4", response.getStatus().isSuccess());
-
-    // Ensure that we got a representation of sensor data back.
-    XmlRepresentation data = response.getEntityAsSax();
-    Node node = data.getNode("//SensorData");
-    assertNotNull("Checking that we found the sensor data 4.", node);
-    
-    // Now check that the admin can get any user's data.
-    response = makeAdminRequest(Method.GET, uri);
-    
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Testing for successful GET index 4.1", response.getStatus().isSuccess());
-    }
+    // Check that the admin can retrieve other people's data.
+    client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);
+    client.authenticate();
+    data = client.getSensorData(user, timestamp);
+    assertEquals("Checking timestamp 2", timestamp, data.getTimestamp());
+  }
+  
   
   /**
-   * Test GET host/sensorbase/sensordata/TestUser@hackystat.org/1007-04-30T09:00:00.000
-   * returns a Client Error Bad Request (data not found).
+   * Test GET host/sensorbase/sensordata/TestUser@hackystat.org/9999-04-30T09:00:00.000
+   * throws a SensorBaseClientException, since the data does not exist.
    * @throws Exception If problems occur.
    */
-  @Test public void getNonExistingUserSensorData() throws Exception {
-    String uri = sensordata + user + "/1007-04-30T09:00:00.000";
-    Response response = makeRequest(Method.GET, uri, user);
-    
-    // Test that the request was received and processed by the server OK. 
-    assertTrue("Testing for unsuccessful GET index 4.1", response.getStatus().isClientError());
-    }
+  @Test(expected = SensorBaseClientException.class) 
+  public void getNonExistingUserSensorData() throws Exception {
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
+    client.authenticate();
+    // Request a non-existing sensordata instance, which should throw SensorBaseClientException.
+    XMLGregorianCalendar timestamp = Tstamp.makeTimestamp("9999-04-30T09:00:00.000");
+    client.getSensorData(user, timestamp);
+  }
   
   
   /**
@@ -125,12 +123,11 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
    */
   @Test public void putSensorData() throws Exception {
     // First, create a sample sensor data instance.
-    String timestamp = "2007-04-30T02:00:00.000";
-    DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
-    XMLGregorianCalendar tstamp = datatypeFactory.newXMLGregorianCalendar(timestamp);
+    XMLGregorianCalendar tstamp = Tstamp.makeTimestamp("2007-04-30T02:00:00.000");
     String sdt = "TestSdt";
     SensorData data = new SensorData();
-    data.setTool("Subversion");
+    String tool = "Subversion";
+    data.setTool(tool);
     data.setOwner(user);
     data.setSensorDataType(sdt);
     data.setTimestamp(tstamp);
@@ -143,28 +140,20 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     properties.getProperty().add(property);
     data.setProperties(properties);
     
-    // Now convert the Sensor Data instance to XML.
-    String xmlData = SensorBaseRestApiHelper.sensorDataManager.makeSensorData(data);
-    Representation representation = SensorBaseResource.getStringRepresentation(xmlData);
-    String uri = sensordata + user + "/" + timestamp;
-    Response response = makeRequest(Method.PUT, uri, user, representation);
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
+    client.authenticate();
+    // Send the sensor data.
+    client.putSensorData(data);
 
-    // Test that the PUT request was received and processed by the server OK. 
-    assertTrue("Testing for successful PUT Sensor Data", response.getStatus().isSuccess());
+    // Now see that we can retrieve it and check a field for equality. 
+    SensorData data2 = client.getSensorData(user, tstamp);
+    assertEquals("Checking data Tool field", tool, data2.getTool());
     
-    // Test to see that we can now retrieve it. 
-    response = makeRequest(Method.GET, uri, user);
-    assertTrue("Testing for successful GET SensorData", response.getStatus().isSuccess());
-    XmlRepresentation newData = response.getEntityAsSax();
-    assertEquals("Checking SensorData", timestamp, newData.getText("SensorData/Timestamp"));
- 
-    
-    // Test that DELETE gets rid of this SDT.
-    response = makeRequest(Method.DELETE, uri, user);
-    assertTrue("Testing for successful DELETE SensorData", response.getStatus().isSuccess());
+    // Test that DELETE gets rid of this sensor data.
+    client.deleteSensorData(user, tstamp);
     
     // Test that a second DELETE succeeds, even though da buggah is no longer in there.
-    response = makeRequest(Method.DELETE, uri, user);
-    assertTrue("Testing for OK second DELETE SensorData", response.getStatus().isSuccess());
+    client.deleteSensorData(user, tstamp);
   }
 }

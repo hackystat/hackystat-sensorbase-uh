@@ -29,7 +29,7 @@ import org.restlet.resource.Representation;
  */
 public class SensorBaseRestApiHelper {
   /** The SensorBase server used in these tests. */
-  protected static Server server;
+  private static Server server;
   
   /** The Client instance used in these tests. */
   private static Client client;

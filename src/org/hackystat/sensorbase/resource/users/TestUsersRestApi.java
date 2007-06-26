@@ -34,10 +34,12 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getUsersIndex() throws Exception {  
-    SensorBaseClient client = new SensorBaseClient(server.getHostName(), adminEmail, adminPassword);
+    // Create an admin client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);
     client.authenticate();
+    // Get the index of all users. 
     UserIndex userIndex = client.getUserIndex();
-    // Make sure that we can iterate through all of the SDTs OK. 
+    // Make sure that we can iterate through the Users, find the test user, and dereference hrefs. 
     boolean foundTestUser = false;
     for (UserRef ref : userIndex.getUserRef()) {
       if (testUserEmail.equals(ref.getEmail())) {
@@ -54,9 +56,10 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getUser() throws Exception {
-    SensorBaseClient client = 
-      new SensorBaseClient(server.getHostName(), testUserEmail, testUserEmail);
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), testUserEmail, testUserEmail);
     client.authenticate();
+    // Retrieve the TestUser User resource and test a couple of fields.
     User user = client.getUser(testUserEmail);
     assertEquals("Bad email", testUserEmail, user.getEmail());
     assertEquals("Bad password", testUserEmail, user.getPassword());
@@ -67,15 +70,16 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void registerUser() throws Exception {
+    // Register the TestPost@hackystat.org user.
     String testPost = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
-    SensorBaseClient.registerUser(server.getHostName(), testPost);
+    SensorBaseClient.registerUser(getHostName(), testPost);
     // Now that TestPost is registered, see if we can retrieve him (her?) 
-    SensorBaseClient client = 
-      new SensorBaseClient(server.getHostName(), testPost, testPost);
+    SensorBaseClient client = new SensorBaseClient(getHostName(), testPost, testPost);
     client.authenticate();
     User user = client.getUser(testPost);
     assertEquals("Bad email", testPost, user.getEmail());
-
+    // Clean up, get rid of this user. 
+    client.deleteUser(testPost);
   }
   
   /**
@@ -83,11 +87,11 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur. 
    */
   @Test public void deleteUser () throws Exception {
+    // Register the TestPost@hackystat.org user
     String testPost = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
-    SensorBaseClient.registerUser(server.getHostName(), testPost);
+    SensorBaseClient.registerUser(getHostName(), testPost);
     // Now that TestPost is registered, see if we can delete him (her?) 
-    SensorBaseClient client = 
-      new SensorBaseClient(server.getHostName(), testPost, testPost);
+    SensorBaseClient client = new SensorBaseClient(getHostName(), testPost, testPost);
     client.deleteUser(testPost);
 
     //Ensure that TestPost is no longer found as a user.
@@ -100,7 +104,6 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
       // We can't use the JUnit annotation idiom because the code above us could throw
       // the same exception type, and that would be a valid error. 
     }
-
   }
   
   /**
@@ -108,11 +111,10 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur. 
    */
   @Test public void postUserProperties () throws Exception {
+    // Register the TestPost@hackystat.org user.
     String testPost = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
-    SensorBaseClient.registerUser(server.getHostName(), testPost);
+    SensorBaseClient.registerUser(getHostName(), testPost);
     // Now that TestPost is registered, see if we can update his properties. 
-
-    // Now create a properties object and post it.
     Properties properties = new Properties();
     Property property = new Property();
     property.setKey("testKey");
@@ -120,11 +122,13 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
     properties.getProperty().add(property);
     
     SensorBaseClient client = 
-      new SensorBaseClient(server.getHostName(), testPost, testPost);
+      new SensorBaseClient(getHostName(), testPost, testPost);
     client.updateUserProperties(testPost, properties);
 
     User user = client.getUser(testPost);
     Property theProperty = user.getProperties().getProperty().get(0);
     assertEquals("Got the property", "testValue", theProperty.getValue());
+    // Clean up, get rid of this user. 
+    client.deleteUser(testPost);
   }
 }

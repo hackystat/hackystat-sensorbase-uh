@@ -28,7 +28,7 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getSdtIndex() throws Exception {
-    SensorBaseClient client = new SensorBaseClient(server.getHostName(), user, user);
+    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
     client.authenticate();
     SensorDataTypeIndex sdtIndex = client.getSensorDataTypeIndex();
     // Make sure that we can iterate through all of the SDTs OK. 
@@ -48,7 +48,7 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Test public void getSdt() throws Exception {
-    SensorBaseClient client = new SensorBaseClient(server.getHostName(), user, user);
+    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
     client.authenticate();
     SensorDataType sdt = client.getSensorDataType("TestSdt");
     assertEquals("Checking name", "TestSdt", sdt.getName());
@@ -77,7 +77,7 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
     RequiredFields fields = new RequiredFields();
     fields.getRequiredField().add(field);
     // Now put it to the server. 
-    SensorBaseClient client = new SensorBaseClient(server.getHostName(), adminEmail, adminPassword);
+    SensorBaseClient client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);
     client.authenticate();
     client.putSensorDataType(sdt);
     client.getSensorDataType(sdtName);
