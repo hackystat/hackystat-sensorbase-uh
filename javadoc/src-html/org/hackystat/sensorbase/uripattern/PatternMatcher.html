@@ -1,0 +1,139 @@
+<HTML>
+<BODY BGCOLOR="white">
+<PRE>
+<FONT color="green">001</FONT>    package org.hackystat.sensorbase.uripattern;<a name="line.1"></a>
+<FONT color="green">002</FONT>    <a name="line.2"></a>
+<FONT color="green">003</FONT>    <a name="line.3"></a>
+<FONT color="green">004</FONT>    /**<a name="line.4"></a>
+<FONT color="green">005</FONT>     * A utility class which does pattern matches.<a name="line.5"></a>
+<FONT color="green">006</FONT>     *<a name="line.6"></a>
+<FONT color="green">007</FONT>     * @author Qin Zhang<a name="line.7"></a>
+<FONT color="green">008</FONT>     */<a name="line.8"></a>
+<FONT color="green">009</FONT>    public class PatternMatcher {<a name="line.9"></a>
+<FONT color="green">010</FONT>    <a name="line.10"></a>
+<FONT color="green">011</FONT>      /**<a name="line.11"></a>
+<FONT color="green">012</FONT>       * Determines whether a file name matches a pattern. The pattern rule follows ant file set<a name="line.12"></a>
+<FONT color="green">013</FONT>       * selections rules that is used in ant. &lt;p&gt;<a name="line.13"></a>
+<FONT color="green">014</FONT>       * Some systems use slash, while others use back-slash as path separator. This function will<a name="line.14"></a>
+<FONT color="green">015</FONT>       * not distinguish them (effectively,they are treated as the same character). &lt;p&gt;<a name="line.15"></a>
+<FONT color="green">016</FONT>       * If a pattern ends with a path separator, then '**' will be append to it before matching.<a name="line.16"></a>
+<FONT color="green">017</FONT>       * (i.e. if pattern is 'src/', then it will be treated as 'src/**'.<a name="line.17"></a>
+<FONT color="green">018</FONT>       *<a name="line.18"></a>
+<FONT color="green">019</FONT>       * @param pattern The pattern. If null, then the method will always return true.<a name="line.19"></a>
+<FONT color="green">020</FONT>       * @param fileName The file name to be tested against the pattern.<a name="line.20"></a>
+<FONT color="green">021</FONT>       * @param isCaseSensitive Whether fileName is case sensitive.<a name="line.21"></a>
+<FONT color="green">022</FONT>       *<a name="line.22"></a>
+<FONT color="green">023</FONT>       * @return True if the file name matches the pattern.<a name="line.23"></a>
+<FONT color="green">024</FONT>       */<a name="line.24"></a>
+<FONT color="green">025</FONT>      static boolean matchesFilePath(String pattern, String fileName, boolean isCaseSensitive) {<a name="line.25"></a>
+<FONT color="green">026</FONT>        //PatternMatcher does not work well with file name starts with "/"<a name="line.26"></a>
+<FONT color="green">027</FONT>        //e.g. PatternMatcherImpl.matchPath("**", "/d/d/file", ture) returns false.<a name="line.27"></a>
+<FONT color="green">028</FONT>        //everything's ok if path does not start with a slash.<a name="line.28"></a>
+<FONT color="green">029</FONT>        //Fix: get rid of the starting "/" in fileName, if pattern starts with **<a name="line.29"></a>
+<FONT color="green">030</FONT>        if (pattern == null) {<a name="line.30"></a>
+<FONT color="green">031</FONT>          return true;<a name="line.31"></a>
+<FONT color="green">032</FONT>        }<a name="line.32"></a>
+<FONT color="green">033</FONT>        else {<a name="line.33"></a>
+<FONT color="green">034</FONT>          <a name="line.34"></a>
+<FONT color="green">035</FONT>    //      pattern = pattern.replace('/', File.separatorChar).replace('\\', File.separatorChar);<a name="line.35"></a>
+<FONT color="green">036</FONT>    //      fileName = fileName.replace('/', File.separatorChar).replace('\\', File.separatorChar);<a name="line.36"></a>
+<FONT color="green">037</FONT>    //      if (pattern.endsWith(File.separator)) {<a name="line.37"></a>
+<FONT color="green">038</FONT>    //        pattern += "**";<a name="line.38"></a>
+<FONT color="green">039</FONT>    //      }<a name="line.39"></a>
+<FONT color="green">040</FONT>    //      //our fix.<a name="line.40"></a>
+<FONT color="green">041</FONT>    //      if (pattern.startsWith("**") &amp;&amp; fileName.length() &gt; 0 <a name="line.41"></a>
+<FONT color="green">042</FONT>    //          &amp;&amp; fileName.charAt(0) == File.separatorChar) {<a name="line.42"></a>
+<FONT color="green">043</FONT>    //        fileName = fileName.substring(1);<a name="line.43"></a>
+<FONT color="green">044</FONT>    //      }<a name="line.44"></a>
+<FONT color="green">045</FONT>          return PatternMatcherImpl.matchPath(pattern, fileName, isCaseSensitive);<a name="line.45"></a>
+<FONT color="green">046</FONT>        }<a name="line.46"></a>
+<FONT color="green">047</FONT>      }<a name="line.47"></a>
+<FONT color="green">048</FONT>    <a name="line.48"></a>
+<FONT color="green">049</FONT>      /**<a name="line.49"></a>
+<FONT color="green">050</FONT>       * Tests whether a string matches a pattern or not. Wild characters are:<a name="line.50"></a>
+<FONT color="green">051</FONT>       * &lt;ul&gt;<a name="line.51"></a>
+<FONT color="green">052</FONT>       *   &lt;li&gt;'*': zero or more characters. &lt;/li&gt;<a name="line.52"></a>
+<FONT color="green">053</FONT>       *   &lt;li&gt;'?': one and only one character.&lt;/li&gt;<a name="line.53"></a>
+<FONT color="green">054</FONT>       * &lt;/ul&gt;<a name="line.54"></a>
+<FONT color="green">055</FONT>       * &lt;p&gt;<a name="line.55"></a>
+<FONT color="green">056</FONT>       * Note that this method is NOT designed to match file path, use <a name="line.56"></a>
+<FONT color="green">057</FONT>       * &lt;code&gt;matchesFilePath&lt;/code&gt; instead.<a name="line.57"></a>
+<FONT color="green">058</FONT>       * <a name="line.58"></a>
+<FONT color="green">059</FONT>       * @param pattern The pattern. If null, the function always returns true.<a name="line.59"></a>
+<FONT color="green">060</FONT>       * @param str The string to be matched against the pattern.<a name="line.60"></a>
+<FONT color="green">061</FONT>       * @param caseSensitive Whether the matches is case sensitive or not.<a name="line.61"></a>
+<FONT color="green">062</FONT>       *<a name="line.62"></a>
+<FONT color="green">063</FONT>       * @return True if string matches the pattern.<a name="line.63"></a>
+<FONT color="green">064</FONT>       */<a name="line.64"></a>
+<FONT color="green">065</FONT>      public static boolean matchesPattern(String pattern, String str, boolean caseSensitive) {<a name="line.65"></a>
+<FONT color="green">066</FONT>        if (pattern == null) {<a name="line.66"></a>
+<FONT color="green">067</FONT>          return true;<a name="line.67"></a>
+<FONT color="green">068</FONT>        }<a name="line.68"></a>
+<FONT color="green">069</FONT>        else {<a name="line.69"></a>
+<FONT color="green">070</FONT>          return PatternMatcherImpl.match(pattern, str, caseSensitive);<a name="line.70"></a>
+<FONT color="green">071</FONT>        }<a name="line.71"></a>
+<FONT color="green">072</FONT>      }<a name="line.72"></a>
+<FONT color="green">073</FONT>    }<a name="line.73"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</PRE>
+</BODY>
+</HTML>
