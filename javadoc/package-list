@@ -1,9 +1,17 @@
+org.hackystat.sensorbase.client
+org.hackystat.sensorbase.db
+org.hackystat.sensorbase.db.derby
 org.hackystat.sensorbase.logger
+org.hackystat.sensorbase.mail
 org.hackystat.sensorbase.resource.projects
 org.hackystat.sensorbase.resource.projects.jaxb
+org.hackystat.sensorbase.resource.sensorbase
 org.hackystat.sensorbase.resource.sensordata
 org.hackystat.sensorbase.resource.sensordata.jaxb
 org.hackystat.sensorbase.resource.sensordatatypes
 org.hackystat.sensorbase.resource.sensordatatypes.jaxb
+org.hackystat.sensorbase.resource.users
 org.hackystat.sensorbase.resource.users.jaxb
 org.hackystat.sensorbase.server
+org.hackystat.sensorbase.test
+org.hackystat.sensorbase.uripattern
