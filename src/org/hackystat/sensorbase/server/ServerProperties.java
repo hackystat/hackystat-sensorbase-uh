@@ -20,6 +20,8 @@ public class ServerProperties {
   public static final String CONTEXT_ROOT_KEY =    "sensorbase.context.root";
   /** The database directory key. */
   public static final String DB_DIR_KEY =          "sensorbase.db.dir";
+  /** The database implementation class. */
+  public static final String DB_IMPL_KEY =          "sensorbase.db.impl";
   /** The hostname key. */
   public static final String HOSTNAME_KEY =        "sensorbase.hostname";
   /** The logging level key. */
@@ -52,6 +54,7 @@ public class ServerProperties {
     properties.setProperty(ADMIN_PASSWORD_KEY, "admin@hackystat.org");
     properties.setProperty(CONTEXT_ROOT_KEY, "sensorbase");
     properties.setProperty(DB_DIR_KEY, sensorBaseHome + "/db");
+    properties.setProperty(DB_IMPL_KEY, "org.hackystat.sensorbase.db.derby.DerbyImplementation");
     properties.setProperty(HOSTNAME_KEY, "localhost");
     properties.setProperty(LOGGING_LEVEL_KEY, "INFO");
     properties.setProperty(SMTP_HOST_KEY, "mail.hawaii.edu");
@@ -92,6 +95,7 @@ public class ServerProperties {
       pad + HOSTNAME_KEY      + eq + get(HOSTNAME_KEY) + cr +
       pad + CONTEXT_ROOT_KEY  + eq + get(CONTEXT_ROOT_KEY) + cr +
       pad + DB_DIR_KEY        + eq + get(DB_DIR_KEY) + cr +
+      pad + DB_IMPL_KEY       + eq + get(DB_IMPL_KEY) + cr +
       pad + LOGGING_LEVEL_KEY + eq + get(LOGGING_LEVEL_KEY) + cr +
       pad + SMTP_HOST_KEY     + eq + get(SMTP_HOST_KEY) + cr +
       pad + PORT_KEY          + eq + get(PORT_KEY) + cr +

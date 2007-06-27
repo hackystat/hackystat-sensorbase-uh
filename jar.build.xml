@@ -17,13 +17,13 @@
       <fileset dir="${basedir}/build/classes"/>
     </copy>
   
-    <!-- First build sensorbase.java6.jar, which does not include JAXB or Derby --> 
+    <!-- First build sensorbase.java6.jar, which does not include JAXB --> 
     <unjar src="${env.RESTLET_HOME}/lib/org.simpleframework_3.1/org.simpleframework.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/org.restlet.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar" dest="${tmp.dir}"/>
-
+    <unjar src="${env.DERBY_HOME}/lib/derby.jar" dest="${tmp.dir}"/>
  
     <jar destfile="${basedir}/sensorbase.java6.jar" basedir="${tmp.dir}">
       <manifest>
@@ -34,12 +34,12 @@
       </manifest>
     </jar>
   
-    <!-- Now build sensorbase.java5.jar, which adds in the JAXB, activation, and derby. --> 
+    <!-- Now build sensorbase.java5.jar, which adds in JAXB --> 
     <unjar src="${env.JAXB_HOME}/lib/activation.jar" dest="${tmp.dir}"/>
     <unjar src="${env.JAXB_HOME}/lib/jaxb-api.jar" dest="${tmp.dir}"/>
     <unjar src="${env.JAXB_HOME}/lib/jaxb-impl.jar" dest="${tmp.dir}"/>
     <unjar src="${env.JAXB_HOME}/lib/jsr173_1.0_api.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.DERBY_HOME}/lib/derby.jar" dest="${tmp.dir}"/>
+   
     <!-- The following magic deletion allows activation.jar to be packaged in sensorbase.jar without creating runtime errors. --> 
     <!-- See http://jira.codehaus.org/browse/MASSEMBLY-64 for details. --> 
     <delete>

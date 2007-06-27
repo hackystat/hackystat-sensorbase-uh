@@ -181,25 +181,6 @@ public class ProjectManager {
       owner2name2project.put(user, new HashMap<String, Project>());
     }
     owner2name2project.get(user).put(project.getName(), project);
-    
-    // Now put the [member, project] mappings, if any.
-    // Not doing this anymore.  The reason is that then we can get name clashes if an Owner
-    // and a Member define a project with the same name.
-//    if (project.getMembers() != null) {
-//      for (String memberEmail : project.getMembers().getMember()) {
-//        User member = userManager.getUser(memberEmail);
-//        // Throw an error if the Member is not defined. 
-//        if (member == null) {
-//          throw new IllegalArgumentException("Project with undefined Member " + email + " " 
-//              + project);
-//        }
-//        // Otherwise add this project for this member. 
-//        if (!user2name2project.containsKey(member)) {
-//          user2name2project.put(member, new HashMap<String, Project>());
-//        }
-//        user2name2project.get(member).put(project.getName(), project);
-//      }
-//    }
     this.project2xml.put(project, projectXml);
     this.project2ref.put(project, projectRef);
   }

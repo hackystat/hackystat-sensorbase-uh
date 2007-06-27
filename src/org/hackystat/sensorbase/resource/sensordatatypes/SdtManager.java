@@ -18,6 +18,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeIndex;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeRef;
@@ -109,6 +110,7 @@ public class SdtManager {
       Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
       SensorDataTypes sensorDataTypes = (SensorDataTypes) unmarshaller.unmarshal(defaultsFile);
       for (SensorDataType sdt : sensorDataTypes.getSensorDataType()) {
+        sdt.setLastMod(Tstamp.makeTimestamp());
         this.dbManager.storeSensorDataType(sdt, this.makeSensorDataType(sdt), 
             this.makeSensorDataTypeRefString(sdt));
       }
@@ -182,6 +184,7 @@ public class SdtManager {
    */
   public synchronized void putSdt(SensorDataType sdt) {
     try {
+      sdt.setLastMod(Tstamp.makeTimestamp());
       String sdtString = this.makeSensorDataType(sdt);
       String sdtRefString = this.makeSensorDataTypeRefString(sdt);
       this.dbManager.storeSensorDataType(sdt, sdtString, sdtRefString);

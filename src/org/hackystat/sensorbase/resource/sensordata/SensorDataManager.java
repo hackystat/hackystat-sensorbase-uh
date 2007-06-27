@@ -100,6 +100,7 @@ public class SensorDataManager {
       SensorDatas sensorDatas = (SensorDatas) unmarshaller.unmarshal(defaultsFile);
       // Initialize the database.
       for (SensorData data : sensorDatas.getSensorData()) {
+        data.setLastMod(Tstamp.makeTimestamp());
         String email = convertOwnerToEmail(data.getOwner());
         if (!userManager.hasUser(email)) {
           throw new IllegalArgumentException("Owner is not a defined User: " + email);
@@ -231,6 +232,7 @@ public class SensorDataManager {
    */
   public void putSensorData(SensorData data) {
     try {
+      data.setLastMod(Tstamp.makeTimestamp());
       this.dbManager.storeSensorData(data, this.makeSensorData(data),
           this.makeSensorDataRefString(data));
     }

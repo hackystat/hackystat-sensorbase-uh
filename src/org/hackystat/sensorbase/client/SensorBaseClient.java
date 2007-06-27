@@ -21,6 +21,7 @@ import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeIndex;
+import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeRef;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
@@ -147,6 +148,30 @@ public class SensorBaseClient {
   public synchronized SensorDataType getSensorDataType(String sdtName) 
   throws SensorBaseClientException {
     Response response = makeRequest(Method.GET, "sensordatatypes/" + sdtName, null);
+    SensorDataType sdt;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      sdt = makeSensorDataType(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return sdt;
+  } 
+  
+  /**
+   * Returns the named SensorDataType associated with the SensorDataTypeRef. 
+   * @param ref The SensorDataTypeRef instance
+   * @return The SensorDataType instance. 
+   * @throws SensorBaseClientException If the server does not return the SDT or returns something
+   * that cannot be marshalled into Java SensorDataType instance. 
+   */
+  public synchronized SensorDataType getSensorDataType(SensorDataTypeRef ref) 
+  throws SensorBaseClientException {
+    Response response = getUri(ref.getHref());
     SensorDataType sdt;
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
@@ -610,8 +635,12 @@ public class SensorBaseClient {
    * @param email The user email. 
    * @throws SensorBaseClientException If problems occur during registration. 
    */
-  public static void registerUser(String sensorBaseHost, String email) 
+  public static void registerUser(String sensorBaseHost, String email)  //NOPMD
   throws SensorBaseClientException {
+    // Allow this reassignment of the parameter, even though PMD doesn't like it. 
+    if (!sensorBaseHost.endsWith("/")) {    
+      sensorBaseHost = sensorBaseHost + "/";
+    }
     Reference reference = new Reference(sensorBaseHost + "users?email=" + email);
     Request request = new Request(Method.POST, reference);
     Client client = new Client(Protocol.HTTP);

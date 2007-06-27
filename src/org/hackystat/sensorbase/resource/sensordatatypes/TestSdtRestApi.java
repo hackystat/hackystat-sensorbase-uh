@@ -38,7 +38,8 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
         foundTestSdt = true;
       }
       // Make sure the href is OK. 
-      client.getUri(ref.getHref());
+      //client.getUri(ref.getHref());
+      client.getSensorDataType(ref);
     }
     assertTrue("Checking that we found the TestSdt", foundTestSdt);
     }

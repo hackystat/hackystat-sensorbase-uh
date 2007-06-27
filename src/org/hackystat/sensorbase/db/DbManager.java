@@ -1,14 +1,17 @@
 package org.hackystat.sensorbase.db;
 
+import java.lang.reflect.Constructor;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.hackystat.sensorbase.db.derby.DerbyImplementation;
+import org.hackystat.sensorbase.logger.SensorBaseLogger;
+import org.hackystat.sensorbase.logger.StackTrace;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
+import org.hackystat.sensorbase.server.ServerProperties;
+import static org.hackystat.sensorbase.server.ServerProperties.DB_IMPL_KEY;
 import org.hackystat.sensorbase.uripattern.UriPattern;
 
 /**
@@ -20,9 +23,6 @@ import org.hackystat.sensorbase.uripattern.UriPattern;
  * @author Philip Johnson
  */
 public class DbManager {
-  
-  /** The Server instance this DbManager is attached to. */
-  private Server server;
   
   /** The chosen Storage system. */
   private DbImplementation dbImpl;
@@ -39,8 +39,40 @@ public class DbManager {
    * @param server The Restlet server instance. 
    */
   public DbManager(Server server) {
-    this.server = server;
-    this.dbImpl = new DerbyImplementation(this.server);
+    //Defaults to: "org.hackystat.sensorbase.db.derby.DerbyImplementation"
+    String dbClassName = ServerProperties.get(DB_IMPL_KEY); 
+    Class<?> dbClass = null;
+    //First, try to find the class specified in the sensorbase.properties file (or the default) 
+    try {
+      dbClass = Class.forName(dbClassName);
+    }
+    catch (ClassNotFoundException e) {
+      String msg = "DB error instantiating " + dbClassName + ". Could not find this class.";
+      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
+      throw new IllegalArgumentException(e);
+    }
+    // Next, try to find a constructor that accepts a Server as its parameter. 
+    Class[] constructorParam = {org.hackystat.sensorbase.server.Server.class};
+    Constructor dbConstructor = null;
+    try {
+      dbConstructor = dbClass.getConstructor(constructorParam);
+    }
+    catch (Exception e) {
+      String msg = "DB error instantiating " + dbClassName + ". Could not find Constructor(server)";
+      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
+      throw new IllegalArgumentException(e);
+    }
+    // Next, try to create an instance of DbImplementation from the Constructor.
+    Object[] serverArg = {server};
+    try {
+      this.dbImpl = (DbImplementation) dbConstructor.newInstance(serverArg);
+    }
+    catch (Exception e) {
+      String msg = "DB error instantiating " + dbClassName + ". Could not create instance.";
+      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
+      throw new IllegalArgumentException(e);
+    }
+    //this.dbImpl = new DerbyImplementation(this.server);
     this.dbImpl.initialize();
   }
   

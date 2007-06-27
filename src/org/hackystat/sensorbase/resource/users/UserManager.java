@@ -22,6 +22,7 @@ import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.logger.StackTrace;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
+import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.Property;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -104,6 +105,7 @@ public class UserManager {
       Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
       Users users = (Users) unmarshaller.unmarshal(defaultsFile);
       for (User user : users.getUser()) {
+        user.setLastMod(Tstamp.makeTimestamp());
         this.dbManager.storeUser(user, this.makeUser(user), this.makeUserRefString(user));
       }
     }
@@ -161,6 +163,9 @@ public class UserManager {
    * @throws Exception If problems occur updating the cache. 
    */
   private final void updateCache(User user) throws Exception {
+    if (user.getLastMod() == null) {
+      user.setLastMod(Tstamp.makeTimestamp());
+    }
     updateCache(user, this.makeUser(user), this.makeUserRefString(user));
   }
   
@@ -210,10 +215,11 @@ public class UserManager {
    */
   public synchronized void putUser(User user) {
     try {
-    String xmlUser =  this.makeUser(user);
-    String xmlRef =  this.makeUserRefString(user);
-    this.updateCache(user, xmlUser, xmlRef);
-    this.dbManager.storeUser(user, xmlUser, xmlRef);
+      user.setLastMod(Tstamp.makeTimestamp());
+      String xmlUser =  this.makeUser(user);
+      String xmlRef =  this.makeUserRefString(user);
+      this.updateCache(user, xmlUser, xmlRef);
+      this.dbManager.storeUser(user, xmlUser, xmlRef);
     }
     catch (Exception e) {
       SensorBaseLogger.getLogger().warning("Failed to put User" + StackTrace.toString(e));
