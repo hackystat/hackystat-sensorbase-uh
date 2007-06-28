@@ -28,6 +28,7 @@ import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.restlet.Client;
 import org.restlet.data.ChallengeResponse;
 import org.restlet.data.ChallengeScheme;
+import org.restlet.data.Form;
 import org.restlet.data.MediaType;
 import org.restlet.data.Method;
 import org.restlet.data.Preference;
@@ -286,7 +287,7 @@ public class SensorBaseClient {
   }  
   
   /**
-   * Deletes the User given their email.
+   * Updates the specified user's properties. 
    * @param email The email of the User whose properties are to be deleted.
    * @param properties The properties to post. 
    * @throws SensorBaseClientException If the server does not indicate success.
@@ -631,22 +632,71 @@ public class SensorBaseClient {
   
   /**
    * Registers the given user email with the given SensorBase.
-   * @param sensorBaseHost The host name, such as "http://localhost:9876/sensorbase".
+   * @param host The host name, such as "http://localhost:9876/sensorbase".
    * @param email The user email. 
    * @throws SensorBaseClientException If problems occur during registration. 
    */
-  public static void registerUser(String sensorBaseHost, String email)  //NOPMD
+  public static void registerUser(String host, String email)  
   throws SensorBaseClientException {
-    // Allow this reassignment of the parameter, even though PMD doesn't like it. 
-    if (!sensorBaseHost.endsWith("/")) {    
-      sensorBaseHost = sensorBaseHost + "/";
-    }
-    Reference reference = new Reference(sensorBaseHost + "users?email=" + email);
-    Request request = new Request(Method.POST, reference);
+    String registerUri = host.endsWith("/") ? host + "register" : host + "/register"; 
+    Request request = new Request();
+    request.setResourceRef(registerUri);
+    request.setMethod(Method.POST);
+    Form form = new Form();
+    form.add("email", email);
+    request.setEntity(form.getWebRepresentation());
     Client client = new Client(Protocol.HTTP);
     Response response = client.handle(request);
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
+    }
+  }
+  
+  /**
+   * Returns true if the passed host is a SensorBase host. 
+   * @param host The URL of a sensorbase host, such as "http://localhost:9876/sensorbase".
+   * @return True if this URL responds as a SensorBase host. 
+   */
+  public static boolean isHost(String host) {
+    // All sensorbase hosts use the HTTP protocol.
+    if (!host.startsWith("http://")) {
+      return false;
+    }
+    // Create the host/register URL.
+    try {
+      String registerUri = host.endsWith("/") ? host + "register" : host + "/register"; 
+      Request request = new Request();
+      request.setResourceRef(registerUri);
+      request.setMethod(Method.GET);
+      Client client = new Client(Protocol.HTTP);
+      Response response = client.handle(request);
+      return response.getStatus().isSuccess();
+    }
+    catch (Exception e) {
+      return false;
+    }
+  }
+  
+  /**
+   * Returns true if the user and password is registered as a user with this host.
+   * @param host The URL of a sensorbase host, such as "http://localhost:9876/sensorbase".
+   * @param email The user email.
+   * @param password The user password.
+   * @return True if this user is registered with this host. 
+   */
+  public static boolean isRegistered(String host, String email, String password) {
+    // Make sure the host is OK, which captures bogus hosts like "foo".
+    if (!isHost(host)) {
+      return false;
+    }
+    // Now try to authenticate. 
+    try {
+      SensorBaseClient client = new SensorBaseClient(host, email, password);
+      client.authenticate();
+      return true;
+    }
+    catch (Exception e) {
+      return false;
     }
   }
   

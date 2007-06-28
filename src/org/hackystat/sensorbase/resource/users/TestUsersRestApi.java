@@ -1,6 +1,7 @@
 package org.hackystat.sensorbase.resource.users;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -25,7 +26,7 @@ import org.junit.Test;
 public class TestUsersRestApi extends SensorBaseRestApiHelper {
 
   /** The TestUser user email. */
-  private String testUserEmail = "TestUser@hackystat.org";
+  private String testUser = "TestUser@hackystat.org";
 
 
   /**
@@ -42,13 +43,31 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
     // Make sure that we can iterate through the Users, find the test user, and dereference hrefs. 
     boolean foundTestUser = false;
     for (UserRef ref : userIndex.getUserRef()) {
-      if (testUserEmail.equals(ref.getEmail())) {
+      if (testUser.equals(ref.getEmail())) {
         foundTestUser = true;
       }
       // Make sure the href is OK. 
       client.getUri(ref.getHref());
     }
     assertTrue("Checking that we found the TestUser", foundTestUser);
+  }
+  
+  /**
+   * Test that the SensorBaseClient.isHost() method operates correctly.
+   * @throws Exception If problems occur.
+   */
+  @Test public void isHost() throws Exception {
+    assertTrue("Checking isHost() with sensorbase", SensorBaseClient.isHost(getHostName()));
+    assertFalse("Checking isHost() with bogus URL", SensorBaseClient.isHost("http://Foo"));
+  }
+  
+  /**
+   * Test that the SensorBaseClient.isRegistered() method operates correctly.
+   * @throws Exception If problems occur.
+   */
+  @Test public void isRegistered() throws Exception {
+    assertTrue("OK register", SensorBaseClient.isRegistered(getHostName(), testUser, testUser));
+    assertFalse("Bad register", SensorBaseClient.isRegistered(getHostName(), "foo", "bar"));
   }
 
   /**
@@ -57,12 +76,12 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    */
   @Test public void getUser() throws Exception {
     // Create the TestUser client and check authentication.
-    SensorBaseClient client = new SensorBaseClient(getHostName(), testUserEmail, testUserEmail);
+    SensorBaseClient client = new SensorBaseClient(getHostName(), testUser, testUser);
     client.authenticate();
     // Retrieve the TestUser User resource and test a couple of fields.
-    User user = client.getUser(testUserEmail);
-    assertEquals("Bad email", testUserEmail, user.getEmail());
-    assertEquals("Bad password", testUserEmail, user.getPassword());
+    User user = client.getUser(testUser);
+    assertEquals("Bad email", testUser, user.getEmail());
+    assertEquals("Bad password", testUser, user.getPassword());
   }
   
   /**

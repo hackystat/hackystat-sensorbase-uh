@@ -1,0 +1,187 @@
+<HTML>
+<BODY BGCOLOR="white">
+<PRE>
+<FONT color="green">001</FONT>    package org.hackystat.sensorbase.resource.registration;<a name="line.1"></a>
+<FONT color="green">002</FONT>    <a name="line.2"></a>
+<FONT color="green">003</FONT>    import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;<a name="line.3"></a>
+<FONT color="green">004</FONT>    import static org.hackystat.sensorbase.server.ServerProperties.HOSTNAME_KEY;<a name="line.4"></a>
+<FONT color="green">005</FONT>    <a name="line.5"></a>
+<FONT color="green">006</FONT>    import org.hackystat.sensorbase.logger.SensorBaseLogger;<a name="line.6"></a>
+<FONT color="green">007</FONT>    import org.hackystat.sensorbase.mail.Mailer;<a name="line.7"></a>
+<FONT color="green">008</FONT>    import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;<a name="line.8"></a>
+<FONT color="green">009</FONT>    import org.hackystat.sensorbase.resource.users.jaxb.User;<a name="line.9"></a>
+<FONT color="green">010</FONT>    import org.hackystat.sensorbase.server.ServerProperties;<a name="line.10"></a>
+<FONT color="green">011</FONT>    import org.restlet.Context;<a name="line.11"></a>
+<FONT color="green">012</FONT>    import org.restlet.data.Form;<a name="line.12"></a>
+<FONT color="green">013</FONT>    import org.restlet.data.MediaType;<a name="line.13"></a>
+<FONT color="green">014</FONT>    import org.restlet.data.Request;<a name="line.14"></a>
+<FONT color="green">015</FONT>    import org.restlet.data.Response;<a name="line.15"></a>
+<FONT color="green">016</FONT>    import org.restlet.data.Status;<a name="line.16"></a>
+<FONT color="green">017</FONT>    import org.restlet.resource.Representation;<a name="line.17"></a>
+<FONT color="green">018</FONT>    import org.restlet.resource.StringRepresentation;<a name="line.18"></a>
+<FONT color="green">019</FONT>    import org.restlet.resource.Variant;<a name="line.19"></a>
+<FONT color="green">020</FONT>    <a name="line.20"></a>
+<FONT color="green">021</FONT>    /**<a name="line.21"></a>
+<FONT color="green">022</FONT>     * Provides registration services for this SensorBase.<a name="line.22"></a>
+<FONT color="green">023</FONT>     * Implements a simple web page for accepting a POSTed form containing an email address<a name="line.23"></a>
+<FONT color="green">024</FONT>     * to register.  Sends email with the password to this user. <a name="line.24"></a>
+<FONT color="green">025</FONT>     * @author Philip Johnson<a name="line.25"></a>
+<FONT color="green">026</FONT>     *<a name="line.26"></a>
+<FONT color="green">027</FONT>     */<a name="line.27"></a>
+<FONT color="green">028</FONT>    public class RegistrationResource extends SensorBaseResource {<a name="line.28"></a>
+<FONT color="green">029</FONT>      <a name="line.29"></a>
+<FONT color="green">030</FONT>      /**<a name="line.30"></a>
+<FONT color="green">031</FONT>       * The standard constructor.<a name="line.31"></a>
+<FONT color="green">032</FONT>       * @param context The context.<a name="line.32"></a>
+<FONT color="green">033</FONT>       * @param request The request object.<a name="line.33"></a>
+<FONT color="green">034</FONT>       * @param response The response object.<a name="line.34"></a>
+<FONT color="green">035</FONT>       */<a name="line.35"></a>
+<FONT color="green">036</FONT>      public RegistrationResource(Context context, Request request, Response response) {<a name="line.36"></a>
+<FONT color="green">037</FONT>        super(context, request, response);<a name="line.37"></a>
+<FONT color="green">038</FONT>      }<a name="line.38"></a>
+<FONT color="green">039</FONT>      <a name="line.39"></a>
+<FONT color="green">040</FONT>      /**<a name="line.40"></a>
+<FONT color="green">041</FONT>       * Returns a page providing a registration form. <a name="line.41"></a>
+<FONT color="green">042</FONT>       * This requires no authorization.<a name="line.42"></a>
+<FONT color="green">043</FONT>       * @param variant The representational variant requested.<a name="line.43"></a>
+<FONT color="green">044</FONT>       * @return The representation. <a name="line.44"></a>
+<FONT color="green">045</FONT>       */<a name="line.45"></a>
+<FONT color="green">046</FONT>      @Override<a name="line.46"></a>
+<FONT color="green">047</FONT>      public Representation getRepresentation(Variant variant) {<a name="line.47"></a>
+<FONT color="green">048</FONT>        String pageHtml = <a name="line.48"></a>
+<FONT color="green">049</FONT>          "&lt;html&gt;" +<a name="line.49"></a>
+<FONT color="green">050</FONT>          "  &lt;body&gt;" +<a name="line.50"></a>
+<FONT color="green">051</FONT>          "  Welcome to the Hackystat SensorBase." +<a name="line.51"></a>
+<FONT color="green">052</FONT>          "  &lt;p&gt;Please enter your email address below to register." +<a name="line.52"></a>
+<FONT color="green">053</FONT>          "  &lt;p&gt;A password to this SensorBase will be emailed to you. " +<a name="line.53"></a>
+<FONT color="green">054</FONT>          "  &lt;form action=\"register\" method=\"POST\"&gt;" +<a name="line.54"></a>
+<FONT color="green">055</FONT>          "  &lt;input name=\"email\" type=\"text\" size=\"15\"/&gt; " +<a name="line.55"></a>
+<FONT color="green">056</FONT>          "  &lt;input  type=\"submit\" name=\"Submit\" value=\"Register\"&gt;" +<a name="line.56"></a>
+<FONT color="green">057</FONT>          "  &lt;/form&gt;";<a name="line.57"></a>
+<FONT color="green">058</FONT>        Representation representation = new StringRepresentation(pageHtml);<a name="line.58"></a>
+<FONT color="green">059</FONT>        representation.setMediaType(MediaType.TEXT_HTML);<a name="line.59"></a>
+<FONT color="green">060</FONT>        return representation;<a name="line.60"></a>
+<FONT color="green">061</FONT>      }<a name="line.61"></a>
+<FONT color="green">062</FONT>      <a name="line.62"></a>
+<FONT color="green">063</FONT>      /** <a name="line.63"></a>
+<FONT color="green">064</FONT>       * Indicate the POST method is supported. <a name="line.64"></a>
+<FONT color="green">065</FONT>       * @return True.<a name="line.65"></a>
+<FONT color="green">066</FONT>       */<a name="line.66"></a>
+<FONT color="green">067</FONT>      @Override<a name="line.67"></a>
+<FONT color="green">068</FONT>      public boolean allowPost() {<a name="line.68"></a>
+<FONT color="green">069</FONT>        return true;<a name="line.69"></a>
+<FONT color="green">070</FONT>      }<a name="line.70"></a>
+<FONT color="green">071</FONT>      <a name="line.71"></a>
+<FONT color="green">072</FONT>      /**<a name="line.72"></a>
+<FONT color="green">073</FONT>       * Implement the POST method that registers a new user. <a name="line.73"></a>
+<FONT color="green">074</FONT>       * @param entity The email address to be registered.<a name="line.74"></a>
+<FONT color="green">075</FONT>       */<a name="line.75"></a>
+<FONT color="green">076</FONT>      @Override<a name="line.76"></a>
+<FONT color="green">077</FONT>      public void post(Representation entity) {<a name="line.77"></a>
+<FONT color="green">078</FONT>        Form form = new Form(entity);<a name="line.78"></a>
+<FONT color="green">079</FONT>        String email = form.getFirstValue("email");<a name="line.79"></a>
+<FONT color="green">080</FONT>        // Return Badness if we don't have the email attribute.<a name="line.80"></a>
+<FONT color="green">081</FONT>        if (email == null || "".equals(email)) {<a name="line.81"></a>
+<FONT color="green">082</FONT>          SensorBaseLogger.getLogger().warning("Invalid registration request: empty email"); <a name="line.82"></a>
+<FONT color="green">083</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Missing email parameter");<a name="line.83"></a>
+<FONT color="green">084</FONT>          return;<a name="line.84"></a>
+<FONT color="green">085</FONT>        }<a name="line.85"></a>
+<FONT color="green">086</FONT>        User user = super.userManager.registerUser(email);<a name="line.86"></a>
+<FONT color="green">087</FONT>        // Now send the email to the (non-test) user and the hackystat admin.<a name="line.87"></a>
+<FONT color="green">088</FONT>        Mailer mailer = Mailer.getInstance();<a name="line.88"></a>
+<FONT color="green">089</FONT>        String emailSubject = "Hackystat Version 8 Registration";<a name="line.89"></a>
+<FONT color="green">090</FONT>        String emailBody = <a name="line.90"></a>
+<FONT color="green">091</FONT>          "Welcome to Hackystat Version 8. " +<a name="line.91"></a>
+<FONT color="green">092</FONT>          "\nYou are registered with the server: " + ServerProperties.getFullHost() +<a name="line.92"></a>
+<FONT color="green">093</FONT>          "\nYour user name is: " + user.getEmail() +<a name="line.93"></a>
+<FONT color="green">094</FONT>          "\nYour password is: " + user.getPassword() +<a name="line.94"></a>
+<FONT color="green">095</FONT>          "\n\nNote that the user name and password are both case sensitive!";<a name="line.95"></a>
+<FONT color="green">096</FONT>        boolean success = mailer.send(email, emailSubject, emailBody);<a name="line.96"></a>
+<FONT color="green">097</FONT>        if (success) {<a name="line.97"></a>
+<FONT color="green">098</FONT>          // Don't send the administrator emails about test user registration.<a name="line.98"></a>
+<FONT color="green">099</FONT>          if (!userManager.isTestUser(user)) {<a name="line.99"></a>
+<FONT color="green">100</FONT>            mailer.send(ServerProperties.get(ADMIN_EMAIL_KEY), <a name="line.100"></a>
+<FONT color="green">101</FONT>                "Hackystat 8 Admin Registration",<a name="line.101"></a>
+<FONT color="green">102</FONT>                "User " + email + " registered and received password: " + user.getPassword() + "\n" +<a name="line.102"></a>
+<FONT color="green">103</FONT>                "for host: " + ServerProperties.get(HOSTNAME_KEY));<a name="line.103"></a>
+<FONT color="green">104</FONT>          }<a name="line.104"></a>
+<FONT color="green">105</FONT>    <a name="line.105"></a>
+<FONT color="green">106</FONT>          String responseHtml =<a name="line.106"></a>
+<FONT color="green">107</FONT>            "&lt;html&gt;" +<a name="line.107"></a>
+<FONT color="green">108</FONT>            "  &lt;body&gt;" +<a name="line.108"></a>
+<FONT color="green">109</FONT>            "    Thank you for registering with this SensorBase. " +<a name="line.109"></a>
+<FONT color="green">110</FONT>            "    &lt;p&gt;" +<a name="line.110"></a>
+<FONT color="green">111</FONT>            "    Your password has been sent to: " + email +<a name="line.111"></a>
+<FONT color="green">112</FONT>            "  &lt;/body&gt;" +<a name="line.112"></a>
+<FONT color="green">113</FONT>            "&lt;/html&gt;";<a name="line.113"></a>
+<FONT color="green">114</FONT>          SensorBaseLogger.getLogger().info("Registered: " + email + " " + user.getPassword());<a name="line.114"></a>
+<FONT color="green">115</FONT>          getResponse().setStatus(Status.SUCCESS_OK);<a name="line.115"></a>
+<FONT color="green">116</FONT>          Representation representation = new StringRepresentation(responseHtml);<a name="line.116"></a>
+<FONT color="green">117</FONT>          representation.setMediaType(MediaType.TEXT_HTML);<a name="line.117"></a>
+<FONT color="green">118</FONT>          getResponse().setEntity(representation);<a name="line.118"></a>
+<FONT color="green">119</FONT>        }<a name="line.119"></a>
+<FONT color="green">120</FONT>      }<a name="line.120"></a>
+<FONT color="green">121</FONT>    }<a name="line.121"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</PRE>
+</BODY>
+</HTML>

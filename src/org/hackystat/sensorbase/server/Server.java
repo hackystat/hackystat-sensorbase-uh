@@ -11,6 +11,7 @@ import org.hackystat.sensorbase.resource.projects.ProjectsResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectSensorDataResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectsResource;
+import org.hackystat.sensorbase.resource.registration.RegistrationResource;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataResource;
 import org.hackystat.sensorbase.resource.sensordata.UserSensorDataResource;
@@ -158,7 +159,7 @@ public class Server extends Application {
     // Now create our "top-level" router which will allow the registration URI to proceed without
     // authentication, but all other URI patterns will go to the guarded Router. 
     Router router = new Router(getContext());
-    router.attach("/users?email={email}", UsersResource.class);
+    router.attach("/register", RegistrationResource.class);
     router.attachDefault(guard);
     
     return router;
