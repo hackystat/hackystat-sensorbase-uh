@@ -1,7 +1,5 @@
 package org.hackystat.sensorbase.db.derby;
 
-import static org.hackystat.sensorbase.db.DbManager.sensorDataIndexCloseTag;
-import static org.hackystat.sensorbase.db.DbManager.sensorDataIndexOpenTag;
 import static org.hackystat.sensorbase.server.ServerProperties.DB_DIR_KEY;
 
 import java.sql.Connection;
@@ -279,59 +277,32 @@ public class DerbyImplementation extends DbImplementation {
   public boolean isFreshlyCreated() {
     return this.isFreshlyCreated;
   }
-
-
-  /**
-   * Given a String representing the SQL statement that returns a ResultSet 
-   * containing a XmlSensorDataRef column, constructs the XML SensorDataIndex string containing
-   * those columms and returns it. 
-   * @param statement The SQL Statement to be used to retrieve XmlSensorDataRef strings. 
-   * @return The aggregate SensorDataIndex XML string. 
-   */
-  private String getSensorDataIndex(String statement) {
-    StringBuilder builder = new StringBuilder(512);
-    builder.append(sensorDataIndexOpenTag);
-    // Retrieve all the SensorData
-    Connection conn = null;
-    PreparedStatement s = null;
-    ResultSet rs = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      s = conn.prepareStatement(statement);
-      rs = s.executeQuery();
-      while (rs.next()) {
-        builder.append(rs.getString("XmlSensorDataRef"));
-      }
-    }
-    catch (SQLException e) {
-      this.logger.info("Derby: Error in getSensorDataIndex()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        rs.close();
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
-    builder.append(sensorDataIndexCloseTag);
-    return builder.toString();
-  }
+  
   
   /** {@inheritDoc} */
   @Override
   public String getSensorDataIndex() {
     String st = "SELECT XmlSensorDataRef FROM SensorData";
-    return getSensorDataIndex(st);
+    return getIndex("SensorData", st); //NOPMD  (See below)
   }
+  
+  /*
+   * Interestingly, I could not refactor out the string "SensorData" to avoid the PMD error
+   * resulting from multiple occurrences of the same string. 
+   * This is because if I made it a private String, then Findbugs would throw a warning asking
+   * for it to be static:
+   * 
+   * private static final String sensorData = "SensorData"; 
+   * 
+   *  However, the above declaration causes the system to deadlock! 
+   *  So, I'm just ignoring the PMD error. 
+   */
   
   /** {@inheritDoc} */
   @Override
   public String getSensorDataIndex(User user) {
     String st = "SELECT XmlSensorDataRef FROM SensorData WHERE owner='" + user.getEmail() + "'"; 
-    return getSensorDataIndex(st);
+    return getIndex("SensorData", st);
   }
 
   /** {@inheritDoc} */
@@ -341,53 +312,19 @@ public class DerbyImplementation extends DbImplementation {
       "SELECT XmlSensorDataRef FROM SensorData WHERE " 
       + ownerEquals + user.getEmail() + "', " 
       + " sdt='" + sdtName + "'";
-    return getSensorDataIndex(st);
+    return getIndex("SensorData", st);
   }
   
   /** {@inheritDoc} */
   @Override
   public String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime, List<UriPattern> uriPatterns) {
-    StringBuilder builder = new StringBuilder(512);
-    builder.append(sensorDataIndexOpenTag);
-    // Retrieve all the SensorData
-    Connection conn = null;
-    PreparedStatement s = null;
-    ResultSet rs = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      // First, get all of the SensorData during the time interval.
-      String statement = 
-        "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
-        + ownerEquals + user.getEmail() + andClause 
-        + " Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
-        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
-      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
-      s = conn.prepareStatement(statement);
-      rs = s.executeQuery();
-      // Now, add only the SensorData whose Resource matches one of the UriPatterns. 
-      while (rs.next()) {
-        String resource = rs.getString("Resource");
-        if (UriPattern.matches(resource, uriPatterns)) {
-          builder.append(rs.getString("XmlSensorDataRef"));
-        }
-      }
-    }
-    catch (SQLException e) {
-      this.logger.info("Derby: Error in getSensorDataIndex()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        rs.close();
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
-    builder.append(sensorDataIndexCloseTag);
-    return builder.toString();
+    String statement = 
+      "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
+      + ownerEquals + user.getEmail() + andClause 
+      + " Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
+      + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
+    return getIndex("SensorData", statement);
   }
 
   /** {@inheritDoc} */
@@ -431,66 +368,21 @@ public class DerbyImplementation extends DbImplementation {
   /** {@inheritDoc} */
   @Override
   public void deleteSensorData(User user, XMLGregorianCalendar timestamp) {
-    Connection conn = null;
-    PreparedStatement s = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      String statement =
-        "DELETE FROM SensorData WHERE "
-        + ownerEquals + user.getEmail() + andClause 
-        + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
-      SensorBaseLogger.getLogger().fine("Derby: " + statement); //NOPMD (Dup string)
-      s = conn.prepareStatement(statement);
-      s.executeUpdate();
-    }
-    catch (SQLException e) {
-      this.logger.info("Derby: Error in deleteSensorData()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
+    String statement =
+      "DELETE FROM SensorData WHERE "
+      + ownerEquals + user.getEmail() + andClause 
+      + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
+    deleteResource(statement);
   }
 
   /** {@inheritDoc} */
   @Override
   public String getSensorData(User user, XMLGregorianCalendar timestamp) {
-    StringBuilder builder = new StringBuilder(512);
-    Connection conn = null;
-    PreparedStatement s = null;
-    ResultSet rs = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      String statement =
-        "SELECT XmlSensorData FROM SensorData WHERE "
-        + ownerEquals + user.getEmail() + andClause 
-        + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
-      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
-      s = conn.prepareStatement(statement);
-      rs = s.executeQuery();
-      while (rs.next()) { // guaranteed to be only one row in table because owner/tstamp is PK.
-        builder.append(rs.getString("XmlSensorData"));
-      }
-    }
-    catch (SQLException e) {
-      this.logger.info("DB: Error in getSensorData()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        rs.close();
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
-    return builder.toString();
+    String statement =
+      "SELECT XmlSensorData FROM SensorData WHERE "
+      + ownerEquals + user.getEmail() + andClause 
+      + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
+    return getResource("SensorData", statement);
   }
 
   // ********************   Start SensorDataType specific stuff here *****************  //
@@ -573,95 +465,22 @@ public class DerbyImplementation extends DbImplementation {
   /** {@inheritDoc} */
   @Override
   public void deleteSensorDataType(String sdtName) {
-    Connection conn = null;
-    PreparedStatement s = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      String statement = "DELETE FROM SensorDataType WHERE Name='" + sdtName + "'";
-      SensorBaseLogger.getLogger().fine("Derby: " + statement);
-      s = conn.prepareStatement(statement);
-      s.executeUpdate();
-    }
-    catch (SQLException e) {
-      this.logger.info("Derby: Error in deleteSensorDataType()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
+    String statement = "DELETE FROM SensorDataType WHERE Name='" + sdtName + "'";
+    deleteResource(statement);
   }
 
   /** {@inheritDoc} */
   @Override
   public String getSensorDataTypeIndex() {
-    StringBuilder builder = new StringBuilder(512);
-    builder.append("<SensorDataTypeIndex>");
-    // Retrieve all the SensorData
-    Connection conn = null;
-    PreparedStatement s = null;
-    ResultSet rs = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      s = conn.prepareStatement("SELECT XmlSensorDataTypeRef FROM SensorDataType");
-      rs = s.executeQuery();
-      while (rs.next()) {
-        builder.append(rs.getString("XmlSensorDataTypeRef"));
-      }
-    }
-    catch (SQLException e) {
-      this.logger.info("Derby: Error in getSensorDataTypeIndex()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        rs.close();
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
-    builder.append("</SensorDataTypeIndex>");
-    return builder.toString();
+    return getIndex("SensorDataType", "SELECT XmlSensorDataTypeRef FROM SensorDataType");
   }
 
   /** {@inheritDoc} */
   @Override
   public String getSensorDataType(String sdtName) {
-    StringBuilder builder = new StringBuilder(512);
-    Connection conn = null;
-    PreparedStatement s = null;
-    ResultSet rs = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      String statement = 
-        "SELECT XmlSensorDataType FROM SensorDataType WHERE Name = '" + sdtName + "'";
-      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
-      s = conn.prepareStatement(statement);
-      rs = s.executeQuery();
-      while (rs.next()) { // guaranteed to be only one row in table because name is PK.
-        builder.append(rs.getString("XmlSensorDataType"));
-      }
-    }
-    catch (SQLException e) {
-      this.logger.info("DB: Error in getSensorDataType()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        rs.close();
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
-    return builder.toString();
+    String statement = 
+      "SELECT XmlSensorDataType FROM SensorDataType WHERE Name = '" + sdtName + "'";
+    return getResource("SensorDataType", statement);
   }
   
   // ********************   Start  User specific stuff here *****************  //
@@ -696,96 +515,22 @@ public class DerbyImplementation extends DbImplementation {
   /** {@inheritDoc} */
   @Override
   public void deleteUser(String email) {
-    Connection conn = null;
-    PreparedStatement s = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      String statement = "DELETE FROM HackyUser WHERE Email='" + email + "'";
-      SensorBaseLogger.getLogger().fine("Derby: " + statement);
-      s = conn.prepareStatement(statement);
-      s.executeUpdate();
-    }
-    catch (SQLException e) {
-      this.logger.info("Derby: Error in deleteUser()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
+    String statement = "DELETE FROM HackyUser WHERE Email='" + email + "'";
+    deleteResource(statement);
   }
 
   /** {@inheritDoc} */
   @Override
   public String getUser(String email) {
-    StringBuilder builder = new StringBuilder(512);
-    Connection conn = null;
-    PreparedStatement s = null;
-    ResultSet rs = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      String statement = 
-        "SELECT XmlUser FROM HackyUser WHERE Email = '" + email + "'";
-      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
-      s = conn.prepareStatement(statement);
-      rs = s.executeQuery();
-      while (rs.next()) { // guaranteed to be only one row in table because email is PK.
-        builder.append(rs.getString("XmlUser"));
-      }
-    }
-    catch (SQLException e) {
-      this.logger.info("DB: Error in getUser()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        rs.close();
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
-    return builder.toString();
+    String statement = "SELECT XmlUser FROM HackyUser WHERE Email = '" + email + "'";
+    return getResource("User", statement);
   }
 
 
   /** {@inheritDoc} */
   @Override
   public String getUserIndex() {
-    StringBuilder builder = new StringBuilder(512);
-    builder.append("<UserIndex>");
-    // Retrieve all the SensorData
-    Connection conn = null;
-    PreparedStatement s = null;
-    ResultSet rs = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      s = conn.prepareStatement("SELECT XmlUserRef FROM HackyUser");
-      rs = s.executeQuery();
-      while (rs.next()) {
-        builder.append(rs.getString("XmlUserRef"));
-      }
-    }
-    catch (SQLException e) {
-      this.logger.info("Derby: Error in getUserIndex()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        rs.close();
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
-    builder.append("</UserIndex>");
-    return builder.toString();
+    return getIndex("User", "SELECT XmlUserRef FROM HackyUser");
   }
 
   /** {@inheritDoc} */
@@ -882,100 +627,27 @@ public class DerbyImplementation extends DbImplementation {
   /** {@inheritDoc} */
   @Override
   public void deleteProject(User owner, String projectName) {
-    Connection conn = null;
-    PreparedStatement s = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      String statement =
-        "DELETE FROM Project WHERE "
-        + ownerEquals + owner.getEmail() + andClause 
-        + " ProjectName = '" + projectName + "'";
-      SensorBaseLogger.getLogger().fine("Derby: " + statement);
-      s = conn.prepareStatement(statement);
-      s.executeUpdate();
-    }
-    catch (SQLException e) {
-      this.logger.info("Derby: Error in deleteProject()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
+    String statement =
+      "DELETE FROM Project WHERE "
+      + ownerEquals + owner.getEmail() + andClause 
+      + " ProjectName = '" + projectName + "'";
+    deleteResource(statement);
   }
 
   /** {@inheritDoc} */
   @Override
   public String getProject(User owner, String projectName) {
-    StringBuilder builder = new StringBuilder(512);
-    Connection conn = null;
-    PreparedStatement s = null;
-    ResultSet rs = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      String statement =
-        "SELECT XmlProject FROM Project WHERE "
-        + ownerEquals + owner.getEmail() + andClause 
-        + " ProjectName ='" + projectName + "'";
-      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
-      s = conn.prepareStatement(statement);
-      rs = s.executeQuery();
-      while (rs.next()) { // guaranteed to be only one row in table because owner/tstamp is PK.
-        builder.append(rs.getString("XmlProject"));
-      }
-    }
-    catch (SQLException e) {
-      this.logger.info("DB: Error in getProject()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        rs.close();
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
-    return builder.toString();
+    String statement =
+      "SELECT XmlProject FROM Project WHERE "
+      + ownerEquals + owner.getEmail() + andClause 
+      + " ProjectName ='" + projectName + "'";
+    return getResource("Project", statement);
   }
 
   /** {@inheritDoc} */
   @Override
   public String getProjectIndex() {
-    StringBuilder builder = new StringBuilder(512);
-    builder.append("<ProjectIndex>");
-    // Retrieve all the SensorData
-    Connection conn = null;
-    PreparedStatement s = null;
-    ResultSet rs = null;
-    try {
-      conn = DriverManager.getConnection(connectionURL);
-      s = conn.prepareStatement("SELECT XmlProjectRef FROM Project");
-      rs = s.executeQuery();
-      while (rs.next()) {
-        builder.append(rs.getString("XmlProjectRef"));
-      }
-    }
-    catch (SQLException e) {
-      this.logger.info("Derby: Error in getProjectIndex()" + StackTrace.toString(e));
-    }
-    finally {
-      try {
-        rs.close();
-        s.close();
-        conn.close();
-      }
-      catch (SQLException e) {
-        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-      }
-    }
-    builder.append("</ProjectIndex>");
-    return builder.toString();
+    return getIndex("Project", "SELECT XmlProjectRef FROM Project");
   }
 
   /** {@inheritDoc} */
@@ -1031,5 +703,111 @@ public class DerbyImplementation extends DbImplementation {
       }
     }
     return true;
+  }
+  
+  // **************************** Internal helper functions *****************************
+  
+  /**
+   * Returns a string containing the Index for the given resource indicated by resourceName.
+   * @param resourceName The resource name, such as "Project". 
+   * @param statement The SQL Statement to be used to retrieve the resource references.
+   * @return The aggregate Index XML string. 
+   */
+  private String getIndex(String resourceName, String statement) {
+    StringBuilder builder = new StringBuilder(512);
+    builder.append("<").append(resourceName).append("Index>");
+    // Retrieve all the SensorData
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      String resourceRefColumnName = "Xml" + resourceName + "Ref";
+      while (rs.next()) {
+        builder.append(rs.getString(resourceRefColumnName));
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in getIndex()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    builder.append("</").append(resourceName).append("Index>");
+    return builder.toString();
+  }
+  
+  /**
+   * Returns a string containing the Resource as XML.
+   * @param resourceName The name of the resource, such as "User".
+   * @param statement The select statement used to retrieve the resultset containing a single
+   * row with that resource.
+   * @return The string containing the resource as an XML string.
+   */
+  private String getResource(String resourceName, String statement) {
+    StringBuilder builder = new StringBuilder(512);
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      String resourceXmlColumnName = "Xml" + resourceName;
+      while (rs.next()) { // the select statement must guarantee only one row is returned.
+        builder.append(rs.getString(resourceXmlColumnName));
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("DB: Error in getResource()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    return builder.toString();
+  }
+  
+  /**
+   * Deletes the resource, given the SQL statement to perform the delete.
+   * @param statement The SQL delete statement. 
+   */
+  private void deleteResource(String statement) {
+    Connection conn = null;
+    PreparedStatement s = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      SensorBaseLogger.getLogger().fine("Derby: " + statement);
+      s = conn.prepareStatement(statement);
+      s.executeUpdate();
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in deleteResource()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
   }
 }
