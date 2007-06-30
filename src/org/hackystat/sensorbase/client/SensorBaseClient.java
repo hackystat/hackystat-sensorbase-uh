@@ -39,6 +39,7 @@ import org.restlet.data.Protocol;
 import org.restlet.data.Reference;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
+import org.restlet.data.Status;
 import org.restlet.resource.Representation;
 import org.w3c.dom.Document;
 
@@ -73,22 +74,28 @@ public class SensorBaseClient {
   private String sensordataUri = "sensordata/";
   /** For PMD */
   private String projectsUri = "projects/";
+  /** To facilitate debugging of problems using this system. */
+  private boolean isTraceEnabled = false;
   
   /**
    * Initializes a new SensorBaseClient, given the host, userEmail, and password. 
-   * @param sensorBaseHost The host, such as 'http://localhost:9876/sensorbase'.
-   * @param userEmail The user's email that we will use for authentication. 
+   * @param host The host, such as 'http://localhost:9876/sensorbase'.
+   * @param email The user's email that we will use for authentication. 
    * @param password The password we will use for authentication.
    */
-  public SensorBaseClient(String sensorBaseHost, String userEmail, String password) {
-    validateArg(sensorBaseHost);
-    validateArg(userEmail);
+  public SensorBaseClient(String host, String email, String password) {
+    validateArg(host);
+    validateArg(email);
     validateArg(password);
-    this.userEmail = userEmail;
+    this.userEmail = email;
     this.password = password;
-    this.sensorBaseHost = sensorBaseHost;
+    this.sensorBaseHost = host;
     if (!this.sensorBaseHost.endsWith("/")) {
       this.sensorBaseHost = this.sensorBaseHost + "/";
+    }
+    if (this.isTraceEnabled) {
+      System.out.println("SensorBaseClient Tracing: INITIALIZE " + 
+          host + " " + email + " " + password);
     }
     this.client = new Client(Protocol.HTTP);
     try {
@@ -104,6 +111,15 @@ public class SensorBaseClient {
     catch (Exception e) {
       throw new RuntimeException("Couldn't create JAXB context instances.");
     }
+  }
+  
+  /**
+   * When passed true, future HTTP calls using this client instance will print out 
+   * information on the request and response. 
+   * @param enable If true, trace output will be generated. 
+   */
+  public synchronized void enableHttpTracing(boolean enable) {
+    this.isTraceEnabled = enable;
   }
   
   /**
@@ -346,7 +362,14 @@ public class SensorBaseClient {
     request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
     ChallengeResponse authentication = new ChallengeResponse(scheme, this.userEmail, this.password);
     request.setChallengeResponse(authentication);
+    if (this.isTraceEnabled) {
+      System.out.println("SensorBaseClient Tracing: GET " + reference);
+    }
     Response response = this.client.handle(request);
+    if (this.isTraceEnabled) {
+      Status status = response.getStatus();
+      System.out.println("  => " + status.getCode() + " " + status.getDescription());
+    }
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
     }
@@ -797,7 +820,23 @@ public class SensorBaseClient {
     request.getClientInfo().getAcceptedMediaTypes().add(xmlMedia); 
     ChallengeResponse authentication = new ChallengeResponse(scheme, this.userEmail, this.password);
     request.setChallengeResponse(authentication);
-    return this.client.handle(request);
+    if (this.isTraceEnabled) {
+      System.out.println("SensorBaseClient Tracing: " + method + " " + reference);
+      if (entity != null) {
+        try {
+          System.out.println(entity.getText());
+        }
+        catch (Exception e) {
+          System.out.println("  Problems with getText() on entity.");
+        }
+      }
+    }
+    Response response = this.client.handle(request);
+    if (this.isTraceEnabled) {
+      Status status = response.getStatus();
+      System.out.println("  => " + status.getCode() + " " + status.getDescription());
+    }
+    return response;
   }
   
   /**
