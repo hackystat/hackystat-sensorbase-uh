@@ -42,7 +42,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     ProjectIndex index = client.getProjectIndex();
     // Make sure that we can iterate through the data and dereference all hrefs. 
     for (ProjectRef ref : index.getProjectRef()) {
-      client.getUri(ref.getHref());
+      client.getProject(ref);
     }
     assertTrue("Checking for project data", index.getProjectRef().size() > 1);
   }

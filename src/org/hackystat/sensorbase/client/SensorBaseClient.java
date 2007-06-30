@@ -16,15 +16,18 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
+import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeIndex;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeRef;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
+import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
 import org.restlet.Client;
 import org.restlet.data.ChallengeResponse;
 import org.restlet.data.ChallengeScheme;
@@ -274,6 +277,29 @@ public class SensorBaseClient {
   }  
   
   /**
+   * Returns the named User associated with the UserRef. 
+   * @param ref The UserRef instance
+   * @return The User instance. 
+   * @throws SensorBaseClientException If the server does not return the user or returns something
+   * that cannot be marshalled into Java User instance. 
+   */
+  public synchronized User getUser(UserRef ref) throws SensorBaseClientException {
+    Response response = getUri(ref.getHref());
+    User user;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      user = makeUser(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return user;
+  } 
+  
+  /**
    * Deletes the User given their email.
    * @param email The email of the User to delete.  
    * @throws SensorBaseClientException If the server does not indicate success.
@@ -425,6 +451,29 @@ public class SensorBaseClient {
   }
   
   /**
+   * Returns the named SensorData associated with the SensorDataRef. 
+   * @param ref The SensorDataRef instance
+   * @return The SensorData instance. 
+   * @throws SensorBaseClientException If the server does not return the data or returns something
+   * that cannot be marshalled into Java SensorData instance. 
+   */
+  public synchronized SensorData getSensorData(SensorDataRef ref) throws SensorBaseClientException {
+    Response response = getUri(ref.getHref());
+    SensorData data;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      data = makeSensorData(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return data;
+  } 
+  
+  /**
    * Creates the passed SensorData on the server. 
    * @param data The sensor data to create.
    * @throws SensorBaseClientException If problems occur posting this data.
@@ -534,6 +583,29 @@ public class SensorBaseClient {
     }
     return project;
   }  
+  
+  /**
+   * Returns the named Project associated with the ProjectRef. 
+   * @param ref The ProjectRef instance
+   * @return The Project instance. 
+   * @throws SensorBaseClientException If the server does not return the user or returns something
+   * that cannot be marshalled into Java Project instance. 
+   */
+  public synchronized Project getProject(ProjectRef ref) throws SensorBaseClientException {
+    Response response = getUri(ref.getHref());
+    Project project;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      project = makeProject(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return project;
+  } 
   
   /**
    * Returns a SensorDataIndex representing all the SensorData for this Project.

@@ -47,7 +47,7 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
         foundTestUser = true;
       }
       // Make sure the href is OK. 
-      client.getUri(ref.getHref());
+      client.getUser(ref);
     }
     assertTrue("Checking that we found the TestUser", foundTestUser);
   }

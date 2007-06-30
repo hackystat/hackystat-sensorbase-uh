@@ -56,7 +56,7 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     SensorDataIndex index = client.getSensorDataIndex(user);
     // Make sure that we can iterate through the data and dereference all hrefs. 
     for (SensorDataRef ref : index.getSensorDataRef()) {
-      client.getUri(ref.getHref());
+      client.getSensorData(ref);
     }
     assertTrue("Checking for sensor data 2", index.getSensorDataRef().size() > 1);
   }
