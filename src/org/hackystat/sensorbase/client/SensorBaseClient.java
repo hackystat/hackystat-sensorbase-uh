@@ -95,7 +95,7 @@ public class SensorBaseClient {
     }
     if (this.isTraceEnabled) {
       System.out.println("SensorBaseClient Tracing: INITIALIZE " + 
-          host + " " + email + " " + password);
+          "host='" + host + "', email='" + email + "', password='" + password + "'");
     }
     this.client = new Client(Protocol.HTTP);
     try {
