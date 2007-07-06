@@ -4,8 +4,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-
 /**
  * Provides access to the values stored in the sensorbase.properties file. 
  * @author Philip Johnson
@@ -83,9 +81,10 @@ public class ServerProperties {
   }
 
   /**
-   * Prints all of the sensorbase settings to the logger.  
+   * Prints all of the sensorbase settings to the logger.
+   * @param server The SensorBase server.   
    */
-  static void echoProperties() {
+  static void echoProperties(Server server) {
     String cr = System.getProperty("line.separator"); 
     String eq = " = ";
     String pad = "                ";
@@ -101,7 +100,7 @@ public class ServerProperties {
       pad + PORT_KEY          + eq + get(PORT_KEY) + cr +
       pad + TEST_INSTALL_KEY  + eq + get(TEST_INSTALL_KEY) + cr + 
       pad + XML_DIR_KEY       + eq + get(XML_DIR_KEY);
-    SensorBaseLogger.getLogger().info(propertyInfo);
+    server.getLogger().info(propertyInfo);
   }
   
   /**

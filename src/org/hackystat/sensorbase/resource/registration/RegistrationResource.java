@@ -3,7 +3,6 @@ package org.hackystat.sensorbase.resource.registration;
 import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.HOSTNAME_KEY;
 
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.mail.Mailer;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -79,7 +78,7 @@ public class RegistrationResource extends SensorBaseResource {
     String email = form.getFirstValue("email");
     // Return Badness if we don't have the email attribute.
     if (email == null || "".equals(email)) {
-      SensorBaseLogger.getLogger().warning("Invalid registration request: empty email"); 
+      server.getLogger().warning("Invalid registration request: empty email"); 
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Missing email parameter");
       return;
     }
@@ -111,7 +110,7 @@ public class RegistrationResource extends SensorBaseResource {
         "    Your password has been sent to: " + email +
         "  </body>" +
         "</html>";
-      SensorBaseLogger.getLogger().info("Registered: " + email + " " + user.getPassword());
+      server.getLogger().info("Registered: " + email + " " + user.getPassword());
       getResponse().setStatus(Status.SUCCESS_OK);
       Representation representation = new StringRepresentation(responseHtml);
       representation.setMediaType(MediaType.TEXT_HTML);

@@ -18,6 +18,8 @@
     </copy>
   
     <!-- First build sensorbase.java6.jar, which does not include JAXB --> 
+    <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/hackystatlogger.lib.jar" dest="${tmp.dir}"/>
+    <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/org.simpleframework_3.1/org.simpleframework.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/org.restlet.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" dest="${tmp.dir}"/>

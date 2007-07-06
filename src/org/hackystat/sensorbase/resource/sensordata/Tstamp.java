@@ -1,13 +1,13 @@
 package org.hackystat.sensorbase.resource.sensordata;
 
 import java.util.GregorianCalendar;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
 
 /**
  * Utility class that facilitates Timestamp representation and processing. 
@@ -58,7 +58,8 @@ public class Tstamp {
       return factory.newXMLGregorianCalendar(calendar);
     }
     catch (DatatypeConfigurationException e) {
-      SensorBaseLogger.getLogger().warning("Failed to create DatatypeFactory in makeTimestamp()");
+      Logger logger = LogManager.getLogManager().getLogger("org.hackystat.sensorbase");
+      logger.warning("Failed to create DatatypeFactory in makeTimestamp()");
     }
     return null;
   }

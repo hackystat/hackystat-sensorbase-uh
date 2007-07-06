@@ -23,8 +23,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.hackystat.sensorbase.db.DbManager;
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.projects.jaxb.Members;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
@@ -100,7 +99,7 @@ public class ProjectManager {
     }
     catch (Exception e) {
       String msg = "Exception during ProjectManager initialization processing";
-      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
+      server.getLogger().warning(msg + "\n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
   }
@@ -114,7 +113,7 @@ public class ProjectManager {
     File defaultsFile = findDefaultsFile();
     // Add these users to the database if we've found a default file. 
     if (defaultsFile.exists()) {
-      SensorBaseLogger.getLogger().info("Loading Project defaults from " + defaultsFile.getPath()); 
+      server.getLogger().info("Loading Project defaults from " + defaultsFile.getPath()); 
       Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
       Projects projects = (Projects) unmarshaller.unmarshal(defaultsFile);
       for (Project project : projects.getProject()) {
@@ -139,7 +138,7 @@ public class ProjectManager {
         if (user == null) {
           String msg = "Project with undefined user '" + owner + "' found while initializing " 
           + " project cache from database. Project will be ignored.";
-          SensorBaseLogger.getLogger().warning(msg);   
+          server.getLogger().warning(msg);   
         }
         else {
           String projectName = ref.getName();
@@ -150,7 +149,7 @@ public class ProjectManager {
       }
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Failed to initialize users " + StackTrace.toString(e));
+      server.getLogger().warning("Failed to initialize users " + StackTrace.toString(e));
     }
   }
   
@@ -286,7 +285,7 @@ public class ProjectManager {
       this.dbManager.storeProject(project, xmlProject, xmlRef);
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Failed to put Project" + StackTrace.toString(e));
+      server.getLogger().warning("Failed to put Project" + StackTrace.toString(e));
     }
   }
   

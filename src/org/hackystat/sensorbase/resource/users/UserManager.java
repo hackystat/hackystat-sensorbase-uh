@@ -19,8 +19,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.hackystat.sensorbase.db.DbManager;
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
@@ -87,7 +86,7 @@ public class UserManager {
     }
     catch (Exception e) {
       String msg = "Exception during UserManager initialization processing";
-      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
+      server.getLogger().warning(msg + "\n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
   }
@@ -101,7 +100,7 @@ public class UserManager {
     File defaultsFile = findDefaultsFile();
     // Add these users to the database if we've found a default file. 
     if (defaultsFile.exists()) {
-      SensorBaseLogger.getLogger().info("Loading User defaults from " + defaultsFile.getPath()); 
+      server.getLogger().info("Loading User defaults from " + defaultsFile.getPath()); 
       Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
       Users users = (Users) unmarshaller.unmarshal(defaultsFile);
       for (User user : users.getUser()) {
@@ -123,7 +122,7 @@ public class UserManager {
       }
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Failed to initialize users " + StackTrace.toString(e));
+      server.getLogger().warning("Failed to initialize users " + StackTrace.toString(e));
     }
   }
   
@@ -222,7 +221,7 @@ public class UserManager {
       this.dbManager.storeUser(user, xmlUser, xmlRef);
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Failed to put User" + StackTrace.toString(e));
+      server.getLogger().warning("Failed to put User" + StackTrace.toString(e));
     }
   }
   

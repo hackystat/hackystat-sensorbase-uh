@@ -26,8 +26,7 @@ import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypes;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.db.DbManager;
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.utilities.stacktrace.StackTrace;
 import org.w3c.dom.Document;
 
 /**
@@ -92,7 +91,7 @@ public class SdtManager {
     }
     catch (Exception e) {
       String msg = "Exception during SdtManager initialization processing";
-      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
+      server.getLogger().warning(msg + "\n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
   }
@@ -106,7 +105,7 @@ public class SdtManager {
     File defaultsFile = findDefaultsFile();
     // Initialize the SDTs if we've found a default file. 
     if (defaultsFile.exists()) {
-      SensorBaseLogger.getLogger().info("Loading SDT defaults from " + defaultsFile.getPath()); 
+      server.getLogger().info("Loading SDT defaults from " + defaultsFile.getPath()); 
       Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
       SensorDataTypes sensorDataTypes = (SensorDataTypes) unmarshaller.unmarshal(defaultsFile);
       for (SensorDataType sdt : sensorDataTypes.getSensorDataType()) {
@@ -134,7 +133,7 @@ public class SdtManager {
       }
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Failed to initialize SDTs " + StackTrace.toString(e));
+      server.getLogger().warning("Failed to initialize SDTs " + StackTrace.toString(e));
     }
   }
   
@@ -193,7 +192,7 @@ public class SdtManager {
       this.sdt2xml.put(sdt, sdtString);
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Failed to put SDT" + StackTrace.toString(e));
+      server.getLogger().warning("Failed to put SDT" + StackTrace.toString(e));
     }
   }
   

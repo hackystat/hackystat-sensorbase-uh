@@ -3,8 +3,6 @@ package org.hackystat.sensorbase.db;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.logger.StackTrace;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
@@ -13,6 +11,7 @@ import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
 import static org.hackystat.sensorbase.server.ServerProperties.DB_IMPL_KEY;
 import org.hackystat.sensorbase.uripattern.UriPattern;
+import org.hackystat.utilities.stacktrace.StackTrace;
 
 /**
  * Provides an interface to storage for the resources managed by the SensorBase.
@@ -48,7 +47,7 @@ public class DbManager {
     }
     catch (ClassNotFoundException e) {
       String msg = "DB error instantiating " + dbClassName + ". Could not find this class.";
-      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
+      server.getLogger().warning(msg + "\n" + StackTrace.toString(e));
       throw new IllegalArgumentException(e);
     }
     // Next, try to find a constructor that accepts a Server as its parameter. 
@@ -59,7 +58,7 @@ public class DbManager {
     }
     catch (Exception e) {
       String msg = "DB error instantiating " + dbClassName + ". Could not find Constructor(server)";
-      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
+      server.getLogger().warning(msg + "\n" + StackTrace.toString(e));
       throw new IllegalArgumentException(e);
     }
     // Next, try to create an instance of DbImplementation from the Constructor.
@@ -69,7 +68,7 @@ public class DbManager {
     }
     catch (Exception e) {
       String msg = "DB error instantiating " + dbClassName + ". Could not create instance.";
-      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
+      server.getLogger().warning(msg + "\n" + StackTrace.toString(e));
       throw new IllegalArgumentException(e);
     }
     //this.dbImpl = new DerbyImplementation(this.server);

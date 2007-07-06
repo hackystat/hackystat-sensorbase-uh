@@ -2,6 +2,8 @@ package org.hackystat.sensorbase.mail;
 
 import java.util.Date;
 import java.util.Properties;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -10,7 +12,6 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.server.ServerProperties;
 import static org.hackystat.sensorbase.server.ServerProperties.SMTP_HOST_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
@@ -94,7 +95,8 @@ public class Mailer {
       return true;
     }
     catch (MessagingException mex) {
-      SensorBaseLogger.getLogger().warning("Mail failure to: " + toAddr  + "\n" + mex);
+      Logger logger = LogManager.getLogManager().getLogger("org.hackystat.sensorbase");
+      logger.warning("Mail failure to: " + toAddr  + "\n" + mex);
       return false;
     }
 

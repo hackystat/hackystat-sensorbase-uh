@@ -4,7 +4,6 @@ import java.util.Enumeration;
 import java.util.Map;
 
 import org.hackystat.sensorbase.db.DbManager;
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.mail.Mailer;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.projects.ProjectsResource;
@@ -21,6 +20,7 @@ import org.hackystat.sensorbase.resource.sensordatatypes.SensorDataTypesResource
 import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.resource.users.UserResource;
 import org.hackystat.sensorbase.resource.users.UsersResource;
+import org.hackystat.utilities.logger.HackystatLogger;
 import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Guard;
@@ -35,6 +35,7 @@ import static org.hackystat.sensorbase.server.ServerProperties.LOGGING_LEVEL_KEY
 
 import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 /**
  * Sets up the HTTP Server process and dispatching to the associated resources. 
@@ -48,6 +49,9 @@ public class Server extends Application {
   /** Holds the host name associated with this Server. */
   private String hostName;
   
+  /** Holds the HackystatLogger for the sensorbase. */
+  private Logger logger; 
+  
   /**
    * Creates a new instance of a SensorBase HTTP server, listening on the supplied port.  
    * @return The Server instance created. 
@@ -55,6 +59,7 @@ public class Server extends Application {
    */
   public static Server newInstance() throws Exception {
     Server server = new Server();
+    server.logger = HackystatLogger.getLogger("org.hackystat.sensorbase");
     ServerProperties.initializeProperties();
     server.hostName = "http://" +
                       ServerProperties.get(HOSTNAME_KEY) + 
@@ -75,7 +80,7 @@ public class Server extends Application {
     }
     catch (Throwable e) {
       String msg = "ERROR: JavaMail not installed correctly! Mail services will fail!";
-      SensorBaseLogger.getLogger().warning(msg);
+      server.logger.warning(msg);
     }
 
     // Now create all of the Resource Managers and store them in the Context.
@@ -90,15 +95,15 @@ public class Server extends Application {
     attributes.put("UserManager", new UserManager(server));
     attributes.put("ProjectManager", new ProjectManager(server));
     attributes.put("SensorDataManager", new SensorDataManager(server));
+    attributes.put("SensorBaseServer", server);
     
     // Now let's open for business. 
-    SensorBaseLogger.getLogger().warning("Host: " + server.hostName);
-    SensorBaseLogger.setLoggingLevel(ServerProperties.get(LOGGING_LEVEL_KEY));
-    ServerProperties.echoProperties();
-    SensorBaseLogger.getLogger().warning("SensorBase (Version " + getVersion() + ") now running.");
+    server.logger.warning("Host: " + server.hostName);
+    HackystatLogger.setLoggingLevel(server.logger, ServerProperties.get(LOGGING_LEVEL_KEY));
+    ServerProperties.echoProperties(server);
+    server.logger.warning("SensorBase (Version " + getVersion() + ") now running.");
     server.component.start();
     disableRestletLogging();
-    
     return server;
   }
 
@@ -184,6 +189,14 @@ public class Server extends Application {
    */
   public String getHostName() {
     return this.hostName;
+  }
+  
+  /**
+   * Returns the logger for the SensorBase. 
+   * @return The logger.
+   */
+  public Logger getLogger() {
+    return this.logger;
   }
 }
 

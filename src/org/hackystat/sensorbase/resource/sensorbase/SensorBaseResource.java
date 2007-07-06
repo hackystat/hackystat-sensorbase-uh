@@ -4,6 +4,7 @@ import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
 import org.hackystat.sensorbase.resource.users.UserManager;
+import org.hackystat.sensorbase.server.Server;
 import org.restlet.Context;
 import org.restlet.data.CharacterSet;
 import org.restlet.data.Language;
@@ -50,6 +51,9 @@ public abstract class SensorBaseResource extends Resource {
   /** The SensorDataManager. */
   protected SensorDataManager sensorDataManager = null;
   
+  /** The server. */
+  protected Server server;
+  
   /** The standard error message returned from invalid authentication. */
   protected String badAuth = "User is not admin and authenticated user does not not match URI user";
   
@@ -64,6 +68,7 @@ public abstract class SensorBaseResource extends Resource {
     if (request.getChallengeResponse() != null) {
       this.authUser = request.getChallengeResponse().getIdentifier();
     }
+    this.server = (Server)getContext().getAttributes().get("SensorBaseServer");
     this.uriUser = (String) request.getAttributes().get("user");
     this.projectManager = (ProjectManager)getContext().getAttributes().get("ProjectManager");
     this.userManager = (UserManager)getContext().getAttributes().get("UserManager");

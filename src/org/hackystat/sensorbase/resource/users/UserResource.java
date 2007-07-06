@@ -1,7 +1,6 @@
 package org.hackystat.sensorbase.resource.users;
 
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -117,7 +116,7 @@ public class UserResource extends SensorBaseResource {
       newProperties = super.userManager.makeProperties(entityString);
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Bad Properties Definition: " + StackTrace.toString(e));
+      server.getLogger().warning("Bad Properties Definition: " + StackTrace.toString(e));
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Properties: " + entityString);
       return;
     }

@@ -1,7 +1,6 @@
 package org.hackystat.sensorbase.resource.sensordatatypes;
 
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.restlet.Context;
@@ -83,7 +82,7 @@ public class SensorDataTypeResource extends SensorBaseResource {
       sdt = super.sdtManager.makeSensorDataType(entityString);
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Bad Sdt Definition in PUT: " + StackTrace.toString(e));
+      server.getLogger().warning("Bad Sdt Definition in PUT: " + StackTrace.toString(e));
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad SDT: " + entityString);
       return;
     }

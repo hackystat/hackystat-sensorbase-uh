@@ -18,8 +18,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.hackystat.sensorbase.db.DbManager;
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
@@ -78,7 +77,7 @@ public class SensorDataManager {
     }
     catch (Exception e) {
       String msg = "Exception during SensorDataManager initialization processing";
-      SensorBaseLogger.getLogger().warning(msg + "\n" + StackTrace.toString(e));
+      server.getLogger().warning(msg + "\n" + StackTrace.toString(e));
       throw new RuntimeException(msg, e);
     }
   }
@@ -94,7 +93,7 @@ public class SensorDataManager {
     File defaultsFile = findDefaultsFile();
     // Initialize the SDTs if we've found a default file. 
     if (defaultsFile.exists()) {
-      SensorBaseLogger.getLogger().info("Loading SensorData defaults: " 
+      server.getLogger().info("Loading SensorData defaults: " 
           + defaultsFile.getPath());
       Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
       SensorDatas sensorDatas = (SensorDatas) unmarshaller.unmarshal(defaultsFile);
@@ -237,7 +236,7 @@ public class SensorDataManager {
           this.makeSensorDataRefString(data));
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Failed to put sensor data " + StackTrace.toString(e));
+      server.getLogger().warning("Failed to put sensor data " + StackTrace.toString(e));
     }
   }
   

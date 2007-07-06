@@ -1,7 +1,6 @@
 package org.hackystat.sensorbase.resource.projects;
 
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -120,7 +119,7 @@ public class UserProjectResource extends SensorBaseResource {
       project = super.projectManager.makeProject(entityString);
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Bad Project in PUT: " + StackTrace.toString(e));
+      server.getLogger().warning("Bad Project in PUT: " + StackTrace.toString(e));
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Project: " + entityString);
       return;
     }

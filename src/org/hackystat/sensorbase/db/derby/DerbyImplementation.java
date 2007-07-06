@@ -15,8 +15,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.db.DbImplementation;
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
@@ -341,7 +340,7 @@ public class DerbyImplementation extends DbImplementation {
         "SELECT XmlSensorDataRef FROM SensorData WHERE "
         + ownerEquals + user.getEmail() + andClause 
         + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
-      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
+      server.getLogger().fine(executeQueryMsg + statement);
       s = conn.prepareStatement(statement);
       rs = s.executeQuery();
       // If a record was retrieved, we'll enter the loop, otherwise we won't. 
@@ -760,7 +759,7 @@ public class DerbyImplementation extends DbImplementation {
     ResultSet rs = null;
     try {
       conn = DriverManager.getConnection(connectionURL);
-      SensorBaseLogger.getLogger().fine(executeQueryMsg + statement);
+      server.getLogger().fine(executeQueryMsg + statement);
       s = conn.prepareStatement(statement);
       rs = s.executeQuery();
       String resourceXmlColumnName = "Xml" + resourceName;
@@ -793,7 +792,7 @@ public class DerbyImplementation extends DbImplementation {
     PreparedStatement s = null;
     try {
       conn = DriverManager.getConnection(connectionURL);
-      SensorBaseLogger.getLogger().fine("Derby: " + statement);
+      server.getLogger().fine("Derby: " + statement);
       s = conn.prepareStatement(statement);
       s.executeUpdate();
     }

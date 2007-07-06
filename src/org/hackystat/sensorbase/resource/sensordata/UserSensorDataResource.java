@@ -2,8 +2,7 @@ package org.hackystat.sensorbase.resource.sensordata;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
-import org.hackystat.sensorbase.logger.StackTrace;
+import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -155,7 +154,7 @@ public class UserSensorDataResource extends SensorBaseResource {
       data = this.sensorDataManager.makeSensorData(entityString);
     }
     catch (Exception e) {
-      SensorBaseLogger.getLogger().warning("Bad Sensor Data in PUT: " + StackTrace.toString(e));
+      server.getLogger().warning("Bad Sensor Data in PUT: " + StackTrace.toString(e));
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Sensor Data: " + entityString);
       return;
     }

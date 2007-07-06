@@ -5,7 +5,6 @@ import java.util.logging.Logger;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.hackystat.sensorbase.logger.SensorBaseLogger;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
@@ -203,7 +202,7 @@ public abstract class DbImplementation {
   
   
   /** Keeps a pointer to this Server for use in accessing the managers. */
-  private Server server;
+  protected Server server;
   
   /** Keep a pointer to the Logger. */
   protected Logger logger;
@@ -214,7 +213,7 @@ public abstract class DbImplementation {
    */
   public DbImplementation(Server server) {
     this.server = server;
-    this.logger = SensorBaseLogger.getLogger();
+    this.logger = server.getLogger();
   }
   
   /**
