@@ -195,6 +195,7 @@ public class Server extends Application {
    * Returns the logger for the SensorBase. 
    * @return The logger.
    */
+  @Override
   public Logger getLogger() {
     return this.logger;
   }

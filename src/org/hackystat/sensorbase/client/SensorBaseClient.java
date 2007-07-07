@@ -21,6 +21,7 @@ import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDatas;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeIndex;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeRef;
@@ -522,6 +523,33 @@ public class SensorBaseClient {
   }
   
   /**
+   * Creates the passed batch of SensorData on the server.
+   * Assumes that all of them have the same owner field, and that batch is non-empty.
+   * @param data The sensor data batch to create, represented as a SensorDatas instance.
+   * @throws SensorBaseClientException If problems occur posting this data.
+   */
+  public synchronized void putSensorDataBatch(SensorDatas data) throws SensorBaseClientException {
+    try {
+      String xmlData = makeSensorDatas(data);
+      String owner = data.getSensorData().get(0).getOwner();
+      Representation representation = SensorBaseResource.getStringRepresentation(xmlData);
+      String uri = sensordataUri + owner + "/batch";
+      Response response = makeRequest(Method.PUT, uri, representation);
+      if (!response.getStatus().isSuccess()) {
+        throw new SensorBaseClientException(response.getStatus());
+      }
+    }
+    // Allow SensorBaseClientExceptions to be thrown out of this method.
+    catch (SensorBaseClientException f) {
+      throw f;
+    }
+    // All other exceptions are caught and rethrown. 
+    catch (Exception e) {
+      throw new SensorBaseClientException("Error marshalling batch sensor data", e);
+    }
+  }
+  
+  /**
    * Ensures that the SensorData instance with the specified user and tstamp is not on the server. 
    * Returns success even if the SensorData instance did not exist on the server. 
    * @param email The email of the User.
@@ -982,6 +1010,32 @@ public class SensorBaseClient {
     xmlString = xmlString.substring(xmlString.indexOf('>') + 1);
     return xmlString;
   }
+  
+  /**
+   * Returns the passed SensorDatas instance as a String encoding of its XML representation.
+   * @param data The SensorDatas instance. 
+   * @return The XML String representation.
+   * @throws Exception If problems occur during translation. 
+   */
+  private String makeSensorDatas (SensorDatas data) throws Exception {
+    Marshaller marshaller = this.sensordataJAXB.createMarshaller(); 
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+    Document doc = documentBuilder.newDocument();
+    marshaller.marshal(data, doc);
+    DOMSource domSource = new DOMSource(doc);
+    StringWriter writer = new StringWriter();
+    StreamResult result = new StreamResult(writer);
+    TransformerFactory tf = TransformerFactory.newInstance();
+    Transformer transformer = tf.newTransformer();
+    transformer.transform(domSource, result);
+    String xmlString = writer.toString();
+    // Now remove the processing instruction.  This approach seems like a total hack.
+    xmlString = xmlString.substring(xmlString.indexOf('>') + 1);
+    return xmlString;
+  }
+
 
   /**
    * Takes a String encoding of a Project in XML format and converts it to an instance. 

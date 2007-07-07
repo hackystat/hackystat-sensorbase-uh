@@ -1,10 +1,13 @@
 package org.hackystat.sensorbase.resource.sensordata;
 
+import java.io.IOException;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDatas;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
@@ -137,8 +140,6 @@ public class UserSensorDataResource extends SensorBaseResource {
    */
   @Override
   public void put(Representation entity) {
-    String entityString = null;
-    SensorData data;
     // If this User does not exist, return an error.
     if (this.user == null) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.uriUser);
@@ -148,9 +149,34 @@ public class UserSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
       return;
     }
+    
+    // Get the payload.
+    String entityString = null;
+    try {
+      entityString = entity.getText();
+    }
+    catch (IOException e) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad payload.");
+      return;
+    }
+    
+    //if the "timestamp" is "batch", then our payload is <SensorDatas>, otherwise <SensorData>
+    if (this.timestamp.equals("batch")) {
+      putSensorDatas(entityString);
+    }
+    else {
+      putSensorData(entityString);
+    }
+  }
+  
+  /**
+   * Put a SensorData XML payload.
+   * @param entityString An entity string that should represent a SensorData instance.
+   */
+  private void putSensorData(String entityString) {
+    SensorData data;
     // Try to make the XML payload into sensor data, return failure if this fails. 
     try { 
-      entityString = entity.getText();
       data = this.sensorDataManager.makeSensorData(entityString);
     }
     catch (Exception e) {
@@ -163,10 +189,48 @@ public class UserSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Inconsistent timestamps");
       return;
     }
+    // Return failure if the SensorData Owner doesn't match the UriUser
+    if (!this.uriUser.equals(super.sensorDataManager.convertOwnerToEmail(data.getOwner()))) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+          "SensorData payload owner field does not match user field in URI");
+      return;
+    }
     // otherwise we add it to the Manager and return success.
     super.sensorDataManager.putSensorData(data);      
     getResponse().setStatus(Status.SUCCESS_CREATED);
   }
+  
+  /**
+   * Put a SensorDatas payload.
+   * @param entityString An entity string that should represent a SensorDatas instance. 
+   */
+  private void putSensorDatas(String entityString) {
+    SensorDatas datas;
+    // Try to make the XML payload into a collection of SensorData, return failure if this fails. 
+    try { 
+      datas = this.sensorDataManager.makeSensorDatas(entityString);
+    }
+    catch (Exception e) {
+      server.getLogger().warning("Bad Sensor Data in PUT: " + StackTrace.toString(e));
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+          "Bad Batch SensorData: " + entityString);
+      return;
+    }
+    // Makes sure all SensorData matches the UriUser, otherwise fail and don't add anything.
+    for (SensorData data : datas.getSensorData()) {
+      if (!this.uriUser.equals(super.sensorDataManager.convertOwnerToEmail(data.getOwner()))) {
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+            "At least one SensorData owner field does not match user field in URI");
+        return;
+      }
+    }
+    // Otherwise we should be OK.  Add all of them and return success.
+    for (SensorData data : datas.getSensorData()) {
+      super.sensorDataManager.putSensorData(data);      
+    }
+    getResponse().setStatus(Status.SUCCESS_CREATED);
+  }
+
   
   /** 
    * Indicate the DELETE method is supported. 

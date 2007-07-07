@@ -296,6 +296,18 @@ public class SensorDataManager {
   }
   
   /**
+   * Takes a String encoding of a SensorDatas in XML format and converts it to an instance. 
+   * 
+   * @param xmlString The XML string representing a SensorData.
+   * @return The corresponding SensorData instance. 
+   * @throws Exception If problems occur during unmarshalling.
+   */
+  public SensorDatas makeSensorDatas(String xmlString) throws Exception {
+    Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+    return (SensorDatas)unmarshaller.unmarshal(new StringReader(xmlString));
+  }
+  
+  /**
    * Returns the passed SensorData instance as a String encoding of its XML representation.
    * Final because it's called in constructor.
    * @param data The SensorData instance. 

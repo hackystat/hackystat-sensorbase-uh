@@ -12,6 +12,7 @@ import org.hackystat.sensorbase.resource.sensordata.jaxb.Properties;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDatas;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.junit.Test;
 
@@ -124,6 +125,62 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
   @Test public void putSensorData() throws Exception {
     // First, create a sample sensor data instance.
     XMLGregorianCalendar tstamp = Tstamp.makeTimestamp("2007-04-30T02:00:00.000");
+    SensorData data = makeSensorData(tstamp, user);
+    
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
+    client.authenticate();
+    // Send the sensor data.
+    client.putSensorData(data);
+
+    // Now see that we can retrieve it and check a field for equality. 
+    SensorData data2 = client.getSensorData(user, tstamp);
+    assertEquals("Checking data timestamp field", tstamp, data2.getTimestamp());
+    
+    // Test that DELETE gets rid of this sensor data.
+    client.deleteSensorData(user, tstamp);
+    
+    // Test that a second DELETE succeeds, even though da buggah is no longer in there.
+    client.deleteSensorData(user, tstamp);
+  }
+  
+  /**
+   * Test that a batch PUT of sensor data works. 
+   * @throws Exception If problems occur.
+   */
+  @Test public void putBatchSensorData() throws Exception {
+    // First, create a sample sensor data instance.
+    XMLGregorianCalendar tstamp1 = Tstamp.makeTimestamp("2007-04-30T02:00:00.123");
+    XMLGregorianCalendar tstamp2 = Tstamp.makeTimestamp("2007-04-30T02:00:00.124");
+    SensorData data1 = makeSensorData(tstamp1, user);
+    SensorData data2 = makeSensorData(tstamp2, user);
+    
+    SensorDatas batchData = new SensorDatas();
+    batchData.getSensorData().add(data1);
+    batchData.getSensorData().add(data2);
+    
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
+    client.authenticate();
+    // Send the sensor data.
+    client.putSensorDataBatch(batchData);
+
+    // Now see that we can retrieve it and check a field for equality. 
+    SensorData data3 = client.getSensorData(user, tstamp1);
+    assertEquals("Checking data timestamp field", tstamp1, data3.getTimestamp());
+    
+    // Delete this sensor data. 
+    client.deleteSensorData(user, tstamp1);
+    client.deleteSensorData(user, tstamp2);
+  }
+  
+  /**
+   * Creates a sample SensorData instance given a timestamp and a user. 
+   * @param tstamp The timestamp.
+   * @param user The user.
+   * @return The new SensorData instance. 
+   */
+  private SensorData makeSensorData(XMLGregorianCalendar tstamp, String user) {
     String sdt = "TestSdt";
     SensorData data = new SensorData();
     String tool = "Subversion";
@@ -139,21 +196,6 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     Properties properties = new Properties();
     properties.getProperty().add(property);
     data.setProperties(properties);
-    
-    // Create the TestUser client and check authentication.
-    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
-    client.authenticate();
-    // Send the sensor data.
-    client.putSensorData(data);
-
-    // Now see that we can retrieve it and check a field for equality. 
-    SensorData data2 = client.getSensorData(user, tstamp);
-    assertEquals("Checking data Tool field", tool, data2.getTool());
-    
-    // Test that DELETE gets rid of this sensor data.
-    client.deleteSensorData(user, tstamp);
-    
-    // Test that a second DELETE succeeds, even though da buggah is no longer in there.
-    client.deleteSensorData(user, tstamp);
+    return data;
   }
 }
