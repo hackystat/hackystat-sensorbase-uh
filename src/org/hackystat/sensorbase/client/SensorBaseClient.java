@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.client;
 
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
@@ -18,6 +19,8 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
+import org.hackystat.sensorbase.resource.sensordata.Tstamp;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.Property;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
@@ -135,6 +138,75 @@ public class SensorBaseClient {
     }
     return this;
   }
+  
+  /**
+   * Provides an easy way to construct SensorData instances.  The keyValMap is processed and
+   * the key-value pairs are processed in the following way.
+   * <ul>
+   * <li> ["Owner", email] (if not supplied, defaults to this client's email)
+   * <li> ["Timestamp", timestamp string] (if not supplied, defaults to the current time.)
+   * <li> ["Runtime", timestamp string] (if not supplied, defaults to Timestamp.)
+   * <li> ["Resource", resource string] (if not supplied, defaults to "")
+   * <li> ["SensorDataType", sdt string] (if not supplied, defaults to "")
+   * <li> ["Tool", tool string] (if not supplied, defaults to "")
+   * <li> Any other key-val pairs are extracted and put into the SensorData properties. 
+   * </ul>
+   * Throws an exception if Timestamp or Runtime are supplied but can't be parsed into an
+   * XMLGregorianCalendar instance.
+   * @param keyValMap The map of key-value pairs corresponding to SensorData fields and properties.
+   * @return A SensorData instance. 
+   * @throws SensorBaseClientException If errors occur parsing the contents of the keyValMap.
+   */
+  public synchronized SensorData makeSensorData(Map<String, String> keyValMap) 
+  throws SensorBaseClientException {
+    // Begin by creating the sensor data instance. 
+    SensorData data = new SensorData();
+    XMLGregorianCalendar defaultTstamp = Tstamp.makeTimestamp();
+    XMLGregorianCalendar tstamp = null;
+    try {
+      tstamp = Tstamp.makeTimestamp(getMap(keyValMap, "Timestamp", defaultTstamp.toString()));
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException("Error parsing tstamp", e);
+    }
+    XMLGregorianCalendar runtime = null;
+    try {
+      runtime = Tstamp.makeTimestamp(getMap(keyValMap, "Runtime", defaultTstamp.toString()));
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException("Error parsing runtime", e);
+    }
+    data.setOwner(getMap(keyValMap, "Owner", userEmail));
+    data.setResource(getMap(keyValMap, "Resource", ""));
+    data.setRuntime(runtime);
+    data.setSensorDataType(getMap(keyValMap, "SensorDataType", ""));
+    data.setTimestamp(tstamp);
+    data.setTool(getMap(keyValMap, "Tool", "unknown"));
+    // Add all remaining key-val pairs to the property list.
+    data.setProperties(new org.hackystat.sensorbase.resource.sensordata.jaxb.Properties());
+    for (Map.Entry<String, String> entry : keyValMap.entrySet()) {
+      Property property = new Property();
+      property.setKey(entry.getKey());
+      property.setValue(entry.getValue());
+      data.getProperties().getProperty().add(property);
+    }
+    return data;
+  }
+  
+  /**
+   * Returns the value associated with key in keyValMap, or the default, and also removes the 
+   * mapping associated with key from the keyValMap.
+   * @param keyValMap The map
+   * @param key The key
+   * @param defaultValue The value to return if the key has no mapping.
+   * @return The value to be used.
+   */
+  private String getMap(Map<String, String> keyValMap, String key, String defaultValue) {
+    String value = (keyValMap.get(key) == null) ? defaultValue : keyValMap.get(key);
+    keyValMap.remove(key);
+    return value;
+  }
+
   
   /**
    * Returns the index of SensorDataTypes from this server. 

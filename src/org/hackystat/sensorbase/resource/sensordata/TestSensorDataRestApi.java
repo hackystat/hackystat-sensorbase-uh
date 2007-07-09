@@ -3,6 +3,9 @@ package org.hackystat.sensorbase.resource.sensordata;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.client.SensorBaseClient;
@@ -197,5 +200,24 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     properties.getProperty().add(property);
     data.setProperties(properties);
     return data;
+  }
+  
+  /**
+   * Tests the makeSensorData method.
+   * @throws Exception If problems occur.
+   */
+  @Test
+  public void testMakeSensorData() throws Exception {
+    Map<String, String> keyValMap = new HashMap<String, String>();
+    // Create the TestUser client.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
+    // See that we can create a SensorData instance with all defaults.
+    client.makeSensorData(keyValMap);
+    // Add a couple of fields and make a new one.
+    String tool = "Eclipse";
+    keyValMap.put("Tool", tool);
+    keyValMap.put("MyProperty", "foobar");
+    SensorData data = client.makeSensorData(keyValMap);
+    assertEquals("Checking sensor data val", tool, data.getTool());
   }
 }
