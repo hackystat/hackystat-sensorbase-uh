@@ -76,18 +76,6 @@ public class DbManager {
   }
   
   /**
-   * Returns true if this Db was freshly initialized upon instantiation of the DbManager.
-   * This indicates the need for the various Resource Managers to read in the default data
-   * to this database.  
-   * We only care about the persistent store. We know that the InMemoryImpl will always be
-   * "fresh" each time we come up.
-   * @return True if this DB was freshly created or not.
-   */
-  public boolean isFreshDb() {
-    return true;  
-  }
-
-  /**
    * Persists a SensorData instance.  If the Owner/Timestamp already exists in the table, it is
    * overwritten.
    * @param data The sensor data. 

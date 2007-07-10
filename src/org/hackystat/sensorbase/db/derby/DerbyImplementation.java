@@ -141,8 +141,12 @@ public class DerbyImplementation extends DbImplementation {
       }
     }
     finally {
-      s.close();
-      conn.close();
+      if (s != null) {
+        s.close();
+      }
+      if (conn != null) {
+        conn.close();
+      }
     }
     // If table exists will get -  WARNING 02000: No row was found 
     return true;
