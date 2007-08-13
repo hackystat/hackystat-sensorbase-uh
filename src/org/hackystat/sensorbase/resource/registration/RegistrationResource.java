@@ -3,7 +3,7 @@ package org.hackystat.sensorbase.resource.registration;
 import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.HOSTNAME_KEY;
 
-import org.hackystat.sensorbase.mail.Mailer;
+import org.hackystat.sensorbase.mailer.Mailer;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.ServerProperties;

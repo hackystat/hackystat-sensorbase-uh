@@ -18,7 +18,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeIndex;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeRef;
@@ -27,6 +26,7 @@ import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.utilities.stacktrace.StackTrace;
+import org.hackystat.utilities.tstamp.Tstamp;
 import org.w3c.dom.Document;
 
 /**

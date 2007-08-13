@@ -31,7 +31,6 @@
       FindBugs Home:   ${env.FINDBUGS_HOME} 
       Java version:    ${java.version}
       JavaMail Home:   ${env.JAVAMAIL_HOME} 
-      JAXB Home:       ${env.JAXB_HOME}
       JUnit Home:      ${env.JUNIT_HOME}
       PMD  Home:       ${env.PMD_HOME}
       Restlet Home:    ${env.RESTLET_HOME}

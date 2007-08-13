@@ -36,10 +36,9 @@
   <available file="${env.JAVAMAIL_HOME}/mail.jar" type="file" property="javamail.available"/>
   <fail message="This package requires JavaMail 4.1 to be downloaded and JAVAMAIL_HOME defined" unless="javamail.available"/>
 
-  <!-- Make sure that the JAXB library is available . --> 
-  <!-- Needed even under Java 6 so that a Java 5-compatible dist can be created. -->   
-  <available file="${env.JAXB_HOME}/lib/jaxb-xjc.jar" type="file" property="jaxb.available"/>
-  <fail message="This package requires JAXB to be installed and JAXB_HOME defined" unless="jaxb.available"/>
+  <!-- Make sure that the JAXB library is available (by default in Java 6, through manual installation in Java 5. --> 
+  <available classname="javax.xml.bind.JAXBContext" property="jaxb.available"/>
+  <fail message="This package requires JAXB to be installed" unless="jaxb.available"/>
  
   <!-- Make sure that Derby is available . --> 
   <!-- Needed even under Java 6 so that a Java 5-compatible dist can be created. -->   
@@ -71,6 +70,7 @@
   <path id="compile.classpath">
     <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/hackystatlogger.lib.jar"/>
     <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar"/>
+    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/tstamp.lib.jar"/>
     <fileset file="${env.JUNIT_HOME}/junit-${junit.version}.jar"/>
     <fileset file="${env.RESTLET_HOME}/lib/org.restlet.jar"/> 
     <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar"/> 
@@ -78,10 +78,6 @@
     <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar"/> 
     <fileset file="${env.RESTLET_HOME}/lib/org.simpleframework_3.1/org.simpleframework.jar"/> 
     <fileset file="${env.JAVAMAIL_HOME}/mail.jar"/> 
-    <fileset file="${env.JAXB_HOME}/lib/activation.jar"/> 
-    <fileset file="${env.JAXB_HOME}/lib/jaxb-api.jar"/> 
-    <fileset file="${env.JAXB_HOME}/lib/jaxb-impl.jar"/> 
-    <fileset file="${env.JAXB_HOME}/lib/jsr173_1.0_api.jar"/> 
     <fileset file="${env.DERBY_HOME}/lib/derby.jar"/> 
     <fileset file="${env.FINDBUGS_HOME}/lib/annotations.jar"/> 
   </path> 

@@ -19,7 +19,6 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
-import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.Property;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
@@ -32,6 +31,7 @@ import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
+import org.hackystat.utilities.tstamp.Tstamp;
 import org.restlet.Client;
 import org.restlet.data.ChallengeResponse;
 import org.restlet.data.ChallengeScheme;
@@ -102,18 +102,28 @@ public class SensorBaseClient {
           "host='" + host + "', email='" + email + "', password='" + password + "'");
     }
     this.client = new Client(Protocol.HTTP);
+    // Normally, the next lines pass in the package as a string:
+    // "org.hackystat.sensorbase.resource.users.jaxb"
+    // But, in the Ant sensor, we were getting the error:
+    // javax.xml.bind.JAXBException: <package> doesnt contain ObjectFactory.class or jaxb.index
+    // So, after some googling, it appears that passing the ObjectFactory.class directly can 
+    // resolve this.  So, we switched to this version of newInstance instead.
     try {
       this.sdtJAXB = 
-        JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordatatypes.jaxb");
+        JAXBContext.newInstance(
+            org.hackystat.sensorbase.resource.sensordatatypes.jaxb.ObjectFactory.class);
       this.userJAXB = 
-        JAXBContext.newInstance("org.hackystat.sensorbase.resource.users.jaxb");
+        JAXBContext.newInstance(
+            org.hackystat.sensorbase.resource.users.jaxb.ObjectFactory.class);
       this.sensordataJAXB = 
-        JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordata.jaxb");
+        JAXBContext.newInstance(
+            org.hackystat.sensorbase.resource.sensordata.jaxb.ObjectFactory.class);
       this.projectJAXB = 
-        JAXBContext.newInstance("org.hackystat.sensorbase.resource.projects.jaxb");
+        JAXBContext.newInstance(
+            org.hackystat.sensorbase.resource.projects.jaxb.ObjectFactory.class);
     }
     catch (Exception e) {
-      throw new RuntimeException("Couldn't create JAXB context instances.");
+      throw new RuntimeException("Couldn't create JAXB context instances.", e);
     }
   }
   

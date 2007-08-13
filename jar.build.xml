@@ -10,16 +10,17 @@
   <target name="jar" depends="jar-standalone, jar-lib"/>   
 
   <target name="jar-standalone" depends="compile" 
-    description="Create sensorbase.java5.jar and sensorbase.java6.jar">
+    description="Create sensorbase.jar">
     <!-- Define the directories and distribution name -->
     <mkdir dir="${tmp.dir}" />
     <copy todir="${tmp.dir}">
       <fileset dir="${basedir}/build/classes"/>
     </copy>
   
-    <!-- First build sensorbase.java6.jar, which does not include JAXB --> 
+    <!-- First build sensorbase.jar --> 
     <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/hackystatlogger.lib.jar" dest="${tmp.dir}"/>
     <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar" dest="${tmp.dir}"/>
+    <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/tstamp.lib.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/org.simpleframework_3.1/org.simpleframework.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/org.restlet.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" dest="${tmp.dir}"/>
@@ -27,28 +28,7 @@
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar" dest="${tmp.dir}"/>
     <unjar src="${env.DERBY_HOME}/lib/derby.jar" dest="${tmp.dir}"/>
  
-    <jar destfile="${basedir}/sensorbase.java6.jar" basedir="${tmp.dir}">
-      <manifest>
-        <attribute name="Main-Class" value="org.hackystat.sensorbase.server.Server"/>
-        <attribute name="Implementation-Title" value="Hackystat SensorBase-UH"/>
-        <attribute name="Implementation-Version" value="${version}"/>
-        <attribute name="Implementation-Vendor" value="Collaborative Software Development Laboratory, University of Hawaii"/>
-      </manifest>
-    </jar>
-  
-    <!-- Now build sensorbase.java5.jar, which adds in JAXB --> 
-    <unjar src="${env.JAXB_HOME}/lib/activation.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.JAXB_HOME}/lib/jaxb-api.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.JAXB_HOME}/lib/jaxb-impl.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.JAXB_HOME}/lib/jsr173_1.0_api.jar" dest="${tmp.dir}"/>
-   
-    <!-- The following magic deletion allows activation.jar to be packaged in sensorbase.jar without creating runtime errors. --> 
-    <!-- See http://jira.codehaus.org/browse/MASSEMBLY-64 for details. --> 
-    <delete>
-     <fileset dir="${tmp.dir}/META-INF" includes="*.RSA,*.DSA,*.SF,*.rsa,*.dsa,*.sf"/>
-    </delete>
-
-    <jar destfile="${basedir}/sensorbase.java5.jar" basedir="${tmp.dir}">
+    <jar destfile="${basedir}/sensorbase.jar" basedir="${tmp.dir}">
       <manifest>
         <attribute name="Main-Class" value="org.hackystat.sensorbase.server.Server"/>
         <attribute name="Implementation-Title" value="Hackystat SensorBase-UH"/>

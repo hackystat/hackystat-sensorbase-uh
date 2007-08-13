@@ -4,7 +4,7 @@ import java.util.Enumeration;
 import java.util.Map;
 
 import org.hackystat.sensorbase.db.DbManager;
-import org.hackystat.sensorbase.mail.Mailer;
+import org.hackystat.sensorbase.mailer.Mailer;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.projects.ProjectsResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectResource;

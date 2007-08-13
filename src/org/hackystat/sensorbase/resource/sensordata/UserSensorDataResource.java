@@ -5,6 +5,7 @@ import java.io.IOException;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.utilities.stacktrace.StackTrace;
+import org.hackystat.utilities.tstamp.Tstamp;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDatas;

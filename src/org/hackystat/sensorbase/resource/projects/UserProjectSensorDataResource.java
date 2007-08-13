@@ -1,8 +1,8 @@
 package org.hackystat.sensorbase.resource.projects;
 
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
-import org.hackystat.sensorbase.resource.sensordata.Tstamp;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
+import org.hackystat.utilities.tstamp.Tstamp;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
