@@ -1,4 +1,4 @@
-package org.hackystat.sensorbase.mail;
+package org.hackystat.sensorbase.mailer;
 
 import static org.junit.Assert.assertTrue;
 

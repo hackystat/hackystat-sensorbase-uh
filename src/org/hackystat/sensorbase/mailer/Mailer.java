@@ -1,4 +1,4 @@
-package org.hackystat.sensorbase.mail;
+package org.hackystat.sensorbase.mailer;
 
 import java.util.Date;
 import java.util.Properties;
