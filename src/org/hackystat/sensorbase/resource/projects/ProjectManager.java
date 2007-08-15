@@ -36,7 +36,6 @@ import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
-import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.uripattern.UriPattern;
 import org.w3c.dom.Document;
 
@@ -201,7 +200,7 @@ public class ProjectManager {
    */
   private File findDefaultsFile() {
     String defaultsPath = "/defaults/projects.defaults.xml";
-    String xmlDir = ServerProperties.get(XML_DIR_KEY);
+    String xmlDir = this.server.getServerProperties().get(XML_DIR_KEY);
     return (xmlDir == null) ?
         new File (System.getProperty("user.dir") + "/xml" + defaultsPath) :
           new File (xmlDir + defaultsPath);
@@ -233,7 +232,7 @@ public class ProjectManager {
    */
   public synchronized String convertOwnerToUri(String owner) {
     return (owner.startsWith(http)) ? owner :
-      ServerProperties.getFullHost() + "users/" + owner;
+      this.server.getServerProperties().getFullHost() + "users/" + owner;
   }
   
   /**

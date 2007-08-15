@@ -22,7 +22,6 @@ import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
-import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.uripattern.UriPattern;
 
 /**
@@ -72,7 +71,7 @@ public class DerbyImplementation extends DbImplementation {
     super(server);
     // Set the directory where the DB will be created and/or accessed.
     // This must happen before loading the driver. 
-    String dbDir = ServerProperties.get(DB_DIR_KEY);
+    String dbDir = server.getServerProperties().get(DB_DIR_KEY);
     System.getProperties().put(derbySystemKey, dbDir);
     // Try to load the derby driver. 
     try {

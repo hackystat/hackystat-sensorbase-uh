@@ -52,6 +52,9 @@ public class Server extends Application {
   /** Holds the HackystatLogger for the sensorbase. */
   private Logger logger; 
   
+  /** Holds the ServerProperties instance associated with this sensorbase. */
+  private ServerProperties serverProperties;
+  
   /**
    * Creates a new instance of a SensorBase HTTP server, listening on the supplied port.  
    * @return The Server instance created. 
@@ -60,19 +63,19 @@ public class Server extends Application {
   public static Server newInstance() throws Exception {
     Server server = new Server();
     server.logger = HackystatLogger.getLogger("org.hackystat.sensorbase");
-    ServerProperties.initializeProperties();
+    server.serverProperties = new ServerProperties();
     server.hostName = "http://" +
-                      ServerProperties.get(HOSTNAME_KEY) + 
+                      server.serverProperties.get(HOSTNAME_KEY) + 
                       ":" + 
-                      ServerProperties.get(PORT_KEY) + 
+                      server.serverProperties.get(PORT_KEY) + 
                       "/" +
-                      ServerProperties.get(CONTEXT_ROOT_KEY) +
+                      server.serverProperties.get(CONTEXT_ROOT_KEY) +
                       "/";
-    int port = Integer.valueOf(ServerProperties.get(PORT_KEY));
+    int port = Integer.valueOf(server.serverProperties.get(PORT_KEY));
     server.component = new Component();
     server.component.getServers().add(Protocol.HTTP, port);
     server.component.getDefaultHost()
-      .attach("/" + ServerProperties.get(CONTEXT_ROOT_KEY), server);
+      .attach("/" + server.serverProperties.get(CONTEXT_ROOT_KEY), server);
  
     
     try {
@@ -96,11 +99,12 @@ public class Server extends Application {
     attributes.put("ProjectManager", new ProjectManager(server));
     attributes.put("SensorDataManager", new SensorDataManager(server));
     attributes.put("SensorBaseServer", server);
+    attributes.put("ServerProperties", server.serverProperties);
     
     // Now let's open for business. 
     server.logger.warning("Host: " + server.hostName);
-    HackystatLogger.setLoggingLevel(server.logger, ServerProperties.get(LOGGING_LEVEL_KEY));
-    ServerProperties.echoProperties(server);
+    HackystatLogger.setLoggingLevel(server.logger, server.serverProperties.get(LOGGING_LEVEL_KEY));
+    server.serverProperties.echoProperties(server);
     server.logger.warning("SensorBase (Version " + getVersion() + ") now running.");
     server.component.start();
     disableRestletLogging();
@@ -189,6 +193,14 @@ public class Server extends Application {
    */
   public String getHostName() {
     return this.hostName;
+  }
+  
+  /**
+   * Returns the ServerProperties instance associated with this server. 
+   * @return The server properties.
+   */
+  public ServerProperties getServerProperties() {
+    return this.serverProperties;
   }
   
   /**

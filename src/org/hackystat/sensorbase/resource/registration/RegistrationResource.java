@@ -6,7 +6,6 @@ import static org.hackystat.sensorbase.server.ServerProperties.HOSTNAME_KEY;
 import org.hackystat.sensorbase.mailer.Mailer;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
-import org.hackystat.sensorbase.server.ServerProperties;
 import org.restlet.Context;
 import org.restlet.data.Form;
 import org.restlet.data.MediaType;
@@ -88,7 +87,7 @@ public class RegistrationResource extends SensorBaseResource {
     String emailSubject = "Hackystat Version 8 Registration";
     String emailBody = 
       "Welcome to Hackystat Version 8. " +
-      "\nYou are registered with the server: " + ServerProperties.getFullHost() +
+      "\nYou are registered with the server: " + server.getServerProperties().getFullHost() +
       "\nYour user name is: " + user.getEmail() +
       "\nYour password is: " + user.getPassword() +
       "\n\nNote that the user name and password are both case sensitive!";
@@ -96,10 +95,10 @@ public class RegistrationResource extends SensorBaseResource {
     if (success) {
       // Don't send the administrator emails about test user registration.
       if (!userManager.isTestUser(user)) {
-        mailer.send(ServerProperties.get(ADMIN_EMAIL_KEY), 
+        mailer.send(server.getServerProperties().get(ADMIN_EMAIL_KEY), 
             "Hackystat 8 Admin Registration",
             "User " + email + " registered and received password: " + user.getPassword() + "\n" +
-            "for host: " + ServerProperties.get(HOSTNAME_KEY));
+            "for host: " + server.getServerProperties().get(HOSTNAME_KEY));
       }
 
       String responseHtml =

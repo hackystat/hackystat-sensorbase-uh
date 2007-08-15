@@ -35,18 +35,34 @@ public class ServerProperties {
   /** The test domain key. */
   public static final String TEST_DOMAIN_KEY =     "sensorbase.test.domain";
   
+  /** Where we store the properties. */
+  private Properties properties; 
+  
+  /**
+   * Creates a new ServerProperties instance. 
+   * Prints an error to the console if problems occur on loading. 
+   */
+  public ServerProperties() {
+    try {
+      initializeProperties();
+    }
+    catch (Exception e) {
+      System.out.println("Error initializing server properties.");
+    }
+  }
+  
   /**
    * Reads in the properties in ~/.hackystat/sensorbase.properties if this file exists,
    * and provides default values for all properties. .
    * @throws Exception if errors occur.
    */
-  static void initializeProperties () throws Exception {
+  private void initializeProperties () throws Exception {
     String userHome = System.getProperty("user.home");
     String userDir = System.getProperty("user.dir");
     String hackyHome = userHome + "/.hackystat";
     String sensorBaseHome = hackyHome + "/sensorbase"; 
     String propFile = userHome + "/.hackystat/sensorbase/sensorbase.properties";
-    Properties properties = new Properties();
+    this.properties = new Properties();
     // Set defaults
     properties.setProperty(ADMIN_EMAIL_KEY, "admin@hackystat.org");
     properties.setProperty(ADMIN_PASSWORD_KEY, "admin@hackystat.org");
@@ -74,7 +90,10 @@ public class ServerProperties {
         stream.close();
       }
     }
-    // Now add to System properties.
+    // Now add to System properties. Since the Mailer class expects to find this stuff on the 
+    // System Properties, we will add everything to it.  In general, however, clients should not
+    // use the System Properties to get at these values, since that precludes running several
+    // SensorBases in a single JVM.   And just is generally bogus. 
     Properties systemProperties = System.getProperties();
     systemProperties.putAll(properties);
     System.setProperties(systemProperties);
@@ -84,7 +103,7 @@ public class ServerProperties {
    * Prints all of the sensorbase settings to the logger.
    * @param server The SensorBase server.   
    */
-  static void echoProperties(Server server) {
+  public void echoProperties(Server server) {
     String cr = System.getProperty("line.separator"); 
     String eq = " = ";
     String pad = "                ";
@@ -108,15 +127,15 @@ public class ServerProperties {
    * @param key Should be one of the public static final strings in this class.
    * @return The value of the key, or null if not found.
    */
-  public static String get(String key) {
-    return System.getProperty(key);
+  public String get(String key) {
+    return this.properties.getProperty(key);
   }
   
   /**
    * Returns the fully qualified host name, such as "http://localhost:9876/sensorbase/".
    * @return The fully qualified host name.
    */
-  public static String getFullHost() {
+  public String getFullHost() {
     return "http://" + get(HOSTNAME_KEY) + ":" + get(PORT_KEY) + "/" + get(CONTEXT_ROOT_KEY) + "/";
   }
 }

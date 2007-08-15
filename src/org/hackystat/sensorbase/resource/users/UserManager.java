@@ -29,7 +29,6 @@ import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
 import org.hackystat.sensorbase.resource.users.jaxb.Users;
 import org.hackystat.sensorbase.server.Server;
-import org.hackystat.sensorbase.server.ServerProperties;
 import static org.hackystat.sensorbase.server.ServerProperties.XML_DIR_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
@@ -136,8 +135,8 @@ public class UserManager {
    * @throws Exception if problems creating the XML string representations of the admin user.  
    */
   private final void initializeAdminUser() throws Exception {
-    String adminEmail = ServerProperties.get(ADMIN_EMAIL_KEY);
-    String adminPassword = ServerProperties.get(ADMIN_PASSWORD_KEY);
+    String adminEmail = server.getServerProperties().get(ADMIN_EMAIL_KEY);
+    String adminPassword = server.getServerProperties().get(ADMIN_PASSWORD_KEY);
     // First, clear any existing Admin role property.
     for (User user : this.email2user.values()) {
       user.setRole("basic");
@@ -187,7 +186,7 @@ public class UserManager {
    */
   private File findDefaultsFile() {
     String defaultsPath = "/defaults/users.defaults.xml";
-    String xmlDir = ServerProperties.get(XML_DIR_KEY);
+    String xmlDir = server.getServerProperties().get(XML_DIR_KEY);
     return (xmlDir == null) ?
         new File (System.getProperty("user.dir") + "/xml" + defaultsPath) :
           new File (xmlDir + defaultsPath);
@@ -320,7 +319,7 @@ public class UserManager {
   public synchronized boolean isAdmin(String email) {
     return (email != null) &&
            email2user.containsKey(email) && 
-           email.equals(ServerProperties.get(ADMIN_EMAIL_KEY));
+           email.equals(server.getServerProperties().get(ADMIN_EMAIL_KEY));
   }
   
   /**
@@ -330,7 +329,7 @@ public class UserManager {
    * @return True if the user is a test user. 
    */
   public synchronized boolean isTestUser(User user) {
-    return user.getEmail().endsWith(ServerProperties.get(TEST_DOMAIN_KEY));
+    return user.getEmail().endsWith(server.getServerProperties().get(TEST_DOMAIN_KEY));
   }
   
   /** 
@@ -356,7 +355,8 @@ public class UserManager {
     user.setProperties(new Properties());
     // Password is either their Email in the case of a test user, or the randomly generated string.
     String password = 
-      email.endsWith(ServerProperties.get(TEST_DOMAIN_KEY)) ? email : PasswordGenerator.make();
+      email.endsWith(server.getServerProperties().get(TEST_DOMAIN_KEY)) ? 
+          email : PasswordGenerator.make();
     user.setPassword(password);
     this.putUser(user);
     ProjectManager projectManager = 

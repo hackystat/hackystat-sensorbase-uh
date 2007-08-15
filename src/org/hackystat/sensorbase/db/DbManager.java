@@ -8,7 +8,6 @@ import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
-import org.hackystat.sensorbase.server.ServerProperties;
 import static org.hackystat.sensorbase.server.ServerProperties.DB_IMPL_KEY;
 import org.hackystat.sensorbase.uripattern.UriPattern;
 import org.hackystat.utilities.stacktrace.StackTrace;
@@ -39,7 +38,7 @@ public class DbManager {
    */
   public DbManager(Server server) {
     //Defaults to: "org.hackystat.sensorbase.db.derby.DerbyImplementation"
-    String dbClassName = ServerProperties.get(DB_IMPL_KEY); 
+    String dbClassName = server.getServerProperties().get(DB_IMPL_KEY); 
     Class<?> dbClass = null;
     //First, try to find the class specified in the sensorbase.properties file (or the default) 
     try {

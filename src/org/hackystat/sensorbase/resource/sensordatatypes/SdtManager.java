@@ -23,7 +23,6 @@ import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeInde
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypeRef;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataTypes;
 import org.hackystat.sensorbase.server.Server;
-import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.utilities.tstamp.Tstamp;
@@ -144,7 +143,7 @@ public class SdtManager {
    */
   private File findDefaultsFile() {
     String defaultsPath = "/defaults/sensordatatypes.defaults.xml";
-    String xmlDir = ServerProperties.get(XML_DIR_KEY);
+    String xmlDir = server.getServerProperties().get(XML_DIR_KEY);
     return (xmlDir == null) ?
         new File (System.getProperty("user.dir") + "/xml" + defaultsPath) :
           new File (xmlDir + defaultsPath);

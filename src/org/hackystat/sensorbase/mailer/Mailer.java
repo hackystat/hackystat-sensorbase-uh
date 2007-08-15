@@ -12,7 +12,6 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.hackystat.sensorbase.server.ServerProperties;
 import static org.hackystat.sensorbase.server.ServerProperties.SMTP_HOST_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.TEST_INSTALL_KEY;
@@ -45,11 +44,11 @@ public class Mailer {
   /** The singleton instance maintaining an Email session. */
   private Mailer() {
     Properties props = new Properties();
-    props.put("mail.smtp.host", ServerProperties.get(SMTP_HOST_KEY));
+    props.put("mail.smtp.host", System.getProperty(SMTP_HOST_KEY));
     this.session = Session.getInstance(props);
-    this.adminEmail = "Hackystat Admin <" + ServerProperties.get(ADMIN_EMAIL_KEY) + ">";
-    this.testInstall = ServerProperties.get(TEST_INSTALL_KEY).toLowerCase();
-    this.testDomain = ServerProperties.get(TEST_DOMAIN_KEY);
+    this.adminEmail = "Hackystat Admin <" + System.getProperty(ADMIN_EMAIL_KEY) + ">";
+    this.testInstall = System.getProperty(TEST_INSTALL_KEY).toLowerCase();
+    this.testDomain = System.getProperty(TEST_DOMAIN_KEY);
   }
 
   /**

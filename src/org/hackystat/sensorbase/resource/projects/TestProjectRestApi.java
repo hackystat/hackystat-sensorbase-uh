@@ -12,7 +12,6 @@ import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
-import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.hackystat.utilities.tstamp.Tstamp;
 import org.junit.Test;
@@ -148,7 +147,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
    */
   @Test public void newUserTest() throws Exception {
     // Register a new user.
-    String newUser = "NewUserTest@" + ServerProperties.get(TEST_DOMAIN_KEY);
+    String newUser = "NewUserTest@" + server.getServerProperties().get(TEST_DOMAIN_KEY);
     SensorBaseClient.registerUser(getHostName(), newUser);
     // Create a Client for this new user. 
     SensorBaseClient client = new SensorBaseClient(getHostName(), newUser, newUser);

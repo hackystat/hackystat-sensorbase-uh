@@ -12,7 +12,6 @@ import org.hackystat.sensorbase.resource.users.jaxb.Property;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
-import org.hackystat.sensorbase.server.ServerProperties;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 
 import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
@@ -90,7 +89,7 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    */
   @Test public void registerUser() throws Exception {
     // Register the TestPost@hackystat.org user.
-    String testPost = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
+    String testPost = "TestPost@" + server.getServerProperties().get(TEST_DOMAIN_KEY);
     SensorBaseClient.registerUser(getHostName(), testPost);
     // Now that TestPost is registered, see if we can retrieve him (her?) 
     SensorBaseClient client = new SensorBaseClient(getHostName(), testPost, testPost);
@@ -107,7 +106,7 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    */
   @Test public void deleteUser () throws Exception {
     // Register the TestPost@hackystat.org user
-    String testPost = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
+    String testPost = "TestPost@" + server.getServerProperties().get(TEST_DOMAIN_KEY);
     SensorBaseClient.registerUser(getHostName(), testPost);
     // Now that TestPost is registered, see if we can delete him (her?) 
     SensorBaseClient client = new SensorBaseClient(getHostName(), testPost, testPost);
@@ -131,7 +130,7 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    */
   @Test public void postUserProperties () throws Exception {
     // Register the TestPost@hackystat.org user.
-    String testPost = "TestPost@" + ServerProperties.get(TEST_DOMAIN_KEY);
+    String testPost = "TestPost@" + server.getServerProperties().get(TEST_DOMAIN_KEY);
     SensorBaseClient.registerUser(getHostName(), testPost);
     // Now that TestPost is registered, see if we can update his properties. 
     Properties properties = new Properties();
