@@ -1,7 +1,7 @@
 org.hackystat.sensorbase.client
 org.hackystat.sensorbase.db
 org.hackystat.sensorbase.db.derby
-org.hackystat.sensorbase.mail
+org.hackystat.sensorbase.mailer
 org.hackystat.sensorbase.resource.projects
 org.hackystat.sensorbase.resource.projects.jaxb
 org.hackystat.sensorbase.resource.registration
