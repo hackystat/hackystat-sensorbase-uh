@@ -63,13 +63,13 @@ public class SensorBaseClient {
   /** The Restlet Client instance used to communicate with the server. */
   private Client client;
   /** SDT JAXBContext */
-  private JAXBContext sdtJAXB;
+  private static final JAXBContext sdtJAXB;
   /** Users JAXBContext */
-  private JAXBContext userJAXB;
+  private static final JAXBContext userJAXB;
   /** SDT JAXBContext */
-  private JAXBContext sensordataJAXB;
+  private static final JAXBContext sensordataJAXB;
   /** SDT JAXBContext */
-  private JAXBContext projectJAXB;
+  private static final JAXBContext projectJAXB;
   /** The http authentication approach. */
   private ChallengeScheme scheme = ChallengeScheme.HTTP_BASIC;
   /** The preferred representation type. */
@@ -80,6 +80,28 @@ public class SensorBaseClient {
   private String projectsUri = "projects/";
   /** To facilitate debugging of problems using this system. */
   private boolean isTraceEnabled = false;
+  
+  // JAXBContexts are thread safe, so we can share them across all instances and threads. 
+  // https://jaxb.dev.java.net/guide/Performance_and_thread_safety.html
+  static {
+    try {
+      sdtJAXB = 
+        JAXBContext.newInstance(
+            org.hackystat.sensorbase.resource.sensordatatypes.jaxb.ObjectFactory.class);
+      userJAXB = 
+        JAXBContext.newInstance(
+            org.hackystat.sensorbase.resource.users.jaxb.ObjectFactory.class);
+      sensordataJAXB = 
+        JAXBContext.newInstance(
+            org.hackystat.sensorbase.resource.sensordata.jaxb.ObjectFactory.class);
+      projectJAXB = 
+        JAXBContext.newInstance(
+            org.hackystat.sensorbase.resource.projects.jaxb.ObjectFactory.class);
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Couldn't create JAXB context instances.", e);
+    }
+  }
   
   /**
    * Initializes a new SensorBaseClient, given the host, userEmail, and password. 
@@ -102,29 +124,6 @@ public class SensorBaseClient {
           "host='" + host + "', email='" + email + "', password='" + password + "'");
     }
     this.client = new Client(Protocol.HTTP);
-    // Normally, the next lines pass in the package as a string:
-    // "org.hackystat.sensorbase.resource.users.jaxb"
-    // But, in the Ant sensor, we were getting the error:
-    // javax.xml.bind.JAXBException: <package> doesnt contain ObjectFactory.class or jaxb.index
-    // So, after some googling, it appears that passing the ObjectFactory.class directly can 
-    // resolve this.  So, we switched to this version of newInstance instead.
-    try {
-      this.sdtJAXB = 
-        JAXBContext.newInstance(
-            org.hackystat.sensorbase.resource.sensordatatypes.jaxb.ObjectFactory.class);
-      this.userJAXB = 
-        JAXBContext.newInstance(
-            org.hackystat.sensorbase.resource.users.jaxb.ObjectFactory.class);
-      this.sensordataJAXB = 
-        JAXBContext.newInstance(
-            org.hackystat.sensorbase.resource.sensordata.jaxb.ObjectFactory.class);
-      this.projectJAXB = 
-        JAXBContext.newInstance(
-            org.hackystat.sensorbase.resource.projects.jaxb.ObjectFactory.class);
-    }
-    catch (Exception e) {
-      throw new RuntimeException("Couldn't create JAXB context instances.", e);
-    }
   }
   
   /**
@@ -956,7 +955,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during unmarshalling.
    */
   private SensorDataType makeSensorDataType(String xmlString) throws Exception {
-    Unmarshaller unmarshaller = this.sdtJAXB.createUnmarshaller();
+    Unmarshaller unmarshaller = sdtJAXB.createUnmarshaller();
     return (SensorDataType)unmarshaller.unmarshal(new StringReader(xmlString));
   }
   
@@ -967,7 +966,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during unmarshalling.
    */
   private SensorDataTypeIndex makeSensorDataTypeIndex(String xmlString) throws Exception {
-    Unmarshaller unmarshaller = this.sdtJAXB.createUnmarshaller();
+    Unmarshaller unmarshaller = sdtJAXB.createUnmarshaller();
     return (SensorDataTypeIndex)unmarshaller.unmarshal(new StringReader(xmlString));
   }
   
@@ -978,7 +977,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during translation. 
    */
   private String makeSensorDataType (SensorDataType sdt) throws Exception {
-    Marshaller marshaller = this.sdtJAXB.createMarshaller(); 
+    Marshaller marshaller = sdtJAXB.createMarshaller(); 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
     DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
@@ -1003,7 +1002,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during unmarshalling.
    */
   private User makeUser(String xmlString) throws Exception {
-    Unmarshaller unmarshaller = this.userJAXB.createUnmarshaller();
+    Unmarshaller unmarshaller = userJAXB.createUnmarshaller();
     return (User)unmarshaller.unmarshal(new StringReader(xmlString));
   }
   
@@ -1014,7 +1013,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during unmarshalling.
    */
   private UserIndex makeUserIndex(String xmlString) throws Exception {
-    Unmarshaller unmarshaller = this.userJAXB.createUnmarshaller();
+    Unmarshaller unmarshaller = userJAXB.createUnmarshaller();
     return (UserIndex)unmarshaller.unmarshal(new StringReader(xmlString));
   }
   
@@ -1025,7 +1024,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during translation. 
    */
   private String makeProperties (Properties properties) throws Exception {
-    Marshaller marshaller = this.userJAXB.createMarshaller(); 
+    Marshaller marshaller = userJAXB.createMarshaller(); 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
     DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
@@ -1051,7 +1050,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during unmarshalling. 
    */
   private SensorDataIndex makeSensorDataIndex(String xmlString) throws Exception {
-    Unmarshaller unmarshaller = this.sensordataJAXB.createUnmarshaller();
+    Unmarshaller unmarshaller = sensordataJAXB.createUnmarshaller();
     return (SensorDataIndex) unmarshaller.unmarshal(new StringReader(xmlString));
   }
   
@@ -1063,7 +1062,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during unmarshalling.
    */
   private SensorData makeSensorData(String xmlString) throws Exception {
-    Unmarshaller unmarshaller = this.sensordataJAXB.createUnmarshaller();
+    Unmarshaller unmarshaller = sensordataJAXB.createUnmarshaller();
     return (SensorData)unmarshaller.unmarshal(new StringReader(xmlString));
   }
   
@@ -1075,7 +1074,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during translation. 
    */
   private final String makeSensorData (SensorData data) throws Exception {
-    Marshaller marshaller = this.sensordataJAXB.createMarshaller(); 
+    Marshaller marshaller = sensordataJAXB.createMarshaller(); 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
     DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
@@ -1100,7 +1099,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during translation. 
    */
   private String makeSensorDatas (SensorDatas data) throws Exception {
-    Marshaller marshaller = this.sensordataJAXB.createMarshaller(); 
+    Marshaller marshaller = sensordataJAXB.createMarshaller(); 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
     DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
@@ -1126,7 +1125,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during unmarshalling.
    */
   private Project makeProject(String xmlString) throws Exception {
-    Unmarshaller unmarshaller = this.projectJAXB.createUnmarshaller();
+    Unmarshaller unmarshaller = projectJAXB.createUnmarshaller();
     return (Project)unmarshaller.unmarshal(new StringReader(xmlString));
   }
   
@@ -1138,7 +1137,7 @@ public class SensorBaseClient {
    */
   private ProjectIndex makeProjectIndex(String xmlString) 
   throws Exception {
-    Unmarshaller unmarshaller = this.projectJAXB.createUnmarshaller();
+    Unmarshaller unmarshaller = projectJAXB.createUnmarshaller();
     return (ProjectIndex)unmarshaller.unmarshal(new StringReader(xmlString));
   }
   
@@ -1149,7 +1148,7 @@ public class SensorBaseClient {
    * @throws Exception If problems occur during translation. 
    */
   private String makeProject (Project project) throws Exception {
-    Marshaller marshaller = this.projectJAXB.createMarshaller(); 
+    Marshaller marshaller = projectJAXB.createMarshaller(); 
     DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
     dbf.setNamespaceAware(true);
     DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
