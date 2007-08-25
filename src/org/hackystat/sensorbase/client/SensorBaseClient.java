@@ -868,13 +868,14 @@ public class SensorBaseClient {
     }
     // Create the host/register URL.
     try {
-      String registerUri = host.endsWith("/") ? host + "register" : host + "/register"; 
+      String registerUri = host.endsWith("/") ? host + "ping" : host + "/ping"; 
       Request request = new Request();
       request.setResourceRef(registerUri);
       request.setMethod(Method.GET);
       Client client = new Client(Protocol.HTTP);
       Response response = client.handle(request);
-      return response.getStatus().isSuccess();
+      String pingText = response.getEntity().getText();
+      return (response.getStatus().isSuccess() && "SensorBase".equals(pingText));
     }
     catch (Exception e) {
       return false;

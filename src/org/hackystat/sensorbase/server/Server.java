@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.sensorbase.mailer.Mailer;
+import org.hackystat.sensorbase.resource.ping.PingResource;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.projects.ProjectsResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectResource;
@@ -169,6 +170,7 @@ public class Server extends Application {
     // authentication, but all other URI patterns will go to the guarded Router. 
     Router router = new Router(getContext());
     router.attach("/register", RegistrationResource.class);
+    router.attach("/ping", PingResource.class);
     router.attachDefault(guard);
     
     return router;
