@@ -24,8 +24,7 @@ public class PingResource extends SensorBaseResource {
   }
   
   /**
-   * Returns an DevTimeDailyProjectData instance representing the DevTime associated with the 
-   * Project data, or null if not authorized. 
+   * Returns the string "SensorBase".
    * @param variant The representational variant requested.
    * @return The representation. 
    */
