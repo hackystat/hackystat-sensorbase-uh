@@ -19,6 +19,8 @@
   <import file="junit.build.xml"/>
   <import file="emma.build.xml"/>
   <import file="validateXml.build.xml"/>
+  <!-- make the jar target available so you can do 'ant -f verify.build.xml verify jar' -->
+  <import file="jar.build.xml"/>
   
   <echo>
     Hackystat SensorBase Verification Task
