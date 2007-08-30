@@ -36,5 +36,13 @@ public class SensorBaseClientException extends Exception {
   public SensorBaseClientException(String description, Throwable error) {
     super(description, error);
   }
+  
+  /**
+   * Thrown when some problem occurs with Client not involving the server. 
+   * @param description The problem description.
+   */
+  public SensorBaseClientException(String description) {
+    super(description);
+  }
 
 }

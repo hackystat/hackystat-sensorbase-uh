@@ -141,9 +141,20 @@ public class SensorBaseClient {
    * @throws SensorBaseClientException If authentication is not successful. 
    */
   public synchronized SensorBaseClient authenticate() throws SensorBaseClientException {
-    Response response = makeRequest(Method.HEAD, "users/" + this.userEmail, null); //NOPMD
+    String uri = "ping?user=" + this.userEmail + "&password=" + this.password;
+    Response response = makeRequest(Method.GET, uri, null); 
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
+    }
+    String responseString;
+    try {
+      responseString = response.getEntity().getText();
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException("Bad response", e);
+    }
+    if (!"SensorBase authenticated".equals(responseString)) {
+      throw new SensorBaseClientException("Authentication failed");
     }
     return this;
   }

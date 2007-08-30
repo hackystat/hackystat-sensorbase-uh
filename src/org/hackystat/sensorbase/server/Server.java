@@ -171,6 +171,7 @@ public class Server extends Application {
     Router router = new Router(getContext());
     router.attach("/register", RegistrationResource.class);
     router.attach("/ping", PingResource.class);
+    router.attach("/ping?user={user}&password={password}", PingResource.class);
     router.attachDefault(guard);
     
     return router;

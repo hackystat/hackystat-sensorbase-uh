@@ -9,10 +9,18 @@ import org.restlet.resource.StringRepresentation;
 import org.restlet.resource.Variant;
 
 /**
- * The PingResource responds to a GET <host>/ping with the name of this service. 
+ * The PingResource responds to a GET {host}/ping with the string "SensorBase".
+ * It responds to GET  {host}/ping?user={user}&password={password} with
+ * "SensorBase authenticated" if the user and password are valid, and 
+ * "SensorBase" if not valid. 
  * @author Philip Johnson
  */
 public class PingResource extends SensorBaseResource {
+  /** From the URI, if authentication is desired. */
+  private String user; 
+  /** From the URI, if authentication is desired. */
+  private String password;
+  
   /**
    * The standard constructor.
    * @param context The context.
@@ -21,17 +29,29 @@ public class PingResource extends SensorBaseResource {
    */
   public PingResource(Context context, Request request, Response response) {
     super(context, request, response);
+    this.user = (String) request.getAttributes().get("user");
+    this.password = (String) request.getAttributes().get("password");
   }
   
   /**
-   * Returns the string "SensorBase".
+   * Returns the string "DailyProjectData" or "DailyProjectData authenticated", 
+   * depending upon whether credentials are passed as form parameters and whether
+   * they are valid. 
    * @param variant The representational variant requested.
-   * @return The representation. 
+   * @return The representation as a string.  
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    return new StringRepresentation("SensorBase");
+    String unauthenticated = "SensorBase";
+    String authenticated = "SensorBase authenticated";
+    // Don't try to authenticate unless the user has passed both a user and password. 
+    if ((user == null) || (password == null)) {
+      return new StringRepresentation(unauthenticated);
+    }
+    boolean OK = this.userManager.isUser(user, password);
+    return new StringRepresentation((OK ? authenticated : unauthenticated));
   }
+  
   
 
 }
