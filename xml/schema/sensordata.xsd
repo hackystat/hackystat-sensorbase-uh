@@ -11,6 +11,7 @@
   <xs:element name="Value" type="xs:string"/>
   <xs:attribute name="Owner" type="xs:string"/>
   <xs:attribute name="SensorDataType" type="xs:string"/>
+  <xs:attribute name="Tool" type="xs:string"/>
   <xs:attribute name="Timestamp" type="xs:dateTime"/>
   <xs:attribute name="Href" type="xs:anyURI"/>
   <xs:attribute name="LastMod" type="xs:dateTime"/>
@@ -62,6 +63,7 @@
       <xs:attribute ref="Owner" use="required"/>
       <xs:attribute ref="SensorDataType" use="required"/>
       <xs:attribute ref="Timestamp" use="required"/>
+      <xs:attribute ref="Tool" use="required"/>
       <xs:attribute ref="Href" use="required"/>
       <xs:attribute ref="LastMod" use="required"/>      
     </xs:complexType>

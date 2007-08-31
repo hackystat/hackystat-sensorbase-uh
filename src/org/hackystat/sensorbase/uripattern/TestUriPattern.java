@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.uripattern;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -67,9 +68,9 @@ public class TestUriPattern  {
     
     assertEquals("18", pattern1a.hashCode(), pattern1b.hashCode());
     
-    assertTrue("19", pattern1a.compareTo(pattern1b) == 0);
-    assertTrue("20", pattern1a.compareTo(pattern0) != 0);
-    assertTrue("21", pattern1b.compareTo(pattern0) != 0);
+    assertEquals("19", pattern1a.compareTo(pattern1b), 0);
+    assertNotSame("20", pattern1a.compareTo(pattern0), 0);
+    assertNotSame("21", pattern1b.compareTo(pattern0), 0);
     
     assertEquals("22", new UriPattern("**"), new UriPattern(null));
   }
