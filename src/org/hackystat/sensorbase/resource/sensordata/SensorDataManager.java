@@ -375,6 +375,7 @@ public class SensorDataManager {
     ref.setOwner(email);
     ref.setSensorDataType(sdt);
     ref.setTimestamp(timestamp);
+    ref.setTool(data.getTool());
     ref.setHref(this.server.getHostName() + "sensordata/" + email + "/" +  timestamp.toString()); 
     return ref;
   }
