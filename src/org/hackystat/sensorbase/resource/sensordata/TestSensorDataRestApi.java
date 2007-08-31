@@ -1,6 +1,7 @@
 package org.hackystat.sensorbase.resource.sensordata;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -62,6 +63,8 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     // Make sure that we can iterate through the data and dereference all hrefs. 
     for (SensorDataRef ref : index.getSensorDataRef()) {
       client.getSensorData(ref);
+      // also make sure the Tool value isn't null.
+      assertNotNull("Checking tool value", ref.getTool());
     }
     assertTrue("Checking for sensor data 2", index.getSensorDataRef().size() > 1);
   }
