@@ -89,6 +89,18 @@ public class DerbyImplementation extends DbImplementation {
   @Override
   public void initialize() {
     try {
+      // Create a shutdown hook that shuts down derby.
+      Runtime.getRuntime().addShutdownHook(new Thread() {
+        /** Run the shutdown hook for shutting down Derby. */
+        public void run() {
+          try {
+            DriverManager.getConnection("jdbc:derby:;shutdown=true");
+          }
+          catch (Exception e) {
+            System.out.println("Derby shutdown hook results: " + e.getMessage());
+          }
+        }
+      });
       // Initialize the database table structure if necessary.
       this.isFreshlyCreated = !isPreExisting();
       String dbStatusMsg = (this.isFreshlyCreated) ? 
