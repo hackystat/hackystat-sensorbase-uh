@@ -117,7 +117,7 @@ public class Server extends Application {
    */
   private static void disableRestletLogging() {
     LogManager logManager = LogManager.getLogManager();
-    for (Enumeration e = logManager.getLoggerNames(); e.hasMoreElements() ;) {
+    for (Enumeration<String> e = logManager.getLoggerNames(); e.hasMoreElements() ;) {
       String logName = e.nextElement().toString();
       if (logName.startsWith("com.noelios") ||
           logName.startsWith("org.restlet")) {

@@ -234,7 +234,8 @@ public class SensorDataManager {
       data.setLastMod(Tstamp.makeTimestamp());
       this.dbManager.storeSensorData(data, this.makeSensorData(data),
           this.makeSensorDataRefString(data));
-      server.getLogger().info("Storing sensor data from: " + data.getOwner());
+      server.getLogger().info("Put: " + data.getTimestamp() + " " + data.getOwner() + 
+          " " + data.getTool() + " " + data.getSensorDataType() + " " + data.getResource());
     }
     catch (Exception e) {
       server.getLogger().warning("Failed to put sensor data " + StackTrace.toString(e));

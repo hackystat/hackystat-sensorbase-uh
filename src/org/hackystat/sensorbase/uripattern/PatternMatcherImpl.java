@@ -523,7 +523,7 @@ final class PatternMatcherImpl {
    *
    * @return a Vector of path elements from the tokenized path
    */
-  public static Vector tokenizePath(String path) {
+  public static Vector<String> tokenizePath(String path) {
     return tokenizePath(path, separator);
   }
 
@@ -536,9 +536,8 @@ final class PatternMatcherImpl {
    * @return a Vector of path elements from the tokenized path
    * @since Ant 1.6
    */
-  @SuppressWarnings("unchecked")
-  public static Vector tokenizePath(String path, String separator) {
-    Vector ret = new Vector();
+  public static Vector<String> tokenizePath(String path, String separator) {
+    Vector<String> ret = new Vector<String>();
     StringTokenizer st = new StringTokenizer(path, separator);
     while (st.hasMoreTokens()) {
       ret.addElement(st.nextToken());
@@ -671,12 +670,12 @@ final class PatternMatcherImpl {
   }
 
   /**
-   * removes from a pattern all tokens to the right containing wildcards
+   * Removes from a pattern all tokens to the right containing wildcards.
    * @param input the input string
    * @return the leftmost part of the pattern without wildcards
    */
   public static String rtrimWildcardTokens(String input) {
-    Vector v = tokenizePath(input, separator);
+    Vector<String> v = tokenizePath(input, separator);
     StringBuffer sb = new StringBuffer();
     for (int counter = 0; counter < v.size(); counter++) {
       if (hasWildcards((String) v.elementAt(counter))) {

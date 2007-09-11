@@ -28,7 +28,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Project;
  *
  */
  
-public class UriPattern implements Comparable {
+public class UriPattern implements Comparable<UriPattern> {
 
   /** The string provided by the User defining this UriPattern. */
   private String rawPattern; 
@@ -231,8 +231,7 @@ public class UriPattern implements Comparable {
    * 
    * @return An integer value indicates the relative magnitude of two objects compared.
    */
-  public int compareTo(Object o) {
-    UriPattern another = (UriPattern) o;
+  public int compareTo(UriPattern another) {
     return this.rawPattern.compareTo(another.rawPattern);
   }
 

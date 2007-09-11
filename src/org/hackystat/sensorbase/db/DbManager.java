@@ -50,8 +50,8 @@ public class DbManager {
       throw new IllegalArgumentException(e);
     }
     // Next, try to find a constructor that accepts a Server as its parameter. 
-    Class[] constructorParam = {org.hackystat.sensorbase.server.Server.class};
-    Constructor dbConstructor = null;
+    Class<?>[] constructorParam = {org.hackystat.sensorbase.server.Server.class};
+    Constructor<?> dbConstructor = null;
     try {
       dbConstructor = dbClass.getConstructor(constructorParam);
     }
