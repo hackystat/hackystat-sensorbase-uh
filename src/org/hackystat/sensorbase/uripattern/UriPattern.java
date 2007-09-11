@@ -227,8 +227,7 @@ public class UriPattern implements Comparable<UriPattern> {
   /**
    * Compares two objects.
    * 
-   * @param o The other object.
-   * 
+   * @param another The other object.
    * @return An integer value indicates the relative magnitude of two objects compared.
    */
   public int compareTo(UriPattern another) {

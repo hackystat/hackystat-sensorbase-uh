@@ -678,13 +678,13 @@ final class PatternMatcherImpl {
     Vector<String> v = tokenizePath(input, separator);
     StringBuffer sb = new StringBuffer();
     for (int counter = 0; counter < v.size(); counter++) {
-      if (hasWildcards((String) v.elementAt(counter))) {
+      if (hasWildcards(v.elementAt(counter))) {
         break;
       }
       if (counter > 0) {
         sb.append(separator);
       }
-      sb.append((String) v.elementAt(counter));
+      sb.append(v.elementAt(counter));
     }
     return sb.toString();
   }

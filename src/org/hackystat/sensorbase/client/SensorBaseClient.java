@@ -79,7 +79,7 @@ public class SensorBaseClient {
   /** For PMD */
   private String projectsUri = "projects/";
   /** To facilitate debugging of problems using this system. */
-  private boolean isTraceEnabled = false;
+  private boolean isTraceEnabled = true;
   
   // JAXBContexts are thread safe, so we can share them across all instances and threads. 
   // https://jaxb.dev.java.net/guide/Performance_and_thread_safety.html
