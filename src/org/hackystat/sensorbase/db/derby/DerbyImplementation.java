@@ -93,11 +93,20 @@ public class DerbyImplementation extends DbImplementation {
       Runtime.getRuntime().addShutdownHook(new Thread() {
         /** Run the shutdown hook for shutting down Derby. */
         public void run() {
+          Connection conn = null;
           try {
-            DriverManager.getConnection("jdbc:derby:;shutdown=true");
+            conn = DriverManager.getConnection("jdbc:derby:;shutdown=true");
           }
           catch (Exception e) {
             System.out.println("Derby shutdown hook results: " + e.getMessage());
+          }
+          finally {
+            try {
+              conn.close();
+            }
+            catch (Exception e) { //NOPMD
+              // we tried.
+            }
           }
         }
       });

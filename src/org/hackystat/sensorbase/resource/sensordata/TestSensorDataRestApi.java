@@ -47,6 +47,7 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     for (SensorDataRef ref : index.getSensorDataRef()) {
       client.getUri(ref.getHref());
     }
+    assertNotNull("Checking getLastMod()", index.getLastMod());
     assertTrue("Checking for sensor data 1", index.getSensorDataRef().size() > 1);
   }
   
@@ -60,6 +61,7 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     client.authenticate();
     // Retrieve the TestUser User resource and test a couple of fields.
     SensorDataIndex index = client.getSensorDataIndex(user);
+    assertNotNull("Checking user getLastMod()", index.getLastMod());
     // Make sure that we can iterate through the data and dereference all hrefs. 
     for (SensorDataRef ref : index.getSensorDataRef()) {
       client.getSensorData(ref);

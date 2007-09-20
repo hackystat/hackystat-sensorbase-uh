@@ -79,7 +79,7 @@ public class SensorBaseClient {
   /** For PMD */
   private String projectsUri = "projects/";
   /** To facilitate debugging of problems using this system. */
-  private boolean isTraceEnabled = true;
+  private boolean isTraceEnabled = false;
   
   // JAXBContexts are thread safe, so we can share them across all instances and threads. 
   // https://jaxb.dev.java.net/guide/Performance_and_thread_safety.html
@@ -488,9 +488,33 @@ public class SensorBaseClient {
     catch (Exception e) {
       throw new SensorBaseClientException(response.getStatus(), e);
     }
+    setSensorDataIndexLastMod(index);
     return index; 
   }
   
+  /**
+   * Computes the lastMod value for this index. Iterates through the individual refs to find 
+   * their lastMod values, and stores the most recent lastMod value as the result.
+   * If the index is empty, then a default lastMod of 1000-01-01 is returned.
+   * We hope that indexes are cached so that this is not done a lot.
+   * @param index The index.
+   * @throws SensorBaseClientException If problems occur parsing the lastMod fields.
+   */
+  private void setSensorDataIndexLastMod(SensorDataIndex index) throws SensorBaseClientException {
+    try {
+      index.setLastMod(Tstamp.makeTimestamp("1000-01-01"));
+      for (SensorDataRef ref : index.getSensorDataRef()) {
+        XMLGregorianCalendar lastMod = ref.getLastMod();
+        if ((!(lastMod == null)) && Tstamp.greaterThan(lastMod, index.getLastMod())) {
+          index.setLastMod(lastMod);
+        }
+      }
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException("Error setting LastMod for index: " + index, e);
+    }
+  }
+
   /**
    * Returns the index of SensorData for this user from this server.
    * @param email The user email.
@@ -512,6 +536,7 @@ public class SensorBaseClient {
     catch (Exception e) {
       throw new SensorBaseClientException(response.getStatus(), e);
     }
+    setSensorDataIndexLastMod(index);
     return index; 
   }
   
