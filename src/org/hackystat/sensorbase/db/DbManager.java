@@ -162,6 +162,19 @@ public class DbManager {
   }
   
   /**
+   * Returns the XML SensorDataIndex for all sensor data for the given user that arrived
+   * at the server since the given Timestamp.  This method uses the LastMod timestamp
+   * rather than the "regular" timestamp, and is used for real-time monitoring of data
+   * arriving at the server. 
+   * @param user The user whose data is being monitored.
+   * @param lastModTstamp  The lastMod time of interest. 
+   * @return The XML SensorDataIndex for the recently arrived data based upon lastModTstamp.
+   */
+  public String getSensorDataIndexSince(User user, XMLGregorianCalendar lastModTstamp) {
+    return this.dbImpl.getSensorDataIndexSince(user, lastModTstamp);
+  }
+  
+  /**
    * Returns the XML SensorDataTypeIndex for all sensor data.
    * @return An XML String providing an index of all SDT resources.
    */

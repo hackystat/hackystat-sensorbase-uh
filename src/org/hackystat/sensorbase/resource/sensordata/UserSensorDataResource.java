@@ -23,6 +23,7 @@ import org.restlet.resource.Variant;
  * <ul>
  * <li> host/sensordata/{user}
  * <li> host/sensordata/{user}?sdt={sensordatatype}
+ * <li> host/sensordata/{user}?since={lastModTimestamp}
  * <li> host/sensordata/{user}/{timestamp}
  * </ul>
  * 
@@ -36,6 +37,8 @@ public class UserSensorDataResource extends SensorBaseResource {
   private String sdtName;
   /** To be retrieved from the URL, or else null if not found. */
   private String timestamp;
+  /** To be retrieved from the URL, or else null if not found. */
+  private String lastModTimestamp;
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -48,6 +51,7 @@ public class UserSensorDataResource extends SensorBaseResource {
     this.user = super.userManager.getUser(uriUser);
     this.sdtName = (String) request.getAttributes().get("sensordatatype");
     this.timestamp = (String) request.getAttributes().get("timestamp");
+    this.lastModTimestamp = (String) request.getAttributes().get("lastModTimestamp");
   }
   
   /**
@@ -55,6 +59,7 @@ public class UserSensorDataResource extends SensorBaseResource {
    * <ul>
    * <li> sensordata/{email}
    * <li> sensordata/{email}?sdt={sensordatatype}
+   * <li> sensordata/{email}?since={lastModTimestamp}
    * </ul>
    * Returns a SensorData when a GET is called with:
    * <ul>
@@ -67,27 +72,45 @@ public class UserSensorDataResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
+    // Return error if unknown user.
     if (this.user == null) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.uriUser);
       return null;
     } 
+    // Return error if authUser is not the UriUser but it's not the admin.
     if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
       return null;
     }
+    // Now check to make sure they want XML.
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      // sensordata/{email}
-      if ((this.sdtName == null) && (this.timestamp == null)) {
+      // Return index of all data for URI: sensordata/{email} 
+      if ((this.sdtName == null) && (this.timestamp == null) && (this.lastModTimestamp == null)) {
         String xmlData = super.sensorDataManager.getSensorDataIndex(this.user);
         return super.getStringRepresentation(xmlData);
       }
-      // sensordata/{email}?sdt={sensordatatype}
-      else if (this.timestamp == null) {
-        String xmlData = super.sensorDataManager.getSensorDataIndex(this.user);
+      // Return index of data for a given SDT for URI: sensordata/{email}?sdt={sensordatatype}
+      if ((this.sdtName != null) && (this.timestamp == null) && (this.lastModTimestamp == null)) {
+          String xmlData = super.sensorDataManager.getSensorDataIndex(this.user, this.sdtName);
+          return super.getStringRepresentation(xmlData);
+      } 
+      // Return index of data since the tstamp for URI: sensordata/{email}?since={lastModTimeStamp}
+      if ((this.sdtName == null) && (this.timestamp == null) && (this.lastModTimestamp != null)) {
+        // First, check to see that we can convert the lastModTstamp into a tstamp.
+        XMLGregorianCalendar lastModTstamp;
+        try {
+          lastModTstamp = Tstamp.makeTimestamp(this.lastModTimestamp);
+        }
+        catch (Exception e) {
+          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Tstmp " + lastModTimestamp);
+          return null;
+        }
+        // Now, get the data and return.
+        String xmlData = super.sensorDataManager.getSensorDataIndexSince(this.user, lastModTstamp);
         return super.getStringRepresentation(xmlData);
-      }
-      // sensordata/{email}/{timestamp}
-      else {
+      } 
+      // Return sensordata representation for URI: sensordata/{email}/{timestamp}
+      if ((this.sdtName == null) && (this.timestamp != null) && (this.lastModTimestamp == null)) {
         // First, try to parse the timestamp string, and return error if it doesn't parse.
         XMLGregorianCalendar tstamp;
         try {
@@ -98,7 +121,7 @@ public class UserSensorDataResource extends SensorBaseResource {
           return null;
         }
         // Now, see if we actually have the SensorData.
-        if (!super.sensorDataManager.hasSensorData(user, tstamp)) {
+        if (!super.sensorDataManager.hasSensorData(user, tstamp)) { //NOPMD
           getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND, "Unknown Sensor Data");
           return null;
         }
@@ -109,10 +132,13 @@ public class UserSensorDataResource extends SensorBaseResource {
         }
         catch (Exception e) {
           // The marshallSensorData threw an exception, which is unrecoverable.
+          getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, "Problem unmarshalling data.");
           return null;
         }
       }
     }
+    // Otherwise we don't understand the URI that they invoked us with.
+    getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Illegal URI");
     return null;
   }
   

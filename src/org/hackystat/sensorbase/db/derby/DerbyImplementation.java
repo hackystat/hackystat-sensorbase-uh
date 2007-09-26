@@ -333,8 +333,8 @@ public class DerbyImplementation extends DbImplementation {
   public String getSensorDataIndex(User user, String sdtName) {
     String st = 
       "SELECT XmlSensorDataRef FROM SensorData WHERE " 
-      + ownerEquals + user.getEmail() + "', " 
-      + " sdt='" + sdtName + "'";
+      + ownerEquals + user.getEmail() + andClause
+      + " Sdt='" + sdtName + "'";
     return getIndex("SensorData", st);
   }
   
@@ -349,6 +349,19 @@ public class DerbyImplementation extends DbImplementation {
       + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
     return getIndex("SensorData", statement);
   }
+  
+  /** {@inheritDoc} */
+  @Override
+  public String getSensorDataIndexSince(User user, XMLGregorianCalendar lastModTstamp) {
+    String statement = 
+      "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
+      + ownerEquals + user.getEmail() + andClause 
+      + " LastMod >= TIMESTAMP('" + Tstamp.makeTimestamp(lastModTstamp) + "')";
+    return getIndex("SensorData", statement);
+  }
+  
+  
+  
 
   /** {@inheritDoc} */
   @Override

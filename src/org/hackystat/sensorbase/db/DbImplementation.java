@@ -74,6 +74,17 @@ public abstract class DbImplementation {
       XMLGregorianCalendar endTime, List<UriPattern> uriPatterns);
   
   /**
+   * Returns the XML SensorDataIndex for all sensor data for the given user that arrived
+   * at the server since the given Timestamp.  This method uses the LastMod timestamp
+   * rather than the "regular" timestamp, and is used for real-time monitoring of data
+   * arriving at the server. 
+   * @param user The user whose data is being monitored.
+   * @param lastModTstamp  The lastMod time of interest. 
+   * @return The XML SensorDataIndex for the recently arrived data based upon lastModTstamp.
+   */
+  public abstract String getSensorDataIndexSince(User user, XMLGregorianCalendar lastModTstamp);
+  
+  /**
    * Returns the SensorData instance as XML string, or null if not found.
    * @param user The user.
    * @param timestamp The timestamp associated with this sensor data.
