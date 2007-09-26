@@ -568,13 +568,24 @@ public class SensorBaseClient {
   
   
   /**
-   * Returns the index of SensorData for this user of all sensor data that have arrived at the
-   * server since lastModTstamp. Uses the lastMod field to determine retrieve this sensor data.   
+   * Returns an index to SensorData for the specified user of all sensor data that have arrived at
+   * the server since the specified timestamp. Uses the LastMod field to determine what data will be
+   * retrieved.
+   * <p>
+   * Note that data could be sent recently with a Timestamp (as opposed to LastMod field) from far
+   * back in the past, and the index will include references to such data. This method thus differs
+   * from all other SensorDataIndex-returning methods, because the others compare passed timestamp
+   * values to the Timestamp associated with the moment at which a sensor data instance is created,
+   * not the moment it ends up being received by the server.
+   * <p>
+   * This method is intended for use by user interface facilities such as the SensorDataViewer that
+   * wish to monitor the arrival of data at the SensorBase.
+   * 
    * @param email The user email.
    * @param lastModTstamp A timestamp used to determine which data to retrieve, inclusive.
-   * @return The SensorDataIndex instance. 
+   * @return The SensorDataIndex instance.
    * @throws SensorBaseClientException If the server does not return the Index or returns an index
-   * that cannot be marshalled into Java SensorDataIndex instance. 
+   * that cannot be marshalled into Java SensorDataIndex instance.
    */
   public synchronized SensorDataIndex getSensorDataIndexSince(String email, 
       XMLGregorianCalendar lastModTstamp) throws SensorBaseClientException {

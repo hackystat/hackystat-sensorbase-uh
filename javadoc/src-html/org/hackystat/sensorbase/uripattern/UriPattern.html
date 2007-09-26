@@ -31,7 +31,7 @@
 <FONT color="green">028</FONT>     *<a name="line.28"></a>
 <FONT color="green">029</FONT>     */<a name="line.29"></a>
 <FONT color="green">030</FONT>     <a name="line.30"></a>
-<FONT color="green">031</FONT>    public class UriPattern implements Comparable {<a name="line.31"></a>
+<FONT color="green">031</FONT>    public class UriPattern implements Comparable&lt;UriPattern&gt; {<a name="line.31"></a>
 <FONT color="green">032</FONT>    <a name="line.32"></a>
 <FONT color="green">033</FONT>      /** The string provided by the User defining this UriPattern. */<a name="line.33"></a>
 <FONT color="green">034</FONT>      private String rawPattern; <a name="line.34"></a>
@@ -230,61 +230,59 @@
 <FONT color="green">227</FONT>      /**<a name="line.227"></a>
 <FONT color="green">228</FONT>       * Compares two objects.<a name="line.228"></a>
 <FONT color="green">229</FONT>       * <a name="line.229"></a>
-<FONT color="green">230</FONT>       * @param o The other object.<a name="line.230"></a>
-<FONT color="green">231</FONT>       * <a name="line.231"></a>
-<FONT color="green">232</FONT>       * @return An integer value indicates the relative magnitude of two objects compared.<a name="line.232"></a>
-<FONT color="green">233</FONT>       */<a name="line.233"></a>
-<FONT color="green">234</FONT>      public int compareTo(Object o) {<a name="line.234"></a>
-<FONT color="green">235</FONT>        UriPattern another = (UriPattern) o;<a name="line.235"></a>
-<FONT color="green">236</FONT>        return this.rawPattern.compareTo(another.rawPattern);<a name="line.236"></a>
-<FONT color="green">237</FONT>      }<a name="line.237"></a>
-<FONT color="green">238</FONT>    <a name="line.238"></a>
-<FONT color="green">239</FONT>      /**<a name="line.239"></a>
-<FONT color="green">240</FONT>       * Tests whether two objects contain the same pattern.<a name="line.240"></a>
+<FONT color="green">230</FONT>       * @param another The other object.<a name="line.230"></a>
+<FONT color="green">231</FONT>       * @return An integer value indicates the relative magnitude of two objects compared.<a name="line.231"></a>
+<FONT color="green">232</FONT>       */<a name="line.232"></a>
+<FONT color="green">233</FONT>      public int compareTo(UriPattern another) {<a name="line.233"></a>
+<FONT color="green">234</FONT>        return this.rawPattern.compareTo(another.rawPattern);<a name="line.234"></a>
+<FONT color="green">235</FONT>      }<a name="line.235"></a>
+<FONT color="green">236</FONT>    <a name="line.236"></a>
+<FONT color="green">237</FONT>      /**<a name="line.237"></a>
+<FONT color="green">238</FONT>       * Tests whether two objects contain the same pattern.<a name="line.238"></a>
+<FONT color="green">239</FONT>       * <a name="line.239"></a>
+<FONT color="green">240</FONT>       * @param o The other object.<a name="line.240"></a>
 <FONT color="green">241</FONT>       * <a name="line.241"></a>
-<FONT color="green">242</FONT>       * @param o The other object.<a name="line.242"></a>
-<FONT color="green">243</FONT>       * <a name="line.243"></a>
-<FONT color="green">244</FONT>       * @return True if they are equal.<a name="line.244"></a>
-<FONT color="green">245</FONT>       */<a name="line.245"></a>
-<FONT color="green">246</FONT>      @Override<a name="line.246"></a>
-<FONT color="green">247</FONT>      public boolean equals(Object o) {<a name="line.247"></a>
-<FONT color="green">248</FONT>        if (!(o instanceof UriPattern)) {<a name="line.248"></a>
-<FONT color="green">249</FONT>          return false;<a name="line.249"></a>
-<FONT color="green">250</FONT>        }<a name="line.250"></a>
-<FONT color="green">251</FONT>        UriPattern another = (UriPattern) o;<a name="line.251"></a>
-<FONT color="green">252</FONT>        return this.rawPattern.equals(another.rawPattern);<a name="line.252"></a>
-<FONT color="green">253</FONT>      }<a name="line.253"></a>
-<FONT color="green">254</FONT>    <a name="line.254"></a>
-<FONT color="green">255</FONT>      /**<a name="line.255"></a>
-<FONT color="green">256</FONT>       * Gets the hash code of this object.<a name="line.256"></a>
-<FONT color="green">257</FONT>       * <a name="line.257"></a>
-<FONT color="green">258</FONT>       * @return The hash code.<a name="line.258"></a>
-<FONT color="green">259</FONT>       */<a name="line.259"></a>
-<FONT color="green">260</FONT>      @Override<a name="line.260"></a>
-<FONT color="green">261</FONT>      public int hashCode() {<a name="line.261"></a>
-<FONT color="green">262</FONT>        return this.rawPattern.hashCode();<a name="line.262"></a>
-<FONT color="green">263</FONT>      }<a name="line.263"></a>
-<FONT color="green">264</FONT>    <a name="line.264"></a>
-<FONT color="green">265</FONT>      /**<a name="line.265"></a>
-<FONT color="green">266</FONT>       * Returns the 'raw' pattern, which some clients may find a better string representation.<a name="line.266"></a>
-<FONT color="green">267</FONT>       * <a name="line.267"></a>
-<FONT color="green">268</FONT>       * @return The 'raw' pattern as a string.<a name="line.268"></a>
-<FONT color="green">269</FONT>       */<a name="line.269"></a>
-<FONT color="green">270</FONT>      public String getRawPattern() {<a name="line.270"></a>
-<FONT color="green">271</FONT>        return this.rawPattern;<a name="line.271"></a>
-<FONT color="green">272</FONT>      }<a name="line.272"></a>
-<FONT color="green">273</FONT>    <a name="line.273"></a>
-<FONT color="green">274</FONT>      /**<a name="line.274"></a>
-<FONT color="green">275</FONT>       * Gets the string representation of this file path pattern.<a name="line.275"></a>
-<FONT color="green">276</FONT>       * <a name="line.276"></a>
-<FONT color="green">277</FONT>       * @return The string representation.<a name="line.277"></a>
-<FONT color="green">278</FONT>       */<a name="line.278"></a>
-<FONT color="green">279</FONT>      @Override<a name="line.279"></a>
-<FONT color="green">280</FONT>      public String toString() {<a name="line.280"></a>
-<FONT color="green">281</FONT>        return "&lt;UriPattern: " + this.rawPattern + "&gt;";<a name="line.281"></a>
-<FONT color="green">282</FONT>      }<a name="line.282"></a>
-<FONT color="green">283</FONT>    <a name="line.283"></a>
-<FONT color="green">284</FONT>    }<a name="line.284"></a>
+<FONT color="green">242</FONT>       * @return True if they are equal.<a name="line.242"></a>
+<FONT color="green">243</FONT>       */<a name="line.243"></a>
+<FONT color="green">244</FONT>      @Override<a name="line.244"></a>
+<FONT color="green">245</FONT>      public boolean equals(Object o) {<a name="line.245"></a>
+<FONT color="green">246</FONT>        if (!(o instanceof UriPattern)) {<a name="line.246"></a>
+<FONT color="green">247</FONT>          return false;<a name="line.247"></a>
+<FONT color="green">248</FONT>        }<a name="line.248"></a>
+<FONT color="green">249</FONT>        UriPattern another = (UriPattern) o;<a name="line.249"></a>
+<FONT color="green">250</FONT>        return this.rawPattern.equals(another.rawPattern);<a name="line.250"></a>
+<FONT color="green">251</FONT>      }<a name="line.251"></a>
+<FONT color="green">252</FONT>    <a name="line.252"></a>
+<FONT color="green">253</FONT>      /**<a name="line.253"></a>
+<FONT color="green">254</FONT>       * Gets the hash code of this object.<a name="line.254"></a>
+<FONT color="green">255</FONT>       * <a name="line.255"></a>
+<FONT color="green">256</FONT>       * @return The hash code.<a name="line.256"></a>
+<FONT color="green">257</FONT>       */<a name="line.257"></a>
+<FONT color="green">258</FONT>      @Override<a name="line.258"></a>
+<FONT color="green">259</FONT>      public int hashCode() {<a name="line.259"></a>
+<FONT color="green">260</FONT>        return this.rawPattern.hashCode();<a name="line.260"></a>
+<FONT color="green">261</FONT>      }<a name="line.261"></a>
+<FONT color="green">262</FONT>    <a name="line.262"></a>
+<FONT color="green">263</FONT>      /**<a name="line.263"></a>
+<FONT color="green">264</FONT>       * Returns the 'raw' pattern, which some clients may find a better string representation.<a name="line.264"></a>
+<FONT color="green">265</FONT>       * <a name="line.265"></a>
+<FONT color="green">266</FONT>       * @return The 'raw' pattern as a string.<a name="line.266"></a>
+<FONT color="green">267</FONT>       */<a name="line.267"></a>
+<FONT color="green">268</FONT>      public String getRawPattern() {<a name="line.268"></a>
+<FONT color="green">269</FONT>        return this.rawPattern;<a name="line.269"></a>
+<FONT color="green">270</FONT>      }<a name="line.270"></a>
+<FONT color="green">271</FONT>    <a name="line.271"></a>
+<FONT color="green">272</FONT>      /**<a name="line.272"></a>
+<FONT color="green">273</FONT>       * Gets the string representation of this file path pattern.<a name="line.273"></a>
+<FONT color="green">274</FONT>       * <a name="line.274"></a>
+<FONT color="green">275</FONT>       * @return The string representation.<a name="line.275"></a>
+<FONT color="green">276</FONT>       */<a name="line.276"></a>
+<FONT color="green">277</FONT>      @Override<a name="line.277"></a>
+<FONT color="green">278</FONT>      public String toString() {<a name="line.278"></a>
+<FONT color="green">279</FONT>        return "&lt;UriPattern: " + this.rawPattern + "&gt;";<a name="line.279"></a>
+<FONT color="green">280</FONT>      }<a name="line.280"></a>
+<FONT color="green">281</FONT>    <a name="line.281"></a>
+<FONT color="green">282</FONT>    }<a name="line.282"></a>
 
 
 
