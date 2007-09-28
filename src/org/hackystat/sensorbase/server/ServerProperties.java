@@ -24,6 +24,8 @@ public class ServerProperties {
   public static final String HOSTNAME_KEY =        "sensorbase.hostname";
   /** The logging level key. */
   public static final String LOGGING_LEVEL_KEY =   "sensorbase.logging.level";
+  /** The Restlet Logging key. */
+  public static final String RESTLET_LOGGING_KEY =   "sensorbase.restlet.logging";
   /** The SMTP host key. */
   public static final String SMTP_HOST_KEY =       "sensorbase.smtp.host";
   /** The sensorbase port key. */
@@ -71,6 +73,7 @@ public class ServerProperties {
     properties.setProperty(DB_IMPL_KEY, "org.hackystat.sensorbase.db.derby.DerbyImplementation");
     properties.setProperty(HOSTNAME_KEY, "localhost");
     properties.setProperty(LOGGING_LEVEL_KEY, "INFO");
+    properties.setProperty(RESTLET_LOGGING_KEY, "false");
     properties.setProperty(SMTP_HOST_KEY, "mail.hawaii.edu");
     properties.setProperty(PORT_KEY, "9876");
     properties.setProperty(XML_DIR_KEY, userDir + "/xml");
@@ -115,6 +118,7 @@ public class ServerProperties {
       pad + DB_DIR_KEY        + eq + get(DB_DIR_KEY) + cr +
       pad + DB_IMPL_KEY       + eq + get(DB_IMPL_KEY) + cr +
       pad + LOGGING_LEVEL_KEY + eq + get(LOGGING_LEVEL_KEY) + cr +
+      pad + RESTLET_LOGGING_KEY + eq + get(RESTLET_LOGGING_KEY) + cr +
       pad + SMTP_HOST_KEY     + eq + get(SMTP_HOST_KEY) + cr +
       pad + PORT_KEY          + eq + get(PORT_KEY) + cr +
       pad + TEST_INSTALL_KEY  + eq + get(TEST_INSTALL_KEY) + cr + 

@@ -108,7 +108,10 @@ public class Server extends Application {
     server.serverProperties.echoProperties(server);
     server.logger.warning("SensorBase (Version " + getVersion() + ") now running.");
     server.component.start();
-    disableRestletLogging();
+    String restletLoggingString = server.serverProperties.get(ServerProperties.RESTLET_LOGGING_KEY);
+    if (!(restletLoggingString.equalsIgnoreCase("true"))) {
+      disableRestletLogging();
+    }
     return server;
   }
 

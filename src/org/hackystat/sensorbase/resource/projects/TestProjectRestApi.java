@@ -170,6 +170,6 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     client.authenticate();
     
     SensorDataIndex index = client.getProjectSensorData(testUser, defaultProject);
-    assertTrue("Checking for testuser sensordata", index.getSensorDataRef().size() > 3);
+    assertTrue("Checking for testuser sensordata", index.getSensorDataRef().size() >= 3);
   }
 }
