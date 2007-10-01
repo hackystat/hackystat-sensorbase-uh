@@ -631,6 +631,29 @@ public class SensorBaseClient {
   }
   
   /**
+   * Returns the SensorData for this user from this server given the passed uriString.
+   * @param uriString A URL that should return a SensorData instance in XML format.
+   * @return The SensorData instance. 
+   * @throws SensorBaseClientException If the server does not return the success code
+   * or returns a String that cannot be marshalled into Java SensorData instance. 
+   */
+  public synchronized SensorData getSensorData(String uriString) throws SensorBaseClientException {
+    Response response = makeRequest(Method.GET, uriString, null);
+    SensorData data;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      data = makeSensorData(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return data;
+  }
+  
+  /**
    * Returns the named SensorData associated with the SensorDataRef. 
    * @param ref The SensorDataRef instance
    * @return The SensorData instance. 
