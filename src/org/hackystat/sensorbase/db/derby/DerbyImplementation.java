@@ -92,6 +92,7 @@ public class DerbyImplementation extends DbImplementation {
       // Create a shutdown hook that shuts down derby.
       Runtime.getRuntime().addShutdownHook(new Thread() {
         /** Run the shutdown hook for shutting down Derby. */
+        @Override 
         public void run() {
           Connection conn = null;
           try {
