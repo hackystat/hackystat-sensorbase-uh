@@ -45,7 +45,7 @@ public class SensorBaseRestApiHelper {
    * @throws Exception If problems occur setting up the server. 
    */
   @BeforeClass public static void setupServer() throws Exception {
-    SensorBaseRestApiHelper.server = Server.newInstance();
+    SensorBaseRestApiHelper.server = Server.newInstance(true);
     //SensorBaseRestApiHelper.client = new Client(Protocol.HTTP);
     SensorBaseRestApiHelper.sensorDataManager = 
       (SensorDataManager)server.getContext().getAttributes().get("SensorDataManager");

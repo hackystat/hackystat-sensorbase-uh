@@ -57,14 +57,29 @@ public class Server extends Application {
   private ServerProperties serverProperties;
   
   /**
-   * Creates a new instance of a SensorBase HTTP server, listening on the supplied port.  
+   * Creates a new instance of a SensorBase HTTP server, listening on the supplied port.
+   * SensorBase properties are initialized from the User's sensorbase.properties file.  
    * @return The Server instance created. 
    * @throws Exception If problems occur starting up this server. 
    */
   public static Server newInstance() throws Exception {
+    return newInstance(false);
+  }
+  
+  /**
+   * Creates a new instance of a SensorBase HTTP server, listening on the supplied port.
+   * If isTestServer is true, then the user's sensorbase.properties file is read in but certain
+   * properties will be overridden to "test" appropriate values. See the SensorProperties 
+   * Javadoc for more details. 
+   * @param  isTestServer Whether this instance should be initialized with values appropriate
+   * for testing purposes. 
+   * @return The Server instance created. 
+   * @throws Exception If problems occur starting up this server. 
+   */
+  public static Server newInstance(boolean isTestServer) throws Exception {
     Server server = new Server();
     server.logger = HackystatLogger.getLogger("org.hackystat.sensorbase");
-    server.serverProperties = new ServerProperties();
+    server.serverProperties = new ServerProperties(isTestServer);
     server.hostName = "http://" +
                       server.serverProperties.get(HOSTNAME_KEY) + 
                       ":" + 
@@ -130,7 +145,8 @@ public class Server extends Application {
   }
   
   /**
-   * Starts up the SensorBase web service on port 9876.  Control-c to exit. 
+   * Starts up the SensorBase web service using the properties specified in sensor.properties.  
+   * Control-c to exit. 
    * @param args Ignored. 
    * @throws Exception if problems occur.
    */

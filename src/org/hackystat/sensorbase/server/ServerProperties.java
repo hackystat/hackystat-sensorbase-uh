@@ -25,11 +25,13 @@ public class ServerProperties {
   /** The logging level key. */
   public static final String LOGGING_LEVEL_KEY =   "sensorbase.logging.level";
   /** The Restlet Logging key. */
-  public static final String RESTLET_LOGGING_KEY =   "sensorbase.restlet.logging";
+  public static final String RESTLET_LOGGING_KEY = "sensorbase.restlet.logging";
   /** The SMTP host key. */
   public static final String SMTP_HOST_KEY =       "sensorbase.smtp.host";
   /** The sensorbase port key. */
   public static final String PORT_KEY =            "sensorbase.port";
+  /** The sensorbase port key during testing. */
+  public static final String TEST_PORT_KEY =       "sensorbase.test.port";
   /** The XML directory key. */
   public static final String XML_DIR_KEY =         "sensorbase.xml.dir";
   /** The test installation key. */
@@ -46,7 +48,33 @@ public class ServerProperties {
    */
   public ServerProperties() {
     try {
-      initializeProperties();
+      initializeProperties(false);
+    }
+    catch (Exception e) {
+      System.out.println("Error initializing server properties.");
+    }
+  }
+  
+  /**
+   * Creates a new ServerProperties instance. If isTestServer is true, then this ServerProperties
+   * instance will return with "testing" properties. The user's sensorbase.properties file is
+   * read in, but the following property values are then overridden with the following values:
+   * <ul>
+   * <li> ADMIN_EMAIL_KEY will be "admin@hackystat.org"
+   * <li> ADMIN_PASSWORD_KEY will be "admin@hackystat.org"
+   * <li> CONTEXT_ROOT_KEY will be "sensorbase"
+   * <li> DB_DIR_KEY will be "{user.home}/.hackystat/sensorbase/testdb"
+   * <li> HOSTNAME_KEY will be "localhost"
+   * <li> PORT_KEY will be the value of TEST_PORT_KEY, which defaults to 9976.
+   * <li> TEST_INSTALL_KEY will be "true".
+   * </ul>
+   * Prints an error to the console if problems occur on loading.
+   * 
+   * @param isTestServer If a test SensorBase is being created.
+   */
+  public ServerProperties(boolean isTestServer) {
+    try {
+      initializeProperties(isTestServer);
     }
     catch (Exception e) {
       System.out.println("Error initializing server properties.");
@@ -55,19 +83,22 @@ public class ServerProperties {
   
   /**
    * Reads in the properties in ~/.hackystat/sensorbase.properties if this file exists,
-   * and provides default values for all properties. .
+   * and provides default values for all properties.  See the initialize() method for 
+   * documentation of the effect of the isTestServer parameter.
+   * @param isTestServer if true, then instantiated with test properties. 
    * @throws Exception if errors occur.
    */
-  private void initializeProperties () throws Exception {
+  private void initializeProperties (boolean isTestServer) throws Exception {
     String userHome = System.getProperty("user.home");
     String userDir = System.getProperty("user.dir");
     String hackyHome = userHome + "/.hackystat";
     String sensorBaseHome = hackyHome + "/sensorbase"; 
     String propFile = userHome + "/.hackystat/sensorbase/sensorbase.properties";
+    String defaultAdmin = "admin@hackystat.org";
     this.properties = new Properties();
-    // Set defaults
-    properties.setProperty(ADMIN_EMAIL_KEY, "admin@hackystat.org");
-    properties.setProperty(ADMIN_PASSWORD_KEY, "admin@hackystat.org");
+    // Set defaults for 'standard' operation.
+    properties.setProperty(ADMIN_EMAIL_KEY, defaultAdmin);
+    properties.setProperty(ADMIN_PASSWORD_KEY, defaultAdmin);
     properties.setProperty(CONTEXT_ROOT_KEY, "sensorbase");
     properties.setProperty(DB_DIR_KEY, sensorBaseHome + "/db");
     properties.setProperty(DB_IMPL_KEY, "org.hackystat.sensorbase.db.derby.DerbyImplementation");
@@ -76,6 +107,7 @@ public class ServerProperties {
     properties.setProperty(RESTLET_LOGGING_KEY, "false");
     properties.setProperty(SMTP_HOST_KEY, "mail.hawaii.edu");
     properties.setProperty(PORT_KEY, "9876");
+    properties.setProperty(TEST_PORT_KEY, "9976");
     properties.setProperty(XML_DIR_KEY, userDir + "/xml");
     properties.setProperty(TEST_INSTALL_KEY, "false");
     properties.setProperty(TEST_DOMAIN_KEY, "hackystat.org");
@@ -93,6 +125,17 @@ public class ServerProperties {
         stream.close();
       }
     }
+    // If this is a testing situation, then override the following values:
+    if (isTestServer) {
+      properties.setProperty(ADMIN_EMAIL_KEY, defaultAdmin);
+      properties.setProperty(ADMIN_PASSWORD_KEY, defaultAdmin);
+      properties.setProperty(CONTEXT_ROOT_KEY, "sensorbase");
+      properties.setProperty(DB_DIR_KEY, sensorBaseHome + "/testdb");
+      properties.setProperty(HOSTNAME_KEY, "localhost");
+      properties.setProperty(PORT_KEY, properties.getProperty(TEST_PORT_KEY));
+      properties.setProperty(TEST_INSTALL_KEY, "true");
+    }
+    
     // Now add to System properties. Since the Mailer class expects to find this stuff on the 
     // System Properties, we will add everything to it.  In general, however, clients should not
     // use the System Properties to get at these values, since that precludes running several
