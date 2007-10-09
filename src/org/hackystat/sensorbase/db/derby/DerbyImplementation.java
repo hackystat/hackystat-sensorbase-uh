@@ -353,15 +353,15 @@ public class DerbyImplementation extends DbImplementation {
   
   /** {@inheritDoc} */
   @Override
-  public String getSensorDataIndexSince(User user, XMLGregorianCalendar lastModTstamp) {
+  public String getSensorDataIndexLastMod(User user, XMLGregorianCalendar lastModStartTime,
+      XMLGregorianCalendar lastModEndTime) {
     String statement = 
       "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
       + ownerEquals + user.getEmail() + andClause 
-      + " LastMod >= TIMESTAMP('" + Tstamp.makeTimestamp(lastModTstamp) + "')";
+      + " LastMod BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(lastModStartTime) + "') AND "
+      + " TIMESTAMP('" + Tstamp.makeTimestamp(lastModEndTime) + "')";
     return getIndex("SensorData", statement);
   }
-  
-  
   
 
   /** {@inheritDoc} */

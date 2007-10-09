@@ -569,8 +569,8 @@ public class SensorBaseClient {
   
   /**
    * Returns an index to SensorData for the specified user of all sensor data that have arrived at
-   * the server since the specified timestamp. Uses the LastMod field to determine what data will be
-   * retrieved.
+   * the server since the specified start and end times. 
+   * Uses the LastMod field to determine what data will be retrieved.
    * <p>
    * Note that data could be sent recently with a Timestamp (as opposed to LastMod field) from far
    * back in the past, and the index will include references to such data. This method thus differs
@@ -582,15 +582,18 @@ public class SensorBaseClient {
    * wish to monitor the arrival of data at the SensorBase.
    * 
    * @param email The user email.
-   * @param lastModTstamp A timestamp used to determine which data to retrieve, inclusive.
+   * @param lastModStartTime A timestamp used to determine the start time of data to get.
+   * @param lastModEndTime A timestamp used to determine the end time of data to get. 
    * @return The SensorDataIndex instance.
    * @throws SensorBaseClientException If the server does not return the Index or returns an index
    * that cannot be marshalled into Java SensorDataIndex instance.
    */
-  public synchronized SensorDataIndex getSensorDataIndexSince(String email, 
-      XMLGregorianCalendar lastModTstamp) throws SensorBaseClientException {
+  public synchronized SensorDataIndex getSensorDataIndexLastMod(String email, 
+      XMLGregorianCalendar lastModStartTime, XMLGregorianCalendar lastModEndTime) 
+  throws SensorBaseClientException {
     Response response = 
-      makeRequest(Method.GET, sensordataUri + email + "?since=" + lastModTstamp, null);
+      makeRequest(Method.GET, sensordataUri + email + "?lastModStartTime=" + lastModStartTime +
+          "&lastModEndTime=" + lastModEndTime, null);
     SensorDataIndex index;
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());

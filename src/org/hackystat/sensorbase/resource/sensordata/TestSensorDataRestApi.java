@@ -89,27 +89,29 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
   }
   
   /**
-   * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org?since={timestamp} returns data.
+   * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org?
+   *   lastModStartTime={tstamp}&lastModEndTime={tstamp} returns data.
    * @throws Exception If problems occur.
    */
-  @Test public void getSensorDataIndexSince() throws Exception {
+  @Test public void getSensorDataIndexLastMod() throws Exception {
     // First, find the current time and make a sensordata instance with it.
-    XMLGregorianCalendar tstamp = Tstamp.makeTimestamp();
+    XMLGregorianCalendar startTime = Tstamp.makeTimestamp();
     
     // Create the TestUser client and check authentication.
     SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
     client.authenticate();
     // Send a couple of sensor data instances.
-    client.putSensorData(makeSensorData(tstamp, user));
+    client.putSensorData(makeSensorData(startTime, user));
     XMLGregorianCalendar tstamp2 = Tstamp.makeTimestamp();
     client.putSensorData(makeSensorData(tstamp2, user));
+    XMLGregorianCalendar endTime = Tstamp.makeTimestamp();
 
-    // Now see that we can retrieve this sensor data using the 'since' parameter.
-    SensorDataIndex index = client.getSensorDataIndexSince(user, tstamp);
+    // Now see that we can retrieve this sensor data using the 'lastMod' parameters.
+    SensorDataIndex index = client.getSensorDataIndexLastMod(user, startTime, endTime);
     assertEquals("Checking for two items since method started", 2, index.getSensorDataRef().size());
     
     // Get rid of these.
-    client.deleteSensorData(user, tstamp);
+    client.deleteSensorData(user, startTime);
     client.deleteSensorData(user, tstamp2);
   }
   

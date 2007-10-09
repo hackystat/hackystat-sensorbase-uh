@@ -226,15 +226,17 @@ public class SensorDataManager {
   
   /**
    * Returns the XML SensorDataIndex for all sensor data for the given user that arrived
-   * at the server since the given Timestamp.  This method uses the LastMod timestamp
+   * at the server between the given timestamps.  This method uses the LastMod timestamp
    * rather than the "regular" timestamp, and is used for real-time monitoring of data
    * arriving at the server. 
    * @param user The user whose data is being monitored.
-   * @param lastModTstamp  The lastMod time of interest. 
-   * @return The XML SensorDataIndex for the recently arrived data based upon lastModTstamp.
+   * @param lastModStartTime  The lastMod start time of interest. 
+   * @param lastModEndTime  The lastMod end time of interest. 
+   * @return The XML SensorDataIndex for the recently arrived data based upon the timestamps.
    */
-  public String getSensorDataIndexSince(User user, XMLGregorianCalendar lastModTstamp) {
-    return this.dbManager.getSensorDataIndexSince(user, lastModTstamp);
+  public String getSensorDataIndexLastMod(User user, XMLGregorianCalendar lastModStartTime, 
+      XMLGregorianCalendar lastModEndTime) {
+    return this.dbManager.getSensorDataIndexLastMod(user, lastModStartTime, lastModEndTime);
   }
   
   

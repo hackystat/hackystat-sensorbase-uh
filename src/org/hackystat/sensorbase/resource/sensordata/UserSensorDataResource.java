@@ -23,7 +23,7 @@ import org.restlet.resource.Variant;
  * <ul>
  * <li> host/sensordata/{user}
  * <li> host/sensordata/{user}?sdt={sensordatatype}
- * <li> host/sensordata/{user}?since={lastModTimestamp}
+ * <li> host/sensordata/{user}?lastModStartTime={lastModTimestamp}&lastModEndTime={lastModTimestamp}
  * <li> host/sensordata/{user}/{timestamp}
  * </ul>
  * 
@@ -38,7 +38,9 @@ public class UserSensorDataResource extends SensorBaseResource {
   /** To be retrieved from the URL, or else null if not found. */
   private String timestamp;
   /** To be retrieved from the URL, or else null if not found. */
-  private String lastModTimestamp;
+  private String lastModStartTime;
+  /** To be retrieved from the URL, or else null if not found. */
+  private String lastModEndTime;
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -51,7 +53,8 @@ public class UserSensorDataResource extends SensorBaseResource {
     this.user = super.userManager.getUser(uriUser);
     this.sdtName = (String) request.getAttributes().get("sensordatatype");
     this.timestamp = (String) request.getAttributes().get("timestamp");
-    this.lastModTimestamp = (String) request.getAttributes().get("lastModTimestamp");
+    this.lastModStartTime = (String) request.getAttributes().get("lastModStartTime");
+    this.lastModEndTime = (String) request.getAttributes().get("lastModEndTime");
   }
   
   /**
@@ -59,7 +62,7 @@ public class UserSensorDataResource extends SensorBaseResource {
    * <ul>
    * <li> sensordata/{email}
    * <li> sensordata/{email}?sdt={sensordatatype}
-   * <li> sensordata/{email}?since={lastModTimestamp}
+   * <li> sensordata/{user}?lastModStartTime={timestamp}&lastModEndTime={timestamp}
    * </ul>
    * Returns a SensorData when a GET is called with:
    * <ul>
@@ -85,32 +88,44 @@ public class UserSensorDataResource extends SensorBaseResource {
     // Now check to make sure they want XML.
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       // Return index of all data for URI: sensordata/{email} 
-      if ((this.sdtName == null) && (this.timestamp == null) && (this.lastModTimestamp == null)) {
+      if ((this.sdtName == null) && (this.timestamp == null) && (this.lastModStartTime == null)) {
         String xmlData = super.sensorDataManager.getSensorDataIndex(this.user);
         return super.getStringRepresentation(xmlData);
       }
       // Return index of data for a given SDT for URI: sensordata/{email}?sdt={sensordatatype}
-      if ((this.sdtName != null) && (this.timestamp == null) && (this.lastModTimestamp == null)) {
+      if ((this.sdtName != null) && (this.timestamp == null) && (this.lastModStartTime == null)) {
           String xmlData = super.sensorDataManager.getSensorDataIndex(this.user, this.sdtName);
           return super.getStringRepresentation(xmlData);
       } 
-      // Return index of data since the tstamp for URI: sensordata/{email}?since={lastModTimeStamp}
-      if ((this.sdtName == null) && (this.timestamp == null) && (this.lastModTimestamp != null)) {
-        // First, check to see that we can convert the lastModTstamp into a tstamp.
-        XMLGregorianCalendar lastModTstamp;
+      // Return index of data since the tstamp for URI: 
+      // sensordata/{user}?lastModStartTime={timestamp}&lastModEndTime={timestamp}
+      if ((this.sdtName == null) && (this.timestamp == null) && (this.lastModStartTime != null)) {
+        // First, check to see that we can convert the lastModStartTime and EndTime into a tstamp.
+        XMLGregorianCalendar lastModStart;
+        XMLGregorianCalendar lastModEnd;
         try {
-          lastModTstamp = Tstamp.makeTimestamp(this.lastModTimestamp);
+          lastModStart = Tstamp.makeTimestamp(this.lastModStartTime);
         }
         catch (Exception e) {
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Tstmp " + lastModTimestamp);
+          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad StartTime " 
+              + lastModStartTime);
+          return null;
+        }
+        try {
+          lastModEnd = Tstamp.makeTimestamp(this.lastModEndTime);
+        }
+        catch (Exception e) {
+          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad EndTime " 
+              + lastModEndTime);
           return null;
         }
         // Now, get the data and return.
-        String xmlData = super.sensorDataManager.getSensorDataIndexSince(this.user, lastModTstamp);
+        String xmlData = 
+          super.sensorDataManager.getSensorDataIndexLastMod(this.user, lastModStart, lastModEnd);
         return super.getStringRepresentation(xmlData);
       } 
       // Return sensordata representation for URI: sensordata/{email}/{timestamp}
-      if ((this.sdtName == null) && (this.timestamp != null) && (this.lastModTimestamp == null)) {
+      if ((this.sdtName == null) && (this.timestamp != null) && (this.lastModStartTime == null)) {
         // First, try to parse the timestamp string, and return error if it doesn't parse.
         XMLGregorianCalendar tstamp;
         try {

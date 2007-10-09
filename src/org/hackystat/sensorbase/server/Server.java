@@ -166,7 +166,9 @@ public class Server extends Application {
     authRouter.attach("/sensordata", SensorDataResource.class);
     authRouter.attach("/sensordata/{user}", UserSensorDataResource.class);
     authRouter.attach("/sensordata/{user}?sdt={sensordatatype}", UserSensorDataResource.class);
-    authRouter.attach("/sensordata/{user}?since={lastModTimestamp}", UserSensorDataResource.class);
+    authRouter.attach(
+        "/sensordata/{user}?lastModStartTime={lastModStartTime}&lastModEndTime={lastModEndTime}", 
+        UserSensorDataResource.class);
     authRouter.attach("/sensordata/{user}/{timestamp}", 
         UserSensorDataResource.class);
     authRouter.attach("/projects", ProjectsResource.class);
