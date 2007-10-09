@@ -5,6 +5,8 @@ import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
 import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.server.Server;
+import org.hackystat.sensorbase.server.ServerProperties;
+
 import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_EMAIL_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.ADMIN_PASSWORD_KEY;
 import org.junit.BeforeClass;
@@ -45,8 +47,12 @@ public class SensorBaseRestApiHelper {
    * @throws Exception If problems occur setting up the server. 
    */
   @BeforeClass public static void setupServer() throws Exception {
-    SensorBaseRestApiHelper.server = Server.newInstance(true);
-    //SensorBaseRestApiHelper.client = new Client(Protocol.HTTP);
+    // Create a 'testing' version of ServerProperties.
+    ServerProperties properties = new ServerProperties();
+    properties.setTestProperties();
+    // Now instantiate the server parameterized for testing purposes. 
+    SensorBaseRestApiHelper.server = Server.newInstance(properties);
+
     SensorBaseRestApiHelper.sensorDataManager = 
       (SensorDataManager)server.getContext().getAttributes().get("SensorDataManager");
     SensorBaseRestApiHelper.userManager = 
