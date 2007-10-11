@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.TreeMap;
@@ -23,8 +24,11 @@ import org.junit.Test;
  */
 public class TestUriCacheManager {
 
+  /** Used for temporarily caches home */
+  private static final String tmpFolderName = String.valueOf(System.currentTimeMillis());
   /** The general storage place. */
-  private static final String dcStoragePath = System.getProperties().getProperty("java.io.tmpdir");
+  private static final String dcStoragePath = System.getProperties().getProperty("java.io.tmpdir")
+      + "//" + tmpFolderName;
 
   /** Test caches names. */
   private String testCache1Name = null;
@@ -46,6 +50,7 @@ public class TestUriCacheManager {
 
   private static final String key = "key:";
   private static final String data = "data:";
+  private static final String div = "//";
 
   /**
    * Sets up test with the temporarily test caches.
@@ -55,6 +60,10 @@ public class TestUriCacheManager {
   @Before
   public void setUp() throws Exception {
     // setting up first cache
+    File f = new File(dcStoragePath);
+    if (!f.exists()) {
+      f.mkdir();
+    }
     UriCache<String, Object> testCache1 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost1,
         user1Email);
     testCache1Name = testCache1.getName();
@@ -118,7 +127,8 @@ public class TestUriCacheManager {
 
   /**
    * Tests the getCache() method.
-   * @throws UriCacheException in the case of error. 
+   * 
+   * @throws UriCacheException in the case of error.
    */
   @Test
   public void testGetCache() throws UriCacheException {
@@ -173,21 +183,47 @@ public class TestUriCacheManager {
    */
   @After
   public void tearDown() throws Exception {
-    // setting up first cache
+    // remove first cache
     UriCache<String, Object> testCache1 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost1,
         user1Email);
+    String cacheName = testCache1.getName();
     testCache1.clear();
     testCache1.shutdown();
-    // setting up first cache
+    File fDesc = new File(dcStoragePath + div + cacheName + ".desc");
+    File fData = new File(dcStoragePath + div + cacheName + ".data");
+    File fKey = new File(dcStoragePath + div + cacheName + ".key");
+    fDesc.delete();
+    fData.delete();
+    fKey.delete();
+    // remove second cache
     UriCache<String, Object> testCache2 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost2,
         user2Email);
+    cacheName = testCache2.getName();
     testCache2.clear();
     testCache2.shutdown();
-    // setting up first cache
+    fDesc = new File(dcStoragePath + div + cacheName + ".desc");
+    fData = new File(dcStoragePath + div + cacheName + ".data");
+    fKey = new File(dcStoragePath + div + cacheName + ".key");
+    fDesc.delete();
+    fData.delete();
+    fKey.delete();
+    // remove third cache
     UriCache<String, Object> testCache3 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost3,
         user3Email);
+    cacheName = testCache3.getName();
     testCache3.clear();
     testCache3.shutdown();
+    fDesc = new File(dcStoragePath + div + cacheName + ".desc");
+    fData = new File(dcStoragePath + div + cacheName + ".data");
+    fKey = new File(dcStoragePath + div + cacheName + ".key");
+    fDesc.delete();
+    fData.delete();
+    fKey.delete();
+    // remove folder
+    File f = new File(dcStoragePath);
+    if (f.exists()) {
+      f.delete();
+    }
   }
 
 }
