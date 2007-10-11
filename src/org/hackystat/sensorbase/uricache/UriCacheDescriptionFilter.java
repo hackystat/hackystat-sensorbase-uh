@@ -16,10 +16,14 @@ public class UriCacheDescriptionFilter implements FilenameFilter {
   private Pattern pattern = Pattern.compile(".*\\.desc");
 
   /**
-   * {@inheritDoc}
+   * Filters out only cache description file names.
+   * 
+   * @param dir the folder name.
+   * @param fileName the file name.
+   * 
+   * @return true if the file name is cache description.
    */
-  @Override
-  public boolean accept(File path, String fileName) {
+  public boolean accept(File dir, String fileName) {
     return pattern.matcher(fileName).matches();
   }
 
