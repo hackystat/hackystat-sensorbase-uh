@@ -24,6 +24,8 @@ public class UriCacheManager {
   // private Server server;
   // /** Logger. */
   // private Logger logger;
+  
+  private static final String fileSeparator = System.getProperty("file.separator");
 
   private static String defaultCacheHome = System.getProperty("user.home")
       + "/.hackystat/sensorbase/cache";
@@ -79,7 +81,7 @@ public class UriCacheManager {
       prop.setProperty(USER_EMAIL_KEY, userEmail);
       prop.setProperty(HOST_KEY, sensorBaseHost);
       FileOutputStream stream = null;
-      stream = new FileOutputStream(cacheHome + "\\" + cacheName + ".desc");
+      stream = new FileOutputStream(cacheHome + fileSeparator + cacheName + ".desc");
       prop.store(stream, "the UriCache properties test file");
       stream.close();
       UriCacheProperties cacheProp = new UriCacheProperties();

@@ -20,7 +20,14 @@ import org.junit.Test;
  */
 public class TestUriCacheDescription {
 
-  private static final String dcStoragePath = System.getProperties().getProperty("java.io.tmpdir");
+  /** Used for temporarily caches home */
+  private static final String tmpFolderName = String.valueOf(System.currentTimeMillis());
+  /** The general storage place. */
+  private static final String dcStoragePath = System.getProperties().getProperty("user.dir")
+      + "/build/uricache-tests/" + tmpFolderName;
+  
+  private static final String fileSeparator = System.getProperty("file.separator");
+
   private static final String descFileName = "testCache1.desc";
   private String tempFileName;
   /** The user email key. */
@@ -39,7 +46,13 @@ public class TestUriCacheDescription {
    */
   @Before
   public void setUp() throws Exception {
-    this.tempFileName = dcStoragePath + "/" + descFileName;
+    
+    File f = new File(dcStoragePath);
+    if (!f.exists()) {
+      f.mkdirs();
+    }
+    
+    this.tempFileName = dcStoragePath + fileSeparator + descFileName;
     Properties prop = new Properties();
     prop.setProperty(USER_EMAIL_KEY, TestUriCacheDescription.userEmail);
     prop.setProperty(HOST_KEY, TestUriCacheDescription.sensorBaseHost);
@@ -79,6 +92,11 @@ public class TestUriCacheDescription {
   public void tearDown() throws Exception {
     File file2Delete = new File(this.tempFileName);
     file2Delete.delete();
+    
+    File f = new File(dcStoragePath);
+    if (f.exists()) {
+      f.delete();
+    }
   }
 
 }

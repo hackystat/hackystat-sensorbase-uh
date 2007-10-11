@@ -18,7 +18,13 @@ import org.junit.Test;
  */
 public class TestUriCacheDescriptionFilter {
 
-  private static final String dcStoragePath = System.getProperties().getProperty("java.io.tmpdir");
+  /** Used for temporarily caches home */
+  private static final String tmpFolderName = String.valueOf(System.currentTimeMillis());
+  /** The general storage place. */
+  private static final String dcStoragePath = System.getProperties().getProperty("user.dir")
+      + "/build/uricache-tests/" + tmpFolderName;
+  private static final String fileSeparator = System.getProperty("file.separator");
+
   private static final String descFileName = "testCache1.desc";
   private String tempFileName;
 
@@ -29,7 +35,11 @@ public class TestUriCacheDescriptionFilter {
    */
   @Before
   public void setUp() throws Exception {
-    this.tempFileName = dcStoragePath + "/" + descFileName;
+    File f = new File(dcStoragePath);
+    if (!f.exists()) {
+      f.mkdirs();
+    }
+    this.tempFileName = dcStoragePath + fileSeparator + descFileName;
     BufferedWriter writer = new BufferedWriter(new FileWriter(new File(this.tempFileName)));
     writer.write("test\n");
     writer.close();
@@ -61,6 +71,10 @@ public class TestUriCacheDescriptionFilter {
   public void tearDown() throws Exception {
     File file2Delete = new File(this.tempFileName);
     file2Delete.delete();
+    File f = new File(dcStoragePath);
+    if (f.exists()) {
+      f.delete();
+    }
   }
 
 }

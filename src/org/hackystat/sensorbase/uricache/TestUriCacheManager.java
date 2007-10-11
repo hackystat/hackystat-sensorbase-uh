@@ -50,7 +50,7 @@ public class TestUriCacheManager {
 
   private static final String key = "key:";
   private static final String data = "data:";
-  private static final String div = "//";
+  private static final String fileSeparator = System.getProperty("file.separator");
 
   /**
    * Sets up test with the temporarily test caches.
@@ -189,9 +189,9 @@ public class TestUriCacheManager {
     String cacheName = testCache1.getName();
     testCache1.clear();
     testCache1.shutdown();
-    File fDesc = new File(dcStoragePath + div + cacheName + ".desc");
-    File fData = new File(dcStoragePath + div + cacheName + ".data");
-    File fKey = new File(dcStoragePath + div + cacheName + ".key");
+    File fDesc = new File(dcStoragePath + fileSeparator + cacheName + ".desc");
+    File fData = new File(dcStoragePath + fileSeparator + cacheName + ".data");
+    File fKey = new File(dcStoragePath + fileSeparator + cacheName + ".key");
     fDesc.delete();
     fData.delete();
     fKey.delete();
@@ -201,9 +201,9 @@ public class TestUriCacheManager {
     cacheName = testCache2.getName();
     testCache2.clear();
     testCache2.shutdown();
-    fDesc = new File(dcStoragePath + div + cacheName + ".desc");
-    fData = new File(dcStoragePath + div + cacheName + ".data");
-    fKey = new File(dcStoragePath + div + cacheName + ".key");
+    fDesc = new File(dcStoragePath + fileSeparator + cacheName + ".desc");
+    fData = new File(dcStoragePath + fileSeparator + cacheName + ".data");
+    fKey = new File(dcStoragePath + fileSeparator + cacheName + ".key");
     fDesc.delete();
     fData.delete();
     fKey.delete();
@@ -213,9 +213,9 @@ public class TestUriCacheManager {
     cacheName = testCache3.getName();
     testCache3.clear();
     testCache3.shutdown();
-    fDesc = new File(dcStoragePath + div + cacheName + ".desc");
-    fData = new File(dcStoragePath + div + cacheName + ".data");
-    fKey = new File(dcStoragePath + div + cacheName + ".key");
+    fDesc = new File(dcStoragePath + fileSeparator + cacheName + ".desc");
+    fData = new File(dcStoragePath + fileSeparator + cacheName + ".data");
+    fKey = new File(dcStoragePath + fileSeparator + cacheName + ".key");
     fDesc.delete();
     fData.delete();
     fKey.delete();
