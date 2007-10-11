@@ -70,6 +70,29 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     }
     assertTrue("Checking for sensor data 2", index.getSensorDataRef().size() > 1);
   }
+
+  /**
+   * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org returns some sensor data. 
+   * @throws Exception If problems occur.
+   */
+  @Test public void getUserSensorDataIndexCached() throws Exception {
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
+    client.authenticate();
+    client.enableCaching();
+    // Retrieve the TestUser User resource and test a couple of fields.
+    SensorDataIndex index = client.getSensorDataIndex(user);
+    assertNotNull("Checking user getLastMod()", index.getLastMod());
+    // Make sure that we can iterate through the data and dereference all hrefs. 
+    for (SensorDataRef ref : index.getSensorDataRef()) {
+      client.getSensorData(ref);
+      // also make sure the Tool value isn't null.
+      assertNotNull("Checking tool value", ref.getTool());
+    }
+    assertTrue("Checking for sensor data 2", index.getSensorDataRef().size() > 1);
+    client.printCacheStatistics();
+  }
+  
   
   /**
    * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org?sdt=TestSdt returns data.
