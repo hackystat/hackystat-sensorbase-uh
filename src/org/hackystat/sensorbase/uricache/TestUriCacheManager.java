@@ -27,8 +27,8 @@ public class TestUriCacheManager {
   /** Used for temporarily caches home */
   private static final String tmpFolderName = String.valueOf(System.currentTimeMillis());
   /** The general storage place. */
-  private static final String dcStoragePath = System.getProperties().getProperty("java.io.tmpdir")
-      + "//" + tmpFolderName;
+  private static final String dcStoragePath = System.getProperties().getProperty("user.dir")
+      + "/build/uricache-tests/" + tmpFolderName;
 
   /** Test caches names. */
   private String testCache1Name = null;
@@ -62,7 +62,7 @@ public class TestUriCacheManager {
     // setting up first cache
     File f = new File(dcStoragePath);
     if (!f.exists()) {
-      f.mkdir();
+      f.mkdirs();
     }
     UriCache<String, Object> testCache1 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost1,
         user1Email);

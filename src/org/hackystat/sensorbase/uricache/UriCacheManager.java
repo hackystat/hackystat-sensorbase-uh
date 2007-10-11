@@ -66,7 +66,7 @@ public class UriCacheManager {
     // now analyze if the path exists, if not we are going to create one
     File folder = new File(cacheHome);
     if (!folder.exists()) {
-      folder.mkdir();
+      folder.mkdirs();
     }
 
     // now we are going to locate cache
