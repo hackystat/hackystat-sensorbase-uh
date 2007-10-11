@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.hackystat.utilities.uricache.UriCache;
 import org.hackystat.utilities.uricache.UriCacheException;
+import org.hackystat.utilities.uricache.UriCache;
 import org.hackystat.utilities.uricache.UriCacheProperties;
 
 /**
@@ -140,8 +140,10 @@ public class UriCacheManager {
    * 
    * @param storagePath the cache home folder.
    * @return the set of caches found or null if didn't find anything.
+   * @throws UriCacheException if unable to find cache home folder.
    */
-  public static synchronized List<CacheDescription> getCaches(String storagePath) {
+  public static synchronized List<CacheDescription> getCaches(String storagePath)
+      throws UriCacheException {
 
     String cacheHome = null;
     if (null == storagePath) {
@@ -154,9 +156,15 @@ public class UriCacheManager {
     List<CacheDescription> response = new ArrayList<CacheDescription>();
     try {
       File dir = new File(cacheHome);
-      File[] files = dir.listFiles(new UriCacheDescriptionFilter());
-      for (File f : files) {
-        response.add(new CacheDescription(f));
+
+      if (dir.exists()) {
+        File[] files = dir.listFiles(new UriCacheDescriptionFilter());
+        for (File f : files) {
+          response.add(new CacheDescription(f));
+        }
+      }
+      else {
+        throw new UriCacheException("Unable to find cache home at " + cacheHome);
       }
     }
     catch (IOException e) {

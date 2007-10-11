@@ -87,9 +87,11 @@ public class TestUriCacheManager {
 
   /**
    * Tests the getCaches() method.
+   * 
+   * @throws UriCacheException in the case of error.
    */
   @Test
-  public void testGetCaches() {
+  public void testGetCaches() throws UriCacheException {
     // get list of caches
     List<CacheDescription> caches = UriCacheManager.getCaches(dcStoragePath);
     assertEquals("Should find three caches only", 3, caches.size());
@@ -116,9 +118,10 @@ public class TestUriCacheManager {
 
   /**
    * Tests the getCache() method.
+   * @throws UriCacheException in the case of error. 
    */
   @Test
-  public void testGetCache() {
+  public void testGetCache() throws UriCacheException {
     try {
 
       // get cache #1
