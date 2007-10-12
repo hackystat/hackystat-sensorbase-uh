@@ -18,12 +18,13 @@ import org.junit.Test;
  */
 public class TestUriCacheDescriptionFilter {
 
+  private static final String fileSeparator = System.getProperty("file.separator");
+
   /** Used for temporarily caches home */
   private static final String tmpFolderName = String.valueOf(System.currentTimeMillis());
   /** The general storage place. */
   private static final String dcStoragePath = System.getProperties().getProperty("user.dir")
-      + "/build/uricache-tests/" + tmpFolderName;
-  private static final String fileSeparator = System.getProperty("file.separator");
+      + fileSeparator + "build" + fileSeparator + "uricache-tests" + fileSeparator + tmpFolderName;
 
   private static final String descFileName = "testCache1.desc";
   private String tempFileName;

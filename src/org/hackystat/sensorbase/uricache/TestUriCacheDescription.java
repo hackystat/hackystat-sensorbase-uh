@@ -25,7 +25,7 @@ public class TestUriCacheDescription {
   /** The general storage place. */
   private static final String dcStoragePath = System.getProperties().getProperty("user.dir")
       + "/build/uricache-tests/" + tmpFolderName;
-  
+
   private static final String fileSeparator = System.getProperty("file.separator");
 
   private static final String descFileName = "testCache1.desc";
@@ -46,16 +46,16 @@ public class TestUriCacheDescription {
    */
   @Before
   public void setUp() throws Exception {
-    
+
     File f = new File(dcStoragePath);
     if (!f.exists()) {
       f.mkdirs();
     }
-    
+
     this.tempFileName = dcStoragePath + fileSeparator + descFileName;
     Properties prop = new Properties();
-    prop.setProperty(USER_EMAIL_KEY, TestUriCacheDescription.userEmail);
-    prop.setProperty(HOST_KEY, TestUriCacheDescription.sensorBaseHost);
+    prop.setProperty(USER_EMAIL_KEY, userEmail);
+    prop.setProperty(HOST_KEY, sensorBaseHost);
     FileOutputStream stream = null;
     stream = new FileOutputStream(this.tempFileName);
     prop.store(stream, "the UriCache properties test file");
@@ -68,11 +68,11 @@ public class TestUriCacheDescription {
   @Test
   public void testCacheDescription() {
     try {
-      CacheDescription desc = new CacheDescription(new File(this.tempFileName));
-      assertTrue("Should load properties from the file.", TestUriCacheDescription.sensorBaseHost
-          .equalsIgnoreCase(desc.getsensorBaseHost()));
-      assertTrue("Should load properties from the file.", TestUriCacheDescription.userEmail
-          .equalsIgnoreCase(desc.getUserEmail()));
+      UriCacheDescription desc = new UriCacheDescription(new File(this.tempFileName));
+      assertTrue("Should load properties from the file.", sensorBaseHost.equalsIgnoreCase(desc
+          .getsensorBaseHost()));
+      assertTrue("Should load properties from the file.", userEmail.equalsIgnoreCase(desc
+          .getUserEmail()));
       assertTrue("Should load properties from the file.", "testCache1".equalsIgnoreCase(desc
           .getName()));
     }
@@ -92,7 +92,7 @@ public class TestUriCacheDescription {
   public void tearDown() throws Exception {
     File file2Delete = new File(this.tempFileName);
     file2Delete.delete();
-    
+
     File f = new File(dcStoragePath);
     if (f.exists()) {
       f.delete();

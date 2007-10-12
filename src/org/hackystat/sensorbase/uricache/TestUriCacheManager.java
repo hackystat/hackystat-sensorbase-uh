@@ -24,11 +24,13 @@ import org.junit.Test;
  */
 public class TestUriCacheManager {
 
+  private static final String fileSeparator = System.getProperty("file.separator");
+
   /** Used for temporarily caches home */
   private static final String tmpFolderName = String.valueOf(System.currentTimeMillis());
   /** The general storage place. */
   private static final String dcStoragePath = System.getProperties().getProperty("user.dir")
-      + "/build/uricache-tests/" + tmpFolderName;
+      + fileSeparator + "build" + fileSeparator + "uricache-tests" + fileSeparator + tmpFolderName;
 
   /** Test caches names. */
   private String testCache1Name = null;
@@ -50,7 +52,6 @@ public class TestUriCacheManager {
 
   private static final String key = "key:";
   private static final String data = "data:";
-  private static final String fileSeparator = System.getProperty("file.separator");
 
   /**
    * Sets up test with the temporarily test caches.
@@ -102,11 +103,11 @@ public class TestUriCacheManager {
   @Test
   public void testGetCaches() throws UriCacheException {
     // get list of caches
-    List<CacheDescription> caches = UriCacheManager.getCaches(dcStoragePath);
+    List<UriCacheDescription> caches = UriCacheManager.getCaches(dcStoragePath);
     assertEquals("Should find three caches only", 3, caches.size());
     // put caches in map to ease the test
-    TreeMap<String, CacheDescription> cachesMap = new TreeMap<String, CacheDescription>();
-    for (CacheDescription d : caches) {
+    TreeMap<String, UriCacheDescription> cachesMap = new TreeMap<String, UriCacheDescription>();
+    for (UriCacheDescription d : caches) {
       cachesMap.put(d.getName(), d);
     }
     // now run tests

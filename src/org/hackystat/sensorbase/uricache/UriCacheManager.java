@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.hackystat.utilities.uricache.UriCacheException;
 import org.hackystat.utilities.uricache.UriCache;
+import org.hackystat.utilities.uricache.UriCacheException;
 import org.hackystat.utilities.uricache.UriCacheProperties;
 
 /**
@@ -24,11 +24,11 @@ public class UriCacheManager {
   // private Server server;
   // /** Logger. */
   // private Logger logger;
-  
+
   private static final String fileSeparator = System.getProperty("file.separator");
 
-  private static String defaultCacheHome = System.getProperty("user.home")
-      + "/.hackystat/sensorbase/cache";
+  private static String defaultCacheHome = System.getProperty("user.home") + fileSeparator
+      + ".hackystat" + fileSeparator + "sensorbase" + fileSeparator + "cache";
 
   /** The user email key. */
   public static final String USER_EMAIL_KEY = "uricache.user.email";
@@ -116,10 +116,10 @@ public class UriCacheManager {
       cacheHome = storagePath;
     }
 
-    List<CacheDescription> cachesList = getCaches(cacheHome);
+    List<UriCacheDescription> cachesList = getCaches(cacheHome);
     if (null != cachesList) {
-      List<CacheDescription> candidatesList = new ArrayList<CacheDescription>();
-      for (CacheDescription cd : cachesList) {
+      List<UriCacheDescription> candidatesList = new ArrayList<UriCacheDescription>();
+      for (UriCacheDescription cd : cachesList) {
         if ((userEmail.equalsIgnoreCase(cd.getUserEmail()))
             && (sensorBaseHost.equalsIgnoreCase(cd.getsensorBaseHost()))) {
           candidatesList.add(cd);
@@ -144,7 +144,7 @@ public class UriCacheManager {
    * @return the set of caches found or null if didn't find anything.
    * @throws UriCacheException if unable to find cache home folder.
    */
-  public static synchronized List<CacheDescription> getCaches(String storagePath)
+  public static synchronized List<UriCacheDescription> getCaches(String storagePath)
       throws UriCacheException {
 
     String cacheHome = null;
@@ -155,19 +155,20 @@ public class UriCacheManager {
       cacheHome = storagePath;
     }
 
-    List<CacheDescription> response = new ArrayList<CacheDescription>();
+    List<UriCacheDescription> response = new ArrayList<UriCacheDescription>();
     try {
       File dir = new File(cacheHome);
 
       if (dir.exists()) {
         File[] files = dir.listFiles(new UriCacheDescriptionFilter());
         for (File f : files) {
-          response.add(new CacheDescription(f));
+          response.add(new UriCacheDescription(f));
         }
       }
       else {
         throw new UriCacheException("Unable to find cache home at " + cacheHome);
       }
+
     }
     catch (IOException e) {
       e.printStackTrace();

@@ -11,7 +11,7 @@ import java.util.Properties;
  * @author Pavel Senin.
  * 
  */
-public class CacheDescription {
+public class UriCacheDescription {
 
   /** The properties provided for the construction. */
   private Properties properties;
@@ -32,7 +32,7 @@ public class CacheDescription {
    * @param f the cache description file.
    * @throws IOException if unable to open or parse the file.
    */
-  public CacheDescription(File f) throws IOException {
+  public UriCacheDescription(File f) throws IOException {
     this.properties = new Properties();
     FileInputStream stream = null;
     stream = new FileInputStream(f.getAbsolutePath());
