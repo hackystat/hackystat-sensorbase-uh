@@ -27,7 +27,8 @@
 
     <!-- Instrument the .class files. -->     
     <mkdir dir="${emma.dir}" />
-    <emma enabled="true" >
+    <property name="emma.enabled" value="true"/>
+    <emma enabled="emma.enabled" >
       <instr instrpath="${build.dir}/classes"
              destdir="${build.dir}/classes"
              metadatafile="${emma.dir}/metadata.emma"
