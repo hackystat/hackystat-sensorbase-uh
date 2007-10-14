@@ -29,45 +29,45 @@ public class TestUriCacheManager {
   /** Used for temporarily caches home */
   private static final String tmpFolderName = String.valueOf(System.currentTimeMillis());
   /** The general storage place. */
-  private static final String dcStoragePath = System.getProperties().getProperty("user.dir")
+  private static final String cacheHome = System.getProperties().getProperty("user.dir")
       + fileSeparator + "build" + fileSeparator + "uricache-tests" + fileSeparator + tmpFolderName;
 
-  /** Test caches names. */
-  private String testCache1Name = null;
-  private String testCache2Name = null;
-  private String testCache3Name = null;
-
-  /** The user email key. */
-  public static final String USER_EMAIL_KEY = "uricache.user.email";
   /** User e-mails */
   private static final String user1Email = "javadude1@javatesthost.org";
   private static final String user2Email = "javadude2@javatesthost.org";
   private static final String user3Email = "javadude3@javatesthost.org";
-  /** The host key. */
-  public static final String HOST_KEY = "uricache.host";
+
   /** User host key. */
   private static final String sensorBaseHost1 = "http://sensorbase143.javatesthost.org:20910";
   private static final String sensorBaseHost2 = "http://sensorbase144.javatesthost.org:20910";
   private static final String sensorBaseHost3 = "http://sensorbase147.javatesthost.org:20910";
 
+  /** Making code checkers happy ;-)))) */
   private static final String key = "key:";
   private static final String data = "data:";
 
+  // storage for the cache names
+  private String cache1Name;
+  private String cache2Name;
+  private String cache3Name;
+
   /**
-   * Sets up test with the temporarily test caches.
+   * Sets up three test caches.
    * 
    * @throws Exception if unable to proceed.
    */
   @Before
   public void setUp() throws Exception {
-    // setting up first cache
-    File f = new File(dcStoragePath);
+    // setting up the cacheHome
+    File f = new File(cacheHome);
     if (!f.exists()) {
       f.mkdirs();
     }
-    UriCache<String, Object> testCache1 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost1,
+
+    // setting up first cache
+    UriCache<String, Object> testCache1 = UriCacheManager.getCache(cacheHome, sensorBaseHost1,
         user1Email);
-    testCache1Name = testCache1.getName();
+    this.cache1Name = testCache1.getName();
     testCache1.clear();
     for (int i = 0; i < 500; i++) {
       testCache1.cache(key + i, data + i);
@@ -75,9 +75,9 @@ public class TestUriCacheManager {
     testCache1.shutdown();
 
     // setting up second cache
-    UriCache<String, Object> testCache2 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost2,
+    UriCache<String, Object> testCache2 = UriCacheManager.getCache(cacheHome, sensorBaseHost2,
         user2Email);
-    testCache2Name = testCache2.getName();
+    this.cache2Name = testCache2.getName();
     testCache2.clear();
     for (int i = 500; i < 1000; i++) {
       testCache2.cache(key + i, data + i);
@@ -85,9 +85,9 @@ public class TestUriCacheManager {
     testCache2.shutdown();
 
     // setting up third cache
-    UriCache<String, Object> testCache3 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost3,
+    UriCache<String, Object> testCache3 = UriCacheManager.getCache(cacheHome, sensorBaseHost3,
         user3Email);
-    testCache3Name = testCache3.getName();
+    this.cache3Name = testCache3.getName();
     testCache3.clear();
     for (int i = 1000; i < 1500; i++) {
       testCache3.cache(key + i, data + i);
@@ -103,7 +103,7 @@ public class TestUriCacheManager {
   @Test
   public void testGetCaches() throws UriCacheException {
     // get list of caches
-    List<UriCacheDescription> caches = UriCacheManager.getCaches(dcStoragePath);
+    List<UriCacheDescription> caches = UriCacheManager.getCaches(cacheHome);
     assertEquals("Should find three caches only", 3, caches.size());
     // put caches in map to ease the test
     TreeMap<String, UriCacheDescription> cachesMap = new TreeMap<String, UriCacheDescription>();
@@ -112,18 +112,18 @@ public class TestUriCacheManager {
     }
     // now run tests
     assertTrue("Should report right e-mail", user1Email.equalsIgnoreCase(cachesMap.get(
-        testCache1Name).getUserEmail()));
+        this.cache1Name).getUserEmail()));
     assertTrue("Should report right e-mail", user2Email.equalsIgnoreCase(cachesMap.get(
-        testCache2Name).getUserEmail()));
+        this.cache2Name).getUserEmail()));
     assertTrue("Should report right e-mail", user3Email.equalsIgnoreCase(cachesMap.get(
-        testCache3Name).getUserEmail()));
+        this.cache3Name).getUserEmail()));
 
     assertTrue("Should report right host", sensorBaseHost1.equalsIgnoreCase(cachesMap.get(
-        testCache1Name).getsensorBaseHost()));
+        this.cache1Name).getsensorBaseHost()));
     assertTrue("Should report right host", sensorBaseHost2.equalsIgnoreCase(cachesMap.get(
-        testCache2Name).getsensorBaseHost()));
+        this.cache2Name).getsensorBaseHost()));
     assertTrue("Should report right host", sensorBaseHost3.equalsIgnoreCase(cachesMap.get(
-        testCache3Name).getsensorBaseHost()));
+        this.cache3Name).getsensorBaseHost()));
   }
 
   /**
@@ -137,7 +137,7 @@ public class TestUriCacheManager {
 
       // get cache #1
       UriCache<String, Object> cache1;
-      cache1 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost1, user1Email);
+      cache1 = UriCacheManager.getCache(cacheHome, sensorBaseHost1, user1Email);
       // should be ABLE to read data back
       for (int i = 0; i < 500; i++) {
         String element = (String) cache1.lookup(key + i);
@@ -148,7 +148,7 @@ public class TestUriCacheManager {
 
       // get cache #2
       UriCache<String, Object> cache2;
-      cache2 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost2, user2Email);
+      cache2 = UriCacheManager.getCache(cacheHome, sensorBaseHost2, user2Email);
       // should be ABLE to read data back
       for (int i = 500; i < 1000; i++) {
         String element = (String) cache2.lookup(key + i);
@@ -159,7 +159,7 @@ public class TestUriCacheManager {
 
       // get cache #3
       UriCache<String, Object> cache3;
-      cache3 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost3, user3Email);
+      cache3 = UriCacheManager.getCache(cacheHome, sensorBaseHost3, user3Email);
       // should be ABLE to read data back
       for (int i = 1000; i < 1500; i++) {
         String element = (String) cache3.lookup(key + i);
@@ -184,47 +184,14 @@ public class TestUriCacheManager {
    */
   @After
   public void tearDown() throws Exception {
-    // remove first cache
-    UriCache<String, Object> testCache1 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost1,
-        user1Email);
-    String cacheName = testCache1.getName();
-    testCache1.clear();
-    testCache1.shutdown();
-    File fDesc = new File(dcStoragePath + fileSeparator + cacheName + ".desc");
-    File fData = new File(dcStoragePath + fileSeparator + cacheName + ".data");
-    File fKey = new File(dcStoragePath + fileSeparator + cacheName + ".key");
-    fDesc.delete();
-    fData.delete();
-    fKey.delete();
-    // remove second cache
-    UriCache<String, Object> testCache2 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost2,
-        user2Email);
-    cacheName = testCache2.getName();
-    testCache2.clear();
-    testCache2.shutdown();
-    fDesc = new File(dcStoragePath + fileSeparator + cacheName + ".desc");
-    fData = new File(dcStoragePath + fileSeparator + cacheName + ".data");
-    fKey = new File(dcStoragePath + fileSeparator + cacheName + ".key");
-    fDesc.delete();
-    fData.delete();
-    fKey.delete();
-    // remove third cache
-    UriCache<String, Object> testCache3 = UriCacheManager.getCache(dcStoragePath, sensorBaseHost3,
-        user3Email);
-    cacheName = testCache3.getName();
-    testCache3.clear();
-    testCache3.shutdown();
-    fDesc = new File(dcStoragePath + fileSeparator + cacheName + ".desc");
-    fData = new File(dcStoragePath + fileSeparator + cacheName + ".data");
-    fKey = new File(dcStoragePath + fileSeparator + cacheName + ".key");
-    fDesc.delete();
-    fData.delete();
-    fKey.delete();
-    // remove folder
-    File f = new File(dcStoragePath);
-    if (f.exists()) {
+    // remove all files
+    File dir = new File(cacheHome);
+    File[] files = dir.listFiles();
+    for (File f : files) {
       f.delete();
     }
+    // remove folder
+    dir.delete();
   }
 
 }

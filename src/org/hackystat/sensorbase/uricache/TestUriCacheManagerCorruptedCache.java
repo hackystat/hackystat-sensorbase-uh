@@ -33,7 +33,7 @@ public class TestUriCacheManagerCorruptedCache {
   /** Used for temporarily caches home */
   private static final String tmpFolderName = String.valueOf(System.currentTimeMillis());
   /** The general storage place. */
-  private static final String dcStoragePath = System.getProperties().getProperty("user.dir")
+  private static final String cacheHome = System.getProperties().getProperty("user.dir")
       + fileSeparator + "build" + fileSeparator + "uricache-tests" + fileSeparator + tmpFolderName;
 
   /** Test cache and files names. */
@@ -63,13 +63,13 @@ public class TestUriCacheManagerCorruptedCache {
   @Before
   public void setUp() throws Exception {
     // setting up the test area
-    File f = new File(dcStoragePath);
+    File f = new File(cacheHome);
     if (!f.exists()) {
       f.mkdirs();
     }
 
     // creating description file
-    String fName = dcStoragePath + fileSeparator + testCacheDescName;
+    String fName = cacheHome + fileSeparator + testCacheDescName;
     Properties prop = new Properties();
     prop.setProperty(USER_EMAIL_KEY, userEmail);
     prop.setProperty(HOST_KEY, sensorBaseHost);
@@ -79,7 +79,7 @@ public class TestUriCacheManagerCorruptedCache {
     stream.close();
 
     // populating junk into .data file
-    fName = dcStoragePath + fileSeparator + testCacheDataName;
+    fName = cacheHome + fileSeparator + testCacheDataName;
     BufferedWriter bw = new BufferedWriter(new FileWriter(new File(fName)));
     for (int i = 0; i < 5000; i++) {
       bw.write("number:" + i);
@@ -87,7 +87,7 @@ public class TestUriCacheManagerCorruptedCache {
     bw.close();
 
     // populating junk into .key file
-    fName = dcStoragePath + fileSeparator + testCacheKeyName;
+    fName = cacheHome + fileSeparator + testCacheKeyName;
     bw = new BufferedWriter(new FileWriter(new File(fName)));
     for (int i = 5000; i > 0; i--) {
       bw.write("number:" + i);
@@ -106,7 +106,7 @@ public class TestUriCacheManagerCorruptedCache {
   @Test
   public void testCorruptedCache() throws UriCacheException, IOException, InterruptedException {
     // get list of caches
-    List<UriCacheDescription> caches = UriCacheManager.getCaches(dcStoragePath);
+    List<UriCacheDescription> caches = UriCacheManager.getCaches(cacheHome);
     assertEquals("Should find one cache only", 1, caches.size());
     // put caches in map to ease the test
     TreeMap<String, UriCacheDescription> cachesMap = new TreeMap<String, UriCacheDescription>();
@@ -122,7 +122,7 @@ public class TestUriCacheManagerCorruptedCache {
 
     // get cache
     UriCache<String, Object> cache;
-    cache = UriCacheManager.getCache(dcStoragePath, sensorBaseHost, userEmail);
+    cache = UriCacheManager.getCache(cacheHome, sensorBaseHost, userEmail);
     //
     // Should pass this point without any exception and reset the cache
     //
@@ -145,7 +145,7 @@ public class TestUriCacheManagerCorruptedCache {
     Thread.yield();
     Thread.sleep(1000);
     Thread.yield();
-    cache = UriCacheManager.getCache(dcStoragePath, sensorBaseHost, userEmail);
+    cache = UriCacheManager.getCache(cacheHome, sensorBaseHost, userEmail);
     // should be ABLE to read data back
     for (int i = 0; i < 500; i++) {
       String element = (String) cache.lookup(key + i);
@@ -163,20 +163,20 @@ public class TestUriCacheManagerCorruptedCache {
   @After
   public void tearDown() throws Exception {
     // remove files
-    String fName = dcStoragePath + fileSeparator + testCacheDescName;
+    String fName = cacheHome + fileSeparator + testCacheDescName;
     File f = new File(fName);
     f.delete();
 
-    fName = dcStoragePath + fileSeparator + testCacheDataName;
+    fName = cacheHome + fileSeparator + testCacheDataName;
     f = new File(fName);
     f.delete();
 
-    fName = dcStoragePath + fileSeparator + testCacheKeyName;
+    fName = cacheHome + fileSeparator + testCacheKeyName;
     f = new File(fName);
     f.delete();
 
     // remove folder
-    f = new File(dcStoragePath);
+    f = new File(cacheHome);
     if (f.exists()) {
       f.delete();
     }

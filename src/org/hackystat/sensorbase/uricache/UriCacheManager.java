@@ -1,11 +1,11 @@
 package org.hackystat.sensorbase.uricache;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Properties;
 
 import org.hackystat.utilities.uricache.UriCache;
 import org.hackystat.utilities.uricache.UriCacheException;
@@ -20,20 +20,12 @@ import org.hackystat.utilities.uricache.UriCacheProperties;
  */
 public class UriCacheManager {
 
-  // /** SensorBase handler. */
-  // private Server server;
-  // /** Logger. */
-  // private Logger logger;
-
   private static final String fileSeparator = System.getProperty("file.separator");
+
+  private static final String defaultCacheName = "UriCache";
 
   private static String defaultCacheHome = System.getProperty("user.home") + fileSeparator
       + ".hackystat" + fileSeparator + "sensorbase" + fileSeparator + "cache";
-
-  /** The user email key. */
-  public static final String USER_EMAIL_KEY = "uricache.user.email";
-  /** The host key. */
-  public static final String HOST_KEY = "uricache.host";
 
   /**
    * Creates new UriCacheManager instance.
@@ -76,17 +68,15 @@ public class UriCacheManager {
 
     // but if cache is not found we will create one
     if (null == tryCache) {
-      String cacheName = "UriCache" + System.currentTimeMillis();
-      Properties prop = new Properties();
-      prop.setProperty(USER_EMAIL_KEY, userEmail);
-      prop.setProperty(HOST_KEY, sensorBaseHost);
-      FileOutputStream stream = null;
-      stream = new FileOutputStream(cacheHome + fileSeparator + cacheName + ".desc");
-      prop.store(stream, "the UriCache properties test file");
-      stream.close();
+      // create and save properties
+      UriCacheDescription cacheDesc = new UriCacheDescription(defaultCacheName, sensorBaseHost,
+          userEmail);
+      cacheDesc.save(cacheHome);
+      // create, save cache and return UriCache handler
       UriCacheProperties cacheProp = new UriCacheProperties();
       cacheProp.setCacheStoragePath(cacheHome);
-      UriCache<String, Object> newCache = new UriCache<String, Object>(cacheName, cacheProp);
+      UriCache<String, Object> newCache = new UriCache<String, Object>(cacheDesc.getName(),
+          cacheProp);
       newCache.clear();
       return newCache;
     }
@@ -96,7 +86,8 @@ public class UriCacheManager {
   }
 
   /**
-   * Locates cache for host and user provided, if unable to find cache, reports null.
+   * Locates cache for host and user provided, if unable to find cache, reports null. Meanwhile
+   * doing search cleans up old caches which are basically leftovers.
    * 
    * @param storagePath caches storage path to search within.
    * @param sensorBaseHost the sensorbase host key.
@@ -108,6 +99,7 @@ public class UriCacheManager {
   private static synchronized UriCache<String, Object> locateCache(String storagePath,
       String sensorBaseHost, String userEmail) throws UriCacheException {
 
+    // getting cache home folder
     String cacheHome = null;
     if (null == storagePath) {
       cacheHome = defaultCacheHome;
@@ -116,25 +108,98 @@ public class UriCacheManager {
       cacheHome = storagePath;
     }
 
+    // getting list of caches associated with the host and user email provided
     List<UriCacheDescription> cachesList = getCaches(cacheHome);
+    List<UriCacheDescription> candidatesList = new ArrayList<UriCacheDescription>();
     if (null != cachesList) {
-      List<UriCacheDescription> candidatesList = new ArrayList<UriCacheDescription>();
       for (UriCacheDescription cd : cachesList) {
         if ((userEmail.equalsIgnoreCase(cd.getUserEmail()))
             && (sensorBaseHost.equalsIgnoreCase(cd.getsensorBaseHost()))) {
           candidatesList.add(cd);
         }
       }
-      if (candidatesList.isEmpty()) {
-        return null;
-      }
-      else {
+    }
+
+    // if found nothing report it
+    if (candidatesList.isEmpty()) {
+      return null;
+    }
+
+    // ok, now let's pick the cache which is latest and not active
+    Collections.sort(candidatesList, cacheDescriptionTimeComparator());
+    Integer length = candidatesList.size();
+
+    Integer position = null;
+    UriCache<String, Object> cache = null;
+
+    // We are going to iterate over caches from the latest file up to oldest one. The latest cache
+    // which is not active will be returned from this method, all other inactive caches will be
+    // deleted.
+    for (int i = length - 1; i >= 0; i--) {
+      UriCacheDescription desc = candidatesList.get(i);
+      // check if this instance is available
+      try {
         UriCacheProperties cacheProperties = new UriCacheProperties();
         cacheProperties.setCacheStoragePath(cacheHome);
-        return new UriCache<String, Object>(candidatesList.get(0).getName(), cacheProperties);
+        cache = new UriCache<String, Object>(desc.getName(), cacheProperties);
+        // if we got this cache - break the loop and clean the rest of caches
+        position = i;
+        break;
+      }
+      catch (UriCacheException e) {
+        String errorMessage = e.getMessage();
+        if (errorMessage.contains("is in use")) {
+          assert true;
+        }
+        else {
+          throw new UriCacheException(e);
+        }
       }
     }
-    return null;
+
+    // here we suppose to have two variable to check the cache and position
+    // basically we are going to return this cache instance, it's null if we didn't get cache
+    // if we got a cache than we do a little clean-up and return cache anyway
+    if ((null != position) && (position > 0)) {
+      for (int i = position - 1; i >= 0; i--) {
+        UriCacheDescription desc = candidatesList.get(i);
+        try {
+          UriCacheProperties cacheProperties = new UriCacheProperties();
+          cacheProperties.setCacheStoragePath(cacheHome);
+          UriCache<String, Object> tryCache = new UriCache<String, Object>(desc.getName(),
+              cacheProperties);
+          // if we were able to get this instance - this is leftover - wipe it
+          tryCache.shutdown();
+          String fileName = cacheHome + fileSeparator + desc.getName();
+          File file2Delete = new File(fileName + ".data");
+          file2Delete.delete();
+          file2Delete = new File(fileName + ".key");
+          file2Delete.delete();
+          file2Delete = new File(fileName + ".desc");
+          file2Delete.delete();
+        }
+        catch (UriCacheException e) {
+          String errorMessage = e.getMessage();
+          if (errorMessage.contains("is in use")) {
+            assert true;
+          }
+          else {
+            throw new UriCacheException(e);
+          }
+        }
+      }
+    }
+
+    return cache;
+  }
+
+  /**
+   * Reports a comparator instance for sorting descriptions.
+   * 
+   * @return a comparator instance for sorting descriptions.
+   */
+  private static Comparator<UriCacheDescription> cacheDescriptionTimeComparator() {
+    return new UriCacheDescriptionTimeComparator();
   }
 
   /**
