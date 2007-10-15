@@ -1,5 +1,6 @@
 package org.hackystat.sensorbase.uricache;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 /**
@@ -8,7 +9,13 @@ import java.util.Comparator;
  * @author Pavel Senin.
  * 
  */
-public class UriCacheDescriptionTimeComparator implements Comparator<UriCacheDescription> {
+public class UriCacheDescriptionTimeComparator implements Comparator<UriCacheDescription>,
+    Serializable {
+
+  /**
+   * fancy Eclipse serial number.
+   */
+  private static final long serialVersionUID = -2848820550774349045L;
 
   /**
    * Compares two caches creation time by using time saved in the description.
