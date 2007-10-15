@@ -20,7 +20,6 @@ public class UriCacheDescriptionTimeComparator implements Comparator<UriCacheDes
    *         is less than cache #1 creation time and returns value less than 0 if cache #1 creation
    *         time is less than cache #2 creation time.
    */
-  @Override
   public int compare(UriCacheDescription desc1, UriCacheDescription desc2) {
     Long cache1CreationTime = desc1.getCreationTime();
     Long cache2CreationTime = desc2.getCreationTime();
