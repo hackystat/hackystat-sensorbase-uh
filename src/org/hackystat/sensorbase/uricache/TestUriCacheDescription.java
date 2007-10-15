@@ -58,6 +58,9 @@ public class TestUriCacheDescription {
     this.cacheDescription1 = new UriCacheDescription(cacheDefaultName, sensorBaseHost, userEmail);
     this.cacheDescription1.save(dcStoragePath);
 
+    Thread.yield();
+    Thread.sleep(100);
+
     // saving second description file
     this.cacheDescription2 = new UriCacheDescription(cacheDefaultName, sensorBaseHost, userEmail);
     this.cacheDescription2.save(dcStoragePath);
