@@ -12,6 +12,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.hackystat.utilities.tstamp.Tstamp;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -26,13 +27,10 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   private String defaultProject = "Default";
 
   /**
-   * Test that GET host/sensorbase/projects returns an index containing at least
-   * one Project. This is an admin-only request. Probably want to
-   * 
-   * @ignore this method on real distributions, since the returned dataset could
-   *         be large.
-   * @throws Exception
-   *           If problems occur.
+   * Test that GET host/sensorbase/projects returns an index containing at least one Project. This
+   * is an admin-only request. Probably want to (at)ignore this method on real distributions, 
+   * since the returned dataset could be large.
+   * @throws Exception If problems occur.
    */
   @Test
   public void getProjectIndex() throws Exception {
@@ -49,11 +47,10 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   }
 
   /**
-   * Test that GET host/sensorbase/projects/TestUser@hackystat.org returns an
-   * index containing at least one ProjectRef.
+   * Test that GET host/sensorbase/projects/TestUser@hackystat.org returns an index containing at
+   * least one ProjectRef.
    * 
-   * @throws Exception
-   *           If problems occur.
+   * @throws Exception If problems occur.
    */
   @Test
   public void getTestUserProjectIndex() throws Exception {
@@ -70,11 +67,10 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   }
 
   /**
-   * Test that GET host/sensorbase/projects/TestUser@hackystat.org/TestProject
-   * returns a representation of TestProject.
+   * Test that GET host/sensorbase/projects/TestUser@hackystat.org/TestProject returns a
+   * representation of TestProject.
    * 
-   * @throws Exception
-   *           If problems occur.
+   * @throws Exception If problems occur.
    */
   @Test
   public void getTestUserProject() throws Exception {
@@ -87,12 +83,10 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   }
 
   /**
-   * Test that GET
-   * host/sensorbase/projects/TestUser@hackystat.org/TestProject/sensordata
-   * returns an index of SensorData.
+   * Test that GET host/sensorbase/projects/TestUser@hackystat.org/TestProject/sensordata returns an
+   * index of SensorData.
    * 
-   * @throws Exception
-   *           If problems occur.
+   * @throws Exception If problems occur.
    */
   @Test
   public void getTestUserProjectSensorData() throws Exception {
@@ -106,13 +100,11 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   }
 
   /**
-   * Test that GET
-   * host/sensorbase/projects/TestUser@hackystat.org/TestProject/sensordata?
-   * startTime=2006-04-30T09:00:00.000&endTime=2007-04-30T09:30:00.000 returns
-   * an index of SensorData containing one entry.
+   * Test that GET host/sensorbase/projects/TestUser@hackystat.org/TestProject/sensordata?
+   * startTime=2006-04-30T09:00:00.000&endTime=2007-04-30T09:30:00.000 returns an index of
+   * SensorData containing one entry.
    * 
-   * @throws Exception
-   *           If problems occur.
+   * @throws Exception If problems occur.
    */
   @Test
   public void getTestUserProjectSensorDataInterval() throws Exception {
@@ -130,8 +122,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   /**
    * Test that PUT and DELETE of host/projects/{user}/{project} works.
    * 
-   * @throws Exception
-   *           If problems occur.
+   * @throws Exception If problems occur.
    */
   @Test
   public void putProject() throws Exception {
@@ -164,12 +155,12 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   }
 
   /**
-   * Test that PUT multiple times does not cause a problem for getProjectIndex. 
+   * Test that PUT multiple times does not cause a problem for getProjectIndex.
    * 
-   * @throws Exception
-   *           If problems occur.
+   * @throws Exception If problems occur.
    */
-  /* @Ignore */@Test
+  @Ignore
+  @Test
   public void putMultipleProject() throws Exception {
     // First, create a sample Project.
     String owner = testUser;
@@ -213,8 +204,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   /**
    * Tests that after creating a new User, it has a Default Project.
    * 
-   * @throws Exception
-   *           If problems occur.
+   * @throws Exception If problems occur.
    */
   @Test
   public void newUserTest() throws Exception {
@@ -234,11 +224,9 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   }
 
   /**
-   * Tests that we can retrieve all data for the TestUser under their Default
-   * Project.
+   * Tests that we can retrieve all data for the TestUser under their Default Project.
    * 
-   * @throws Exception
-   *           If problems occur.
+   * @throws Exception If problems occur.
    */
   @Test
   public void testUserDefaultProjectData() throws Exception {
