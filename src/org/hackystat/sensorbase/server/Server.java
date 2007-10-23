@@ -67,6 +67,19 @@ public class Server extends Application {
   }
   
   /**
+   * Creates a new instance of a SensorBase HTTP server suitable for unit testing. 
+   * SensorBase properties are initialized from the User's sensorbase.properties file, 
+   * then set to their "testing" versions.   
+   * @return The Server instance created. 
+   * @throws Exception If problems occur starting up this server. 
+   */
+  public static Server newTestInstance() throws Exception {
+    ServerProperties properties = new ServerProperties();
+    properties.setTestProperties();
+    return newInstance(properties);
+  }
+  
+  /**
    * Creates a new instance of a SensorBase HTTP server, listening on the supplied port.
    * @param  serverProperties The ServerProperties used to initialize this server.
    * @return The Server instance created. 

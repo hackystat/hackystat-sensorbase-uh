@@ -195,6 +195,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
         numProjectsAfter);
     int forLoopCount = 0;
     for (ProjectRef ref : pIndex2.getProjectRef()) {
+      ref.getHref(); // eliminate warning associated with unused 'ref' variable.
       forLoopCount++;
     }
     assertEquals("For loop count check", forLoopCount, numProjectsBefore);
