@@ -1359,6 +1359,7 @@ public class SensorBaseClient {
    * 
    * @throws Throwable in the error case.
    */
+  @Override
   protected void finalize() throws Throwable {
     if (null != this.uriCache) {
       System.out.println("UriCache shutdown");
