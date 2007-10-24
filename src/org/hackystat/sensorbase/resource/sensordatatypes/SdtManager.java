@@ -84,7 +84,8 @@ public class SdtManager {
     this.dbManager = (DbManager)this.server.getContext().getAttributes().get("DbManager");
     try {
       this.jaxbContext = 
-        JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordatatypes.jaxb");
+        JAXBContext.newInstance(
+            org.hackystat.sensorbase.resource.sensordatatypes.jaxb.ObjectFactory.class);
       loadDefaultSensorDataTypes(); //NOPMD it's throwing a false warning. 
       initializeCache();            //NOPMD 
     }

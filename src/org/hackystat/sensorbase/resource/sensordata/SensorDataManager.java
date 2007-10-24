@@ -72,7 +72,8 @@ public class SensorDataManager {
     UserManager userManager = (UserManager)server.getContext().getAttributes().get("UserManager");
     try {
       this.jaxbContext  = 
-        JAXBContext.newInstance("org.hackystat.sensorbase.resource.sensordata.jaxb");
+        JAXBContext.newInstance(
+            org.hackystat.sensorbase.resource.sensordata.jaxb.ObjectFactory.class);
       loadDefaultSensorData(userManager); // NOPMD (Incorrect overridable method warning)
     }
     catch (Exception e) {

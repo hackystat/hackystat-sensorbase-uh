@@ -78,7 +78,8 @@ public class UserManager {
     this.dbManager = (DbManager)this.server.getContext().getAttributes().get("DbManager");
     try {
       this.jaxbContext = 
-        JAXBContext.newInstance("org.hackystat.sensorbase.resource.users.jaxb");
+        JAXBContext.newInstance(
+            org.hackystat.sensorbase.resource.users.jaxb.ObjectFactory.class);
       loadDefaultUsers(); //NOPMD it's throwing a false warning. 
       initializeCache();  //NOPMD 
       initializeAdminUser(); //NOPMD

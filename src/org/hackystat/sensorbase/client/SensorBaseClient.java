@@ -133,6 +133,21 @@ public class SensorBaseClient {
     }
     this.client = new Client(Protocol.HTTP);
   }
+  
+  /**
+   * Attempts to provide a timeout value for this SensorBaseClient.  
+   * @param milliseconds The number of milliseconds to wait before timing out. 
+   */
+  public synchronized void setTimeout(int milliseconds) {
+    // Whether this work depends upon which client connector is being used.
+    // For the JDK-based client.    
+    this.client.getContext().getParameters().add("connectTimeout", String.valueOf(milliseconds));
+    this.client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
+    // For the Apache Commons client.
+    this.client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
+    this.client.getContext().getParameters().add("connectionManagerTimeout", 
+        String.valueOf(milliseconds));
+  }
 
   /**
    * When passed true, future HTTP calls using this client instance will print out information on
