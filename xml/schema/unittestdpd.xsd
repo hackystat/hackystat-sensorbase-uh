@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+	xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+	jaxb:extensionBindingPrefixes="xjc" jaxb:version="2.0">
+
+	<xs:annotation>
+		<xs:appinfo>
+			<jaxb:globalBindings generateIsSetMethod="true">
+				<xjc:serializable uid="12343" />
+			</jaxb:globalBindings>
+		</xs:appinfo>
+	</xs:annotation>
+
+	<!-- Primitive elements and attributes -->
+	<xs:attribute name="Project" type="xs:string" />
+	<xs:attribute name="Owner" type="xs:string" />
+	<xs:attribute name="StartTime" type="xs:dateTime" />
+	<xs:attribute name="UriPattern" type="xs:anyURI" />
+
+	<xs:attribute name="MemberUri" type="xs:anyURI" />
+	<xs:attribute name="success" type="xs:string" />
+	<xs:attribute name="failure" type="xs:string" />
+
+
+	<xs:element name="MemberData">
+		<xs:complexType>
+			<xs:attribute ref="MemberUri" />
+			<xs:attribute ref="success" />
+			<xs:attribute ref="failure" />
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="UnitTestDailyProjectData">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="MemberData" minOccurs="1"
+					maxOccurs="unbounded" />
+			</xs:sequence>
+			<xs:attribute ref="Project" />
+			<xs:attribute ref="Owner" />
+			<xs:attribute ref="StartTime" />
+			<xs:attribute ref="UriPattern" />
+		</xs:complexType>
+	</xs:element>
+
+</xs:schema>
+
+
+
+
+
+
+
+
+
+
+

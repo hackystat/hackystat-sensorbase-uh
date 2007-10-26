@@ -17,5 +17,6 @@
     <xjc schema="${basedir}/xml/schema/users.xsd" extension="true" destdir="src" package="org.hackystat.sensorbase.resource.users.jaxb"/>
     <xjc schema="${basedir}/xml/schema/sensordata.xsd" extension="true" destdir="src" package="org.hackystat.sensorbase.resource.sensordata.jaxb"/>
     <xjc schema="${basedir}/xml/schema/projects.xsd" extension="true" destdir="src" package="org.hackystat.sensorbase.resource.projects.jaxb"/>
+  	<xjc schema="${basedir}/xml/schema/unittestdpd.xsd" extension="true" destdir="src" package="org.hackystat.sensorbase.resource.dpd.jaxb"/>
   </target>
 </project>

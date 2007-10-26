@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<UnitTestDailyProjectData Project="Default" Owner="johnson@hawaii.edu" StartTime="2006-01-31T00:00:00.000" UriPattern="**">
+ <MemberData MemberUri="http://hackystat.ics.hawaii.edu/sensorbase/users/johnson@hawaii.edu" success="5" failure="3"/>
+</UnitTestDailyProjectData>
