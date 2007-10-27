@@ -26,8 +26,7 @@
     <schemavalidate noNamespaceFile="${schema.dir}/users.xsd" file="${examples.dir}/users.index.example.xml"/>
     <schemavalidate noNamespaceFile="${schema.dir}/users.xsd" file="${defaults.dir}/users.defaults.xml"/>
   	
-  	<schemavalidate noNamespaceFile="${schema.dir}/unittestdpd.xsd" file="${examples.dir}/unittestdpd.example.xml"/>
-  	  </target>
+  </target>
 </project>
 
 
