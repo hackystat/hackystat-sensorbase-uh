@@ -1,6 +1,5 @@
 package org.hackystat.sensorbase.server;
 
-import java.util.Enumeration;
 import java.util.Map;
 
 import org.hackystat.sensorbase.db.DbManager;
@@ -22,6 +21,7 @@ import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.resource.users.UserResource;
 import org.hackystat.sensorbase.resource.users.UsersResource;
 import org.hackystat.utilities.logger.HackystatLogger;
+import org.hackystat.utilities.logger.RestletLoggerUtil;
 import org.restlet.Application;
 import org.restlet.Component;
 import org.restlet.Guard;
@@ -34,9 +34,8 @@ import static org.hackystat.sensorbase.server.ServerProperties.PORT_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.CONTEXT_ROOT_KEY;
 import static org.hackystat.sensorbase.server.ServerProperties.LOGGING_LEVEL_KEY;
 
-import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
+
 
 /**
  * Sets up the HTTP Server process and dispatching to the associated resources. 
@@ -125,33 +124,19 @@ public class Server extends Application {
     attributes.put("SensorBaseServer", server);
     attributes.put("ServerProperties", server.serverProperties);
     
+    // Move Restlet Logging into a file. 
+    RestletLoggerUtil.useFileHandler("sensorbase");
+    
     // Now let's open for business. 
     server.logger.warning("Host: " + server.hostName);
     HackystatLogger.setLoggingLevel(server.logger, server.serverProperties.get(LOGGING_LEVEL_KEY));
     server.logger.info(server.serverProperties.echoProperties());
     server.logger.warning("SensorBase (Version " + getVersion() + ") now running.");
     server.component.start();
-    String restletLoggingString = server.serverProperties.get(ServerProperties.RESTLET_LOGGING_KEY);
-    if (!(restletLoggingString.equalsIgnoreCase("true"))) {
-      disableRestletLogging();
-    }
     return server;
   }
 
-  /**
-   * Disable all loggers from com.noelios and org.restlet. 
-   */
-  private static void disableRestletLogging() {
-    LogManager logManager = LogManager.getLogManager();
-    for (Enumeration<String> e = logManager.getLoggerNames(); e.hasMoreElements() ;) {
-      String logName = e.nextElement();
-      if (logName.startsWith("com.noelios") ||
-          logName.startsWith("org.restlet")) {
-        logManager.getLogger(logName).setLevel(Level.OFF);
-      }
-    }
-  }
-  
+ 
   /**
    * Starts up the SensorBase web service using the properties specified in sensor.properties.  
    * Control-c to exit. 
