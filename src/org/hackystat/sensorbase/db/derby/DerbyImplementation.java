@@ -56,6 +56,9 @@ public class DerbyImplementation extends DbImplementation {
   
   /** Required by PMD since this string occurs multiple times in this file. */
   private static final String ownerEquals = " owner = '";
+
+  /** Required by PMD since this string occurs multiple times in this file. */
+  private static final String sdtEquals = " sdt = '";
   
   /** Required by PMD as above. */
   private static final String andClause = "' AND ";
@@ -342,12 +345,25 @@ public class DerbyImplementation extends DbImplementation {
   /** {@inheritDoc} */
   @Override
   public String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns) {
-    String statement = 
-      "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
-      + ownerEquals + user.getEmail() + andClause 
-      + " Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
-      + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
+      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns, String sdt) {
+    String statement;
+    
+    if (sdt == null) { // Retrieve sensor data of all SDTs 
+      statement =
+        "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
+        + ownerEquals + user.getEmail() + andClause 
+        + " Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
+        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
+    }
+    else { // Retrieve sensor data of the specified SDT.
+      statement = 
+        "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
+        + ownerEquals + user.getEmail() + andClause  
+        + sdtEquals + sdt + andClause 
+        + " Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
+        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
+    }
+        
     return getIndex("SensorData", statement);
   }
   

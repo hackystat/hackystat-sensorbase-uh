@@ -68,10 +68,11 @@ public abstract class DbImplementation {
    * @param startTime The earliest Sensor Data to be returned.
    * @param endTime The latest SensorData to be returned.
    * @param uriPatterns At least one UriPattern must match the SensorData resource field.
+   * @param sdt The SDT of interest, or null if data from all SDTs should be retrieved.
    * @return An XML String containing a SensorDataIndex of matching SensorData. 
    */
   public abstract String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns);
+      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns, String sdt);
   
   /**
    * Returns the XML SensorDataIndex for all sensor data for the given user that arrived

@@ -218,11 +218,13 @@ public class SensorDataManager {
    * @param startTime The start time. 
    * @param endTime The end time. 
    * @param uriPatterns A list of UriPatterns. 
+   * @param sdt The sensordatatype of interest, or null if sensordata from all SDTs should be
+   * retrieved.
    * @return The XML SensorDataIndex string corresponding to the matching sensor data. 
    */
   public String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns) {
-    return this.dbManager.getSensorDataIndex(user, startTime, endTime, uriPatterns);
+      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns, String sdt) {
+    return this.dbManager.getSensorDataIndex(user, startTime, endTime, uriPatterns, sdt);
   }  
   
   /**

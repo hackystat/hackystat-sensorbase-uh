@@ -27,6 +27,8 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
   private String startTime;
   /** An optional query string parameter. */
   private String endTime;
+  /** An optional query parameter. */
+  private String sdt;
 
   
   /**
@@ -40,6 +42,7 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
     this.projectName = (String) request.getAttributes().get("projectname"); 
     this.startTime = (String) request.getAttributes().get("startTime");
     this.endTime = (String) request.getAttributes().get("endTime");
+    this.sdt = (String) request.getAttributes().get("sdt");
     this.user = super.userManager.getUser(super.uriUser);
   }
   
@@ -106,7 +109,7 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
         else {
           // Return the sensor data starting at startTime and ending with endTime. 
           String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName,
-              this.startTime, this.endTime);
+              this.startTime, this.endTime, this.sdt);
           return SensorBaseResource.getStringRepresentation(data);
         }
       }

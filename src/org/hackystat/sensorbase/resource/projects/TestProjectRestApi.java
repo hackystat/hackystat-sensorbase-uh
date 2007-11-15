@@ -118,6 +118,30 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     SensorDataIndex index = client.getProjectSensorData(testUser, testProject, startTime, endTime);
     assertEquals("Checking index contains one entry", 1, index.getSensorDataRef().size());
   }
+  
+  /**
+   * Test that the GET of a project with the SDT parameter works correctly.
+   * Assumes that the default XML data files are loaded, which result in two sensor data entries
+   * for TestUser@hackystat.org on 2007-04-30, one with SDT=TestSdt and one with SDT=SampleSdt.
+   * 
+   * @throws Exception If problems occur.
+   */
+  @Test
+  public void getTestUserProjectSdtParam() throws Exception {
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), testUser, testUser);
+    client.authenticate();
+    // Retrieve the SensorData for the TestProject project within the time
+    // interval, and make sure we have the two entries that we expect. 
+    XMLGregorianCalendar startTime = Tstamp.makeTimestamp("2007-04-30T09:00:00.000");
+    XMLGregorianCalendar endTime = Tstamp.makeTimestamp("2007-04-30T10:00:00.000");
+    SensorDataIndex index = client.getProjectSensorData(testUser, testProject, startTime, endTime);
+    assertEquals("Checking our test data has 2 entries", 2, index.getSensorDataRef().size());
+    
+    // Now test the SDT param call to make sure we get only the SDT of interest.
+    index = client.getProjectSensorData(testUser, testProject, startTime, endTime, "TestSdt");
+    assertEquals("Checking our test data has 1 entries", 1, index.getSensorDataRef().size());
+  }
 
   /**
    * Test that PUT and DELETE of host/projects/{user}/{project} works.

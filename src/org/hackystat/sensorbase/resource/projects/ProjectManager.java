@@ -364,7 +364,7 @@ public class ProjectManager {
     XMLGregorianCalendar startTime = project.getStartTime();
     XMLGregorianCalendar endTime = project.getEndTime();
     List<UriPattern> patterns = UriPattern.getPatterns(project);
-    return sensorDataManager.getSensorDataIndex(owner, startTime, endTime, patterns);
+    return sensorDataManager.getSensorDataIndex(owner, startTime, endTime, patterns, null);
   }
   
 
@@ -379,12 +379,13 @@ public class ProjectManager {
    * @param projectName the Project name.
    * @param startString The startTime as a string. 
    * @param endString The endTime as a string.
+   * @param sdt The SensorDataType of interest, or null if all sensordatatypes are to be retrieved.
    * @return The XML String providing a SensorDataIndex to the sensor data in this project
    * starting at startTime and ending at endTime. 
    * @throws Exception if startString or endString are not XMLGregorianCalendars.
    */  
   public synchronized String getProjectSensorDataIndex(User owner, 
-      String projectName, String startString, String endString) throws Exception {
+      String projectName, String startString, String endString, String sdt) throws Exception {
     SensorDataManager sensorDataManager = 
       (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
     Project project = this.getProject(owner, projectName);
@@ -397,7 +398,7 @@ public class ProjectManager {
     endTime = (Tstamp.lessThan(endTime, project.getEndTime())) ? 
         endTime : project.getEndTime();
     List<UriPattern> patterns = UriPattern.getPatterns(project);
-    return sensorDataManager.getSensorDataIndex(owner, startTime, endTime, patterns);
+    return sensorDataManager.getSensorDataIndex(owner, startTime, endTime, patterns, sdt);
     
   }
   

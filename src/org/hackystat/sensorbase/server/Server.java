@@ -174,9 +174,10 @@ public class Server extends Application {
     authRouter.attach("/projects/{user}/{projectname}", UserProjectResource.class);
     authRouter.attach("/projects/{user}/{projectname}/sensordata", 
         UserProjectSensorDataResource.class);
-    authRouter.attach(
-        "/projects/{user}/{projectname}/sensordata?startTime={startTime}&endTime={endTime}", 
-        UserProjectSensorDataResource.class);
+    authRouter.attach("/projects/{user}/{projectname}/sensordata" + 
+        "?startTime={startTime}&endTime={endTime}", UserProjectSensorDataResource.class);
+    authRouter.attach("/projects/{user}/{projectname}/sensordata" + 
+        "?sdt={sdt}&startTime={startTime}&endTime={endTime}", UserProjectSensorDataResource.class);
     // Here's the Guard that we will place in front of authRouter.
     Guard guard = new Authenticator(getContext());
     guard.setNext(authRouter);

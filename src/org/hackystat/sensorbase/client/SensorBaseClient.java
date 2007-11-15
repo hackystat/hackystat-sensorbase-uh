@@ -84,7 +84,7 @@ public class SensorBaseClient {
   /** For PMD */
   private String projectsUri = "projects/";
   /** To facilitate debugging of problems using this system. */
-  private boolean isTraceEnabled = false;
+  private boolean isTraceEnabled = true;
 
   /** Facilitates UriCache to improve responsiveness. */
   private UriCache<String, Object> uriCache;
@@ -947,6 +947,38 @@ public class SensorBaseClient {
       throws SensorBaseClientException {
     Response response = makeRequest(Method.GET, projectsUri + userEmail + "/" + projectName
         + "/sensordata?startTime=" + startTime + "&endTime=" + endTime, null);
+    SensorDataIndex index;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      index = makeSensorDataIndex(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return index;
+  }
+  
+  /**
+   * Returns a SensorDataIndex representing the SensorData with the given SDT for the Project 
+   * during the time interval.
+   * 
+   * @param email The user email.
+   * @param projectName The project name.
+   * @param startTime The start time.
+   * @param endTime The end time.
+   * @param sdt The SensorDataType.
+   * @return A SensorDataIndex.
+   * @throws SensorBaseClientException If the server does not return success or returns something
+   *         that cannot be marshalled into Java SensorDataIndex instance.
+   */
+  public synchronized SensorDataIndex getProjectSensorData(String email, String projectName,
+      XMLGregorianCalendar startTime, XMLGregorianCalendar endTime, String sdt)
+      throws SensorBaseClientException {
+    Response response = makeRequest(Method.GET, projectsUri + userEmail + "/" + projectName
+        + "/sensordata?sdt=" + sdt + "&startTime=" + startTime + "&endTime=" + endTime, null);
     SensorDataIndex index;
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
