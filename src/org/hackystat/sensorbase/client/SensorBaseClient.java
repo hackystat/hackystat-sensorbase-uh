@@ -84,7 +84,7 @@ public class SensorBaseClient {
   /** For PMD */
   private String projectsUri = "projects/";
   /** To facilitate debugging of problems using this system. */
-  private boolean isTraceEnabled = true;
+  private boolean isTraceEnabled = false;
 
   /** Facilitates UriCache to improve responsiveness. */
   private UriCache<String, Object> uriCache;
