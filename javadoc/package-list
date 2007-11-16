@@ -15,4 +15,5 @@ org.hackystat.sensorbase.resource.users
 org.hackystat.sensorbase.resource.users.jaxb
 org.hackystat.sensorbase.server
 org.hackystat.sensorbase.test
+org.hackystat.sensorbase.uricache
 org.hackystat.sensorbase.uripattern
