@@ -12,12 +12,13 @@
   <target name="jar-standalone" depends="compile" 
     description="Create sensorbase.jar">
     <!-- Define the directories and distribution name -->
+    <delete dir="${tmp.dir}" quiet="yes"/>
     <mkdir dir="${tmp.dir}" />
     <copy todir="${tmp.dir}">
       <fileset dir="${basedir}/build/classes"/>
     </copy>
   
-    <!-- First build sensorbase.jar --> 
+    <!-- First build sensorbaseclient.jar, which is everything but derby. --> 
     <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/hackystatlogger.lib.jar" dest="${tmp.dir}"/>
     <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar" dest="${tmp.dir}"/>
     <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/tstamp.lib.jar" dest="${tmp.dir}"/>
@@ -28,16 +29,27 @@
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar" dest="${tmp.dir}"/>
     <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.DERBY_HOME}/lib/derby.jar" dest="${tmp.dir}"/>
- 
-    <jar destfile="${basedir}/sensorbase.jar" basedir="${tmp.dir}">
+
+    <!-- No main class, this jar file is a library and cannot be run from the command line. -->
+    <jar destfile="${basedir}/sensorbaseclient.jar" basedir="${tmp.dir}">
       <manifest>
-        <attribute name="Main-Class" value="org.hackystat.sensorbase.server.Server"/>
-        <attribute name="Implementation-Title" value="Hackystat SensorBase-UH"/>
+        <attribute name="Implementation-Title" value="Hackystat SensorBaseClient"/>
         <attribute name="Implementation-Version" value="${version}"/>
         <attribute name="Implementation-Vendor" value="Collaborative Software Development Laboratory, University of Hawaii"/>
       </manifest>
     </jar>
+    
+    <!-- Now add derby and jar up sensorbase.jar. -->
+    <unjar src="${env.DERBY_HOME}/lib/derby.jar" dest="${tmp.dir}"/>
+    <jar destfile="${basedir}/sensorbase.jar" basedir="${tmp.dir}">
+       <manifest>
+         <attribute name="Main-Class" value="org.hackystat.sensorbase.server.Server"/>
+         <attribute name="Implementation-Title" value="Hackystat SensorBase-UH"/>
+         <attribute name="Implementation-Version" value="${version}"/>
+         <attribute name="Implementation-Vendor" value="Collaborative Software Development Laboratory, University of Hawaii"/>
+       </manifest>
+     </jar>
+
     <delete dir="${tmp.dir}" />
   </target> 
   
