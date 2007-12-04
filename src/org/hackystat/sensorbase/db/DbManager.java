@@ -16,8 +16,6 @@ import org.hackystat.utilities.stacktrace.StackTrace;
  * Provides an interface to storage for the resources managed by the SensorBase.
  * Currently we have one storage mechanisms: a persistent store which is implemented by
  * an embedded Derby database.
- * In future, we can enhance this DbManager to enable "swappable" persistent stores and other
- * alternatives to storage. 
  * @author Philip Johnson
  */
 public class DbManager {
@@ -258,6 +256,14 @@ public class DbManager {
    */
   public void deleteSensorData(User user, XMLGregorianCalendar timestamp) {
     this.dbImpl.deleteSensorData(user, timestamp);
+  }
+  
+  /**
+   * Ensures that sensor data with the given user no longer exists.
+   * @param user The user.
+   */
+  public void deleteSensorData(User user) {
+    this.dbImpl.deleteSensorData(user);
   }
   
   /**

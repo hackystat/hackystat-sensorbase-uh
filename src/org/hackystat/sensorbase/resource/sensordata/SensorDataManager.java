@@ -290,6 +290,14 @@ public class SensorDataManager {
     this.dbManager.deleteSensorData(user, timestamp);
   }
   
+  /**
+   * Ensures that sensor data with the given user is no longer present in this manager.
+   * @param user The user.
+   */
+  public void deleteData(User user) {
+    this.dbManager.deleteSensorData(user);
+  }
+  
 
   /**
    * Takes an XML Document representing a SensorDataIndex and converts it to an instance. 

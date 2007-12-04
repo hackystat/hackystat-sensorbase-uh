@@ -290,6 +290,8 @@ public class UserSensorDataResource extends SensorBaseResource {
    * <li> The timestamp must be well-formed.
    * <li> The authenticated user must be the uriUser or the admin. 
    * </ul>
+   * If not timestamp is supplied, then all sensor data will be deleted if the user is the
+   * test user. 
    */
   @Override
   public void delete() {
@@ -302,15 +304,31 @@ public class UserSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
       return;
     }
+    // If timestamp is null, then delete all data if a test user is deleting its own data.
+    if (this.timestamp == null) {
+      if ((this.authUser != null) &&
+          this.authUser.equals(this.uriUser) &&
+          userManager.isTestUser(this.user)) { 
+        super.sensorDataManager.deleteData(this.user);
+        getResponse().setStatus(Status.SUCCESS_OK);
+        return;
+      }
+      else {
+        String errMsg = "Can't delete all sensor data from a non-test user.";
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, errMsg);
+        return;
+      }
+    }
+    
     XMLGregorianCalendar tstamp;
     try {
       tstamp = Tstamp.makeTimestamp(this.timestamp);
+      super.sensorDataManager.deleteData(this.user, tstamp);      
     }
     catch (Exception e) { 
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad timestamp " + this.timestamp);
       return;
     }
-    super.sensorDataManager.deleteData(this.user, tstamp);      
     getResponse().setStatus(Status.SUCCESS_OK);
   }
 }

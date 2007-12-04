@@ -807,6 +807,21 @@ public class SensorBaseClient {
   }
 
   /**
+   * Deletes all sensor data associated with the specified user. 
+   * Note that the user must be a test user.
+   * Returns success even if the user had no sensor data.  
+   * 
+   * @param email The email of the User.
+   * @throws SensorBaseClientException If the server does not indicate success.
+   */
+  public synchronized void deleteSensorData(String email) throws SensorBaseClientException {
+    Response response = makeRequest(Method.DELETE, sensordataUri + email, null);
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+  }
+
+  /**
    * Returns the index of all Projects from this server. This is an admin-only operation.
    * 
    * @return The ProjectIndex instance.

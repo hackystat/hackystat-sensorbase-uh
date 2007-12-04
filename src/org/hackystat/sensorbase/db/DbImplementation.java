@@ -125,6 +125,12 @@ public abstract class DbImplementation {
   public abstract void deleteSensorData(User user, XMLGregorianCalendar timestamp);
   
   /**
+   * Ensures that sensor data with the given user is no longer present in this manager.
+   * @param user The user.
+   */
+  public abstract void deleteSensorData(User user);
+  
+  /**
    * Returns the XML SensorDataTypeIndex for all SDTs in this server.
    * @return The XML String containing an index to all SensorDataTypes.
    */

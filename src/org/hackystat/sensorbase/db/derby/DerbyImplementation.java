@@ -427,6 +427,14 @@ public class DerbyImplementation extends DbImplementation {
       + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
     deleteResource(statement);
   }
+  
+  /** {@inheritDoc} */
+  @Override
+  public void deleteSensorData(User user) {
+    String statement =
+      "DELETE FROM SensorData WHERE " + ownerEquals + user.getEmail() + "'";
+    deleteResource(statement);
+  }
 
   /** {@inheritDoc} */
   @Override

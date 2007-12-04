@@ -52,6 +52,30 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
   }
   
   /**
+   * Test that DELETE host/sensorbase/sensordata/user deletes all data. 
+   * @throws Exception If problems occur.
+   */
+  @Test public void deleteAllData() throws Exception {
+    String testDeleteUser = "TestDeleteUser@hackystat.org";
+    SensorBaseClient.registerUser(getHostName(), testDeleteUser);
+    SensorBaseClient client = new SensorBaseClient(getHostName(), testDeleteUser, testDeleteUser);
+    client.authenticate();
+    // put some sensor data.
+    // Send a couple of sensor data instances.
+    for (int i = 0; i < 10; i++) {
+      client.putSensorData(makeSensorData(Tstamp.makeTimestamp(), testDeleteUser));
+    }
+    // Make sure we have the 10 instances. 
+    SensorDataIndex index = client.getSensorDataIndex(testDeleteUser);
+    assertTrue("Checking delete data size", index.getSensorDataRef().size() >= 10);
+    // Now delete it.
+    client.deleteSensorData(testDeleteUser);
+    // Now check that it's been deleted.
+    index = client.getSensorDataIndex(testDeleteUser);
+    assertEquals("Checking deleted data gone", 0, index.getSensorDataRef().size());
+  }
+  
+  /**
    * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org returns some sensor data. 
    * @throws Exception If problems occur.
    */
