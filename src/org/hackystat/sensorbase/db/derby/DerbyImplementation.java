@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.db.derby;
 
 import static org.hackystat.sensorbase.server.ServerProperties.DB_DIR_KEY;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -434,6 +435,7 @@ public class DerbyImplementation extends DbImplementation {
     String statement =
       "DELETE FROM SensorData WHERE " + ownerEquals + user.getEmail() + "'";
     deleteResource(statement);
+    compressTables();
   }
 
   /** {@inheritDoc} */
@@ -870,5 +872,41 @@ public class DerbyImplementation extends DbImplementation {
         this.logger.warning(errorClosingMsg + StackTrace.toString(e));
       }
     }
+  }
+  
+  /**
+   * A utility procedure that reclaims disk space after large deletes. 
+   */
+  private void compressTables() {
+    this.logger.fine("Starting to compress tables.");
+    Connection conn = null;
+    CallableStatement cs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      cs = conn.prepareCall("CALL SYSCS_UTIL.SYSCS_COMPRESS_TABLE(?, ?, ?)");
+      cs.setString(1, "APP");
+      cs.setString(2, "SENSORDATA");
+      cs.setShort(3, (short) 1);
+      cs.execute();
+      cs.setString(2, "SENSORDATATYPE");
+      cs.execute();
+      cs.setString(2, "HACKYUSER");
+      cs.execute();
+      cs.setString(2, "PROJECT");
+      cs.execute();
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in compressTables()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        cs.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    this.logger.fine("Finished compressing tables.");
   }
 }

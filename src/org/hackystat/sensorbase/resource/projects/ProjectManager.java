@@ -137,7 +137,7 @@ public class ProjectManager {
         if (user == null) {
           String msg = "Project with undefined user '" + owner + "' found while initializing " 
           + " project cache from database. Project will be ignored.";
-          server.getLogger().warning(msg);   
+          server.getLogger().fine(msg);   
         }
         else {
           String projectName = ref.getName();
