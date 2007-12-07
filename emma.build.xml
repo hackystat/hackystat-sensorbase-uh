@@ -9,7 +9,7 @@
   <property name="junit.dir" location="${build.dir}/junit" />
   
 
-  <target name="emma" depends="emma.tool" unless="emma.disabled" description="Runs Emma."/>
+  <target name="emma" depends="emma.tool, emma.sensor" unless="emma.disabled" description="Runs Emma."/>
 
   <target name="emma.tool" depends="clean, compile" unless="emma.disabled"
     description="Cleans, compiles, instruments byte codes, runs unit tests, generates Emma report.">
@@ -86,17 +86,11 @@
      </concat>
   </target>
 
-  <target name="emma.sensor" description="Sends Emma coverage data to Hackystat using the Emma sensor." unless="emma.disabled" >
-    <!-- Define the emma sensor taskdef, failing the build if the sensor is not installed. -->
-    <available classname="org.hackystat.sensor.emma.EmmaSensor" property="emma.sensor.available"/>
-    <fail unless="emma.sensor.available" message="Error: Emma sensor not installed."/>
-    <taskdef name="hacky-emma" classname="org.hackystat.sensor.emma.EmmaSensor"/>
-    
-    <!-- Send Coverage data to Hackystat using the Emma sensor. --> 
-    <hacky-emma verbose="${hackystat.verbose.mode}" emmaReportXmlFile="${emma.dir}/coverage.xml">
-      <fileset dir="${src.dir}" includes="**/*.java" />
-    </hacky-emma>
-  </target>
+  <target name="emma.sensor" description="Send hackystat data about this Emma invocation." if="hackystat.enabled">
+     <fileset id="emma.fileset" dir="${src.dir}" includes="**/*.java" />
+     <hackystat.emma emma.output.file="${emma.dir}/coverage.xml" emma.fileset="emma.fileset" verbose="${hackystat.verbose.mode}" />
+   </target>
+
   
 </project>
 

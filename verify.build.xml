@@ -21,6 +21,7 @@
   <import file="validateXml.build.xml"/>
   <!-- make the jar target available so you can do 'ant -f verify.build.xml verify jar' -->
   <import file="jar.build.xml"/>
+  <import file="sclc.build.xml"/>
   
   <echo>
     Hackystat SensorBase Verification Task
@@ -49,10 +50,9 @@
   </echo>
       
   <target name="verify" 
-    depends="clean, compile, checkstyle.tool,  junit.tool, javadoc, findbugs.tool,
-    validateXml, emma.tool,   pmd.tool, emma.echo" 
-    description="Invoke analyzers, fail if any errors found.">
-      <fail message="FindBugs reported warnings." if="findbugs.warningsfound"/>
-  </target>
+     depends="clean, compile, checkstyle,  junit, javadoc, findbugs, emma, pmd, sclc, emma.echo" 
+     description="Invoke analyzers, fail if any errors found.">
+       <fail message="FindBugs reported warnings." if="findbugs.warningsfound"/>
+   </target>
   
 </project>
