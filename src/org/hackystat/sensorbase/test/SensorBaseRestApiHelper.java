@@ -69,7 +69,7 @@ public class SensorBaseRestApiHelper {
    * Returns the hostname associated with this test server. 
    * @return The host name, including the context root. 
    */
-  protected String getHostName() {
+  protected static String getHostName() {
     return SensorBaseRestApiHelper.server.getHostName();
   }
 }

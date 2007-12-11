@@ -16,6 +16,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.hackystat.sensorbase.resource.projects.jaxb.Invitations;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
@@ -58,6 +59,9 @@ import org.w3c.dom.Document;
  * 
  */
 public class SensorBaseClient {
+  
+  /** The possible responses to a Project invitation. */
+  public enum InvitationReply { ACCEPT, DECLINE };
 
   /** Holds the userEmail to be associated with this client. */
   private String userEmail;
@@ -880,7 +884,7 @@ public class SensorBaseClient {
    */
   public synchronized Project getProject(String email, String projectName)
       throws SensorBaseClientException {
-    Response response = makeRequest(Method.GET, projectsUri + userEmail + "/" + projectName, null);
+    Response response = makeRequest(Method.GET, projectsUri + email + "/" + projectName, null);
     Project project;
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
@@ -894,6 +898,55 @@ public class SensorBaseClient {
     }
     return project;
   }
+  
+  /**
+   * Invites the user indicated via their email address to the named project owned by this user.
+   * Has no effect if the user is already an invited member.
+   * Returns the updated project representation. 
+   * 
+   * @param email The user to be invited to this project.  
+   * @param projectName The project name.
+   * @return The project representation as a result of the invitation.
+   * @throws SensorBaseClientException If the server does not return success.
+   */
+  public synchronized Project invite(String email, String projectName) 
+  throws SensorBaseClientException {
+    
+    // First, get the project representation.
+    Project project = this.getProject(this.userEmail, projectName);
+    // Make sure that the Invitations instance is not null.
+    if (project.getInvitations() == null) {
+      project.setInvitations(new Invitations());
+    }
+    // If user hasn't already been invited, then invite them.
+    if (!project.getInvitations().getInvitation().contains(email)) {
+      project.getInvitations().getInvitation().add(email);
+      this.putProject(project);
+    }
+    // Return the updated project representation from the server. 
+    return this.getProject(this.userEmail, projectName);
+  }
+  
+  /**
+   * Accepts the invitation to be a member of the project owned by owner.
+   * 
+   * @param owner The owner of the project that this user has been invited into
+   * @param projectName the name of the project.
+   * @param reply The reply, either ACCEPT or DECLINE.
+   * @throws SensorBaseClientException If the server returns an error from this acceptance, for
+   * example if the user has not actually been invited.
+   */
+  public synchronized void reply(String owner, String projectName, InvitationReply reply) 
+  throws SensorBaseClientException {
+    Response response = makeRequest(Method.POST, 
+        projectsUri + owner + "/" + projectName + "/invitation/" + 
+        reply.toString().toLowerCase(), null);
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+  }
+  
+  
 
   /**
    * Returns the named Project associated with the ProjectRef.
