@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element ref="{}UriPattern" maxOccurs="unbounded"/>
+ *         &lt;element ref="{}Invitation" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -39,30 +39,30 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "uriPattern"
+    "invitation"
 })
-@XmlRootElement(name = "UriPatterns")
-public class UriPatterns
+@XmlRootElement(name = "Invitations")
+public class Invitations
     implements Serializable
 {
 
     private final static long serialVersionUID = 12343L;
-    @XmlElement(name = "UriPattern", required = true)
-    protected List<String> uriPattern;
+    @XmlElement(name = "Invitation")
+    protected List<String> invitation;
 
     /**
-     * Gets the value of the uriPattern property.
+     * Gets the value of the invitation property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the uriPattern property.
+     * This is why there is not a <CODE>set</CODE> method for the invitation property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getUriPattern().add(newItem);
+     *    getInvitation().add(newItem);
      * </pre>
      * 
      * 
@@ -72,19 +72,19 @@ public class UriPatterns
      * 
      * 
      */
-    public List<String> getUriPattern() {
-        if (uriPattern == null) {
-            uriPattern = new ArrayList<String>();
+    public List<String> getInvitation() {
+        if (invitation == null) {
+            invitation = new ArrayList<String>();
         }
-        return this.uriPattern;
+        return this.invitation;
     }
 
-    public boolean isSetUriPattern() {
-        return ((this.uriPattern!= null)&&(!this.uriPattern.isEmpty()));
+    public boolean isSetInvitation() {
+        return ((this.invitation!= null)&&(!this.invitation.isEmpty()));
     }
 
-    public void unsetUriPattern() {
-        this.uriPattern = null;
+    public void unsetInvitation() {
+        this.invitation = null;
     }
 
 }

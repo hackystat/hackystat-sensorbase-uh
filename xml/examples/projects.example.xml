@@ -7,6 +7,9 @@
   <Members>
    <Member>AnotherSampleUser@hackystat.org</Member>
   </Members>
+  <Invitations>
+   <Invitation>InvitedUser@hackystat.org</Invitation>
+  </Invitations>
   <UriPatterns>
     <UriPattern>file://**/Jupiter/**</UriPattern>
   </UriPatterns>

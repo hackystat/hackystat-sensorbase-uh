@@ -102,7 +102,7 @@ public class SensorDataManager {
       for (SensorData data : sensorDatas.getSensorData()) {
         data.setLastMod(Tstamp.makeTimestamp());
         String email = convertOwnerToEmail(data.getOwner());
-        if (!userManager.hasUser(email)) {
+        if (!userManager.isUser(email)) {
           throw new IllegalArgumentException("Owner is not a defined User: " + email);
         }
         this.dbManager.storeSensorData(data, this.makeSensorData(data), 

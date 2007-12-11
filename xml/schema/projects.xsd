@@ -21,6 +21,7 @@
   <xs:element name="StartTime" type="xs:dateTime"/>
   <xs:element name="EndTime" type="xs:dateTime"/>
   <xs:element name="Member" type="xs:string"/>
+  <xs:element name="Invitation" type="xs:string"/>
   <xs:element name="Owner" type="xs:string"/>
   <xs:element name="UriPattern" type="xs:string"/>
   <xs:attribute name="Name" type="xs:string"/>
@@ -32,6 +33,14 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="Member" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="Invitations">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Invitation" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -66,13 +75,14 @@
   <xs:element name="Project">
     <xs:complexType>
       <xs:sequence>
-        <xs:element ref="Description"/>
-        <xs:element ref="StartTime"/>
-        <xs:element ref="EndTime"/>
-        <xs:element ref="Owner"/>
-        <xs:element ref="Members"/>
-        <xs:element ref="UriPatterns"/>
-        <xs:element ref="Properties"/>
+        <xs:element ref="Description" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="StartTime" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="EndTime" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="Owner" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="Members" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="Invitations" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="UriPatterns" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="Properties" minOccurs="1" maxOccurs="1"/>
       </xs:sequence>
       <xs:attribute ref="Name" use="required"/>
       <xs:attribute ref="LastMod"/>

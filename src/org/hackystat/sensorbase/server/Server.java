@@ -7,6 +7,7 @@ import org.hackystat.sensorbase.mailer.Mailer;
 import org.hackystat.sensorbase.resource.ping.PingResource;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.projects.ProjectsResource;
+import org.hackystat.sensorbase.resource.projects.UserProjectInvitationResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectSensorDataResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectsResource;
@@ -178,6 +179,8 @@ public class Server extends Application {
         "?startTime={startTime}&endTime={endTime}", UserProjectSensorDataResource.class);
     authRouter.attach("/projects/{user}/{projectname}/sensordata" + 
         "?sdt={sdt}&startTime={startTime}&endTime={endTime}", UserProjectSensorDataResource.class);
+    authRouter.attach("/projects/{user}/{projectname}/invitation/{rsvp}", 
+        UserProjectInvitationResource.class);
     // Here's the Guard that we will place in front of authRouter.
     Guard guard = new Authenticator(getContext());
     guard.setNext(authRouter);

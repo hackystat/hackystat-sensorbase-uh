@@ -44,6 +44,9 @@ import org.w3c.dom.Document;
  * @author Philip Johnson
  */
 public class ProjectManager {
+
+  /** The String naming the Default project. */
+  public static final String DEFAULT_PROJECT_NAME = "Default";
   
   /** Holds the class-wide JAXBContext, which is thread-safe. */
   private JAXBContext jaxbContext;
@@ -304,6 +307,69 @@ public class ProjectManager {
   }
   
   /**
+   * Returns true if member is a member of the project owned by owner. 
+   * @param owner The owner of projectName.
+   * @param projectName The name of the project owned by owner.
+   * @param member The user whose membership is being checked.
+   * @return True if member is a member of project, false otherwise. 
+   */
+  public synchronized boolean isMember(User owner, String projectName, String member) {
+    // Return false if owner, project, member are invalid.
+    if ((owner == null) || (member == null) || (projectName == null) ||
+        !this.owner2name2project.containsKey(owner) ||
+        !this.owner2name2project.get(owner).containsKey(projectName)) {
+      return false;
+    }
+    // Now we can get the project.
+    Project project = this.owner2name2project.get(owner).get(projectName);
+    // Return false if the <Members> field is null.
+    if (!project.isSetMembers()) {
+      return false;
+    }
+    // Look for the member in the list.
+    List<String> members = project.getMembers().getMember();
+    for (String currMember : members) {
+      if (currMember.equals(member)) {
+        return true;
+      }
+    }
+    // Got here, which means that we never found the member.
+    return false;
+  }
+  
+  /**
+   * Returns true if member is invited to be a member of the project owned by owner. 
+   * @param owner The owner of projectName.
+   * @param projectName The name of the project owned by owner.
+   * @param invitee The user whose invitation status is being checked.
+   * @return True if member is invited to be a member of project, false otherwise. 
+   */
+  public synchronized boolean isInvited(User owner, String projectName, String invitee) {
+    // Return false if owner, project, member are invalid.
+    if ((owner == null) || (invitee == null) || (projectName == null) ||
+        !this.owner2name2project.containsKey(owner) ||
+        !this.owner2name2project.get(owner).containsKey(projectName)) {
+      return false;
+    }
+    // Now we can get the project.
+    Project project = this.owner2name2project.get(owner).get(projectName);
+    // Return false if the <Members> field is null.
+    if (!project.isSetInvitations()) {
+      return false;
+    }
+    // Look for the member in the list.
+    List<String> invitees = project.getInvitations().getInvitation();
+    for (String currInvitee : invitees) {
+      if (currInvitee.equals(invitee)) {
+        return true;
+      }
+    }
+    // Got here, which means that we never found the invitee.
+    return false;
+  }
+  
+  
+  /**
    * Ensures that the passed Project is no longer present in this Manager. 
    * @param owner The user who owns this Project.
    * @param projectName The name of the project.
@@ -412,7 +478,7 @@ public class ProjectManager {
     project.setStartTime(Tstamp.getDefaultProjectStartTime());
     project.setEndTime(Tstamp.getDefaultProjectEndTime());
     project.setMembers(new Members());
-    project.setName("Default");
+    project.setName(DEFAULT_PROJECT_NAME);
     project.setOwner(owner.getEmail());
     project.setProperties(new Properties());
     project.setLastMod(Tstamp.makeTimestamp());

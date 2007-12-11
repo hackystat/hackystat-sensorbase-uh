@@ -36,7 +36,7 @@ public class UserResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    if (!super.userManager.hasUser(this.uriUser)) {
+    if (!super.userManager.isUser(this.uriUser)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown: " + this.uriUser);
       return null;
     } 
@@ -98,7 +98,7 @@ public class UserResource extends SensorBaseResource {
   @Override
   public void post(Representation entity) {
     // Return failure if the User doesn't exist.
-    if (!super.userManager.hasUser(this.uriUser)) {
+    if (!super.userManager.isUser(this.uriUser)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown User: " + this.uriUser);
       return;
     }
