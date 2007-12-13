@@ -13,7 +13,9 @@ import org.restlet.resource.Variant;
 
 /**
  * The resource for processing GET host/projects/{user}/{projectname}/sensordata.
- * Returns an index to the SensorData resources associated with this User and Project.
+ * Returns an index to the SensorData resources associated with this  Project.
+ * This includes all of the SensorData from all members that matches the UriPattern.
+ * Note that this could be quite large if you do not also specify a start and end time.
  * 
  * @author Philip Johnson
  */
@@ -47,7 +49,11 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
   }
   
   /**
-   * Returns a SensorDataIndex of all SensorData associated with this Project and User.
+   * Returns a SensorDataIndex of all SensorData associated with this Project.  This
+   * includes all SensorData from all Members in this project over the 
+   * (optional) specified time period  for the (optional) SDT that match at least
+   * one of the UriPatterns in the project definition.
+   * 
    * Returns an error condition if:
    * <ul>
    * <li> The user does not exist.
@@ -55,7 +61,7 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
    * <li> The Project Resource named by the User and Project does not exist.
    * <li> startTime or endTime is not an XMLGregorianCalendar string.
    * <li> One or the other but not both of startTime and endTime is provided.
-   * <li> endTime is greater than startTime.
+   * <li> endTime is earlier than startTime.
    * </ul>
    * 
    * @param variant The representational variant requested.
@@ -102,7 +108,7 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       try {
         if (startTime == null) {
-          // Return all sensor data for this user and project if no query parameters.
+          // Return all sensor data for this project if no query parameters.
           String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName);
           return SensorBaseResource.getStringRepresentation(data);
         }

@@ -58,7 +58,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     SensorBaseClient client = new SensorBaseClient(getHostName(), testUser, testUser);
     client.authenticate();
     // Get the index of this user's Projects.
-    ProjectIndex index = client.getUserProjectIndex(testUser);
+    ProjectIndex index = client.getProjectIndex(testUser);
     // Make sure that we can iterate through the data and dereference all hrefs.
     for (ProjectRef ref : index.getProjectRef()) {
       client.getUri(ref.getHref());
@@ -213,7 +213,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     int numProjectsAfter = pIndex2.getProjectRef().size();
     assertEquals("Checking ProjectIndex after adding duplicate Project", numProjectsBefore,
         numProjectsAfter);
-    pIndex2 = client.getUserProjectIndex(testUser);
+    pIndex2 = client.getProjectIndex(testUser);
     numProjectsAfter = pIndex2.getProjectRef().size();
     assertEquals("2nd check ProjectIndex after adding duplicate Project", numProjectsBefore,
         numProjectsAfter);

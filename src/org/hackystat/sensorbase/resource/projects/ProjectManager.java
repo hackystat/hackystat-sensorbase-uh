@@ -25,6 +25,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.utilities.tstamp.Tstamp;
+import org.hackystat.sensorbase.resource.projects.jaxb.Invitations;
 import org.hackystat.sensorbase.resource.projects.jaxb.Members;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
@@ -144,9 +145,16 @@ public class ProjectManager {
         }
         else {
           String projectName = ref.getName();
-          String projectString = this.dbManager.getProject(user, projectName);
-          Project project = makeProject(projectString);
-          this.updateCache(project);
+          if (this.hasProject(user, projectName)) {
+            String msg = "Duplicate project for " + user + " with name " + projectName + 
+            " found in database. Ignoring.";
+            server.getLogger().warning(msg);
+          }
+          else {
+            String projectString = this.dbManager.getProject(user, projectName);
+            Project project = makeProject(projectString);
+            this.updateCache(project);
+          }
         }
       }
     }
@@ -161,6 +169,15 @@ public class ProjectManager {
    * @throws Exception If problems occur updating the cache. 
    */
   private final void updateCache(Project project) throws Exception {
+    // Make sure project has an Invitations element.
+    if (project.getInvitations() == null) {
+      project.setInvitations(new Invitations());
+    }
+    // Fix bogus default project start/end dates. 
+    if (project.getName().equals("Default") && Tstamp.isBogusStartTime(project.getStartTime())) {
+        project.setStartTime(Tstamp.getDefaultProjectStartTime());
+        project.setEndTime(Tstamp.getDefaultProjectEndTime());
+    }
     updateCache(project, this.makeProject(project), this.makeProjectRefString(project));
   }
   
@@ -254,19 +271,25 @@ public class ProjectManager {
   }
   
   /**
-   * Returns the XML string containing the ProjectIndex with all defined Projects for the Owner.
+   * Returns the XML string containing the ProjectIndex with all Projects associated with 
+   * this user.
    * Uses the in-memory cache of ProjectRef strings.  
-   * @param owner The owner whose Projects are to be retrieved.
-   * @return The XML string providing an index to all Projects for this owner.
+   * @param user The user whose associated Projects are to be retrieved. All projects for
+   * which this user is an owner, member, or invitee are returned.
+   * @return The XML string providing an index to all Projects associated with this user.
    */
-  public synchronized String getProjectIndex(User owner) {
+  public synchronized String getProjectIndex(User user) {
+    String email = user.getEmail();
     StringBuilder builder = new StringBuilder(512);
     builder.append(projectIndexOpenTag);
-    if (owner != null) {
-      Map<String, Project> name2project = this.owner2name2project.get(owner);
-      if (name2project != null) {
-        for (Project project : name2project.values()) {
-          builder.append(this.project2ref.get(project));    
+    for (Map<String, Project> name2project : this.owner2name2project.values()) {
+      for (Project project : name2project.values()) {
+        Members members = project.getMembers();
+        Invitations invitations = project.getInvitations();
+        if (project.getOwner().equals(email) ||
+            (members != null) && (members.getMember().contains(email)) ||
+            (invitations != null) && (invitations.getInvitation().contains(email))) {
+          builder.append(this.project2ref.get(project));   
         }
       }
     }

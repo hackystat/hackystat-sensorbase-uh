@@ -1,5 +1,6 @@
 package org.hackystat.sensorbase.resource.projects;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.hackystat.sensorbase.client.SensorBaseClient.InvitationReply.ACCEPT;
@@ -40,7 +41,9 @@ public class TestProjectMembershipRestApi extends SensorBaseRestApiHelper {
     SensorBaseClient.registerUser(getHostName(), testUser2);
     client1 = new SensorBaseClient(getHostName(), testUser1, testUser1);
     client2 = new SensorBaseClient(getHostName(), testUser2, testUser2);
+    client1.deleteProject(testUser1, testProject1);
   }
+  
 
   /**
    * Tests a "normal" invitation acceptance use case:
@@ -56,11 +59,16 @@ public class TestProjectMembershipRestApi extends SensorBaseRestApiHelper {
    */
   @Test
   public void testInvitation1() throws Exception {
+    // First, check that testUser1 has only one defined project (the default).
+    assertEquals("Size is 1", 1, client1.getProjectIndex(testUser1).getProjectRef().size());
     // Construct the project representation that is owned by testUser1.
     Project project = makeProject(testProject1);
     project.getInvitations().getInvitation().add(testUser2);
     // PUT it to the server.
     client1.putProject(project);
+    // Ensure that now there are two projects for testUser1 and for testUser2
+    assertEquals("Size is 2", 2, client1.getProjectIndex(testUser1).getProjectRef().size());
+    assertEquals("Size is 2a", 2, client2.getProjectIndex(testUser2).getProjectRef().size());
     // Ensure that testUser2 can retrieve it.
     project = client2.getProject(testUser1, testProject1);
     // Make sure that testUser2 is invited.
@@ -119,6 +127,8 @@ public class TestProjectMembershipRestApi extends SensorBaseRestApiHelper {
     assertTrue("Checking invitation", project.getInvitations().getInvitation().contains(testUser2));
     // Decline the invitation.
     client2.reply(testUser1, testProject1, DECLINE);
+    // Check that they only have one project now.
+    assertEquals("Size is 1a", 1, client2.getProjectIndex(testUser2).getProjectRef().size());
     // Now check to see that testUser2 is not a member nor on invitees list.
     project = client1.getProject(testUser1, testProject1);
     assertFalse("Checking members 3", project.getMembers().getMember().contains(testUser2));

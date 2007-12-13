@@ -849,14 +849,17 @@ public class SensorBaseClient {
   }
 
   /**
-   * Returns the index of all Projects from this server for this user.
+   * Returns the index of all Projects from this server associated with this user.
+   * This includes the projects that this user owns, that this user is a member of,
+   * and that this user has been invited to participate in as a member (but has not
+   * yet accepted or declined.)
    * 
    * @param email The user email.
    * @return The ProjectIndex instance.
    * @throws SensorBaseClientException If the server does not return the Index or returns an index
    *         that cannot be marshalled into Java ProjectIndex instance.
    */
-  public synchronized ProjectIndex getUserProjectIndex(String email)
+  public synchronized ProjectIndex getProjectIndex(String email)
       throws SensorBaseClientException {
     Response response = makeRequest(Method.GET, projectsUri + email, null);
     ProjectIndex index;
@@ -872,6 +875,23 @@ public class SensorBaseClient {
     }
     return index;
   }
+  
+//  /**
+//   * Returns the index of all Projects from this server associated with this user.
+//   * This includes the projects that this user owns, that this user is a member of,
+//   * and that this user has been invited to participate in as a member (but has not
+//   * yet accepted or declined.)
+//   * 
+//   * @param email The user email.
+//   * @return The ProjectIndex instance.
+//   * @throws SensorBaseClientException If the server does not return the Index or returns an index
+//   *         that cannot be marshalled into Java ProjectIndex instance.
+//   * @deprecated use getProjectIndex(String) instead.
+//   */
+//  public synchronized ProjectIndex getUserProjectIndex(String email) throws
+//  SensorBaseClientException {
+//    return getProjectIndex(email);
+//  }
 
   /**
    * Returns the Project from this server.

@@ -15,6 +15,8 @@ import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 
 import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -98,6 +100,19 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
     assertEquals("Bad email", testPost, user.getEmail());
     // Clean up, get rid of this user. 
     client.deleteUser(testPost);
+  }
+  
+  
+  /**
+   * Tests multiple register users. 
+   * @throws Exception If problems occur.
+   */
+  @Ignore
+  @Test public void registerUsers() throws Exception {
+    String testPost = "TestRegisterUser@" + server.getServerProperties().get(TEST_DOMAIN_KEY);
+    for (int i = 0; i < 5; i++) {
+      SensorBaseClient.registerUser(getHostName(), testPost);
+    }
   }
   
   /**

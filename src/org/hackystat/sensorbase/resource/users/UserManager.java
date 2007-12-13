@@ -21,7 +21,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.utilities.tstamp.Tstamp;
-import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.Property;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -38,6 +37,13 @@ import org.w3c.dom.Document;
 /**
  * Manages access to the User resources. 
  * Loads default definitions if available. 
+ * 
+ * Thread Safety Note: This class must NOT invoke any methods from ProjectManager or 
+ * SensorDataManager in order to avoid potential deadlock. (ProjectManager and SensorDataManager
+ * both invoke methods from UserManager, so if UserManager were to invoke a method from
+ * either of these two classes, then we would have multiple locks not being acquired in the
+ * same order, which produces the potential for deadlock.)
+ *   
  * @author Philip Johnson
  */
 public class UserManager {
@@ -360,9 +366,6 @@ public class UserManager {
           email : PasswordGenerator.make();
     user.setPassword(password);
     this.putUser(user);
-    ProjectManager projectManager = 
-      (ProjectManager)this.server.getContext().getAttributes().get("ProjectManager");
-    projectManager.addDefaultProject(user);
     return user;
   } 
   

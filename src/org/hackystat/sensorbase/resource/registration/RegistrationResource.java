@@ -82,6 +82,7 @@ public class RegistrationResource extends SensorBaseResource {
       return;
     }
     User user = super.userManager.registerUser(email);
+    super.projectManager.addDefaultProject(user);
     // Now send the email to the (non-test) user and the hackystat admin.
     Mailer mailer = Mailer.getInstance();
     String emailSubject = "Hackystat Version 8 Registration";

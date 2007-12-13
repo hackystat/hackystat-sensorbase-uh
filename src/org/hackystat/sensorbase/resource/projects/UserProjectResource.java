@@ -241,11 +241,6 @@ public class UserProjectResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
       return;
     }    
-    if (!super.userManager.isAdmin(this.authUser) && 
-        !super.projectManager.hasProject(this.user, this.projectName)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "User is not Owner or Admin.");
-      return;
-    }
     // Otherwise, delete it and return successs.
     super.projectManager.deleteProject(this.user, this.projectName);      
     getResponse().setStatus(Status.SUCCESS_OK);
