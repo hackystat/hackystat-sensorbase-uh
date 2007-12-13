@@ -12,6 +12,10 @@ import org.hackystat.sensorbase.client.SensorBaseClient;
 import org.hackystat.sensorbase.resource.projects.jaxb.Invitations;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.Properties;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.Property;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.hackystat.utilities.tstamp.Tstamp;
 import org.junit.BeforeClass;
@@ -137,9 +141,35 @@ public class TestProjectMembershipRestApi extends SensorBaseRestApiHelper {
     client1.deleteProject(testUser1, testProject1);
   }
   
+  /**
+   * Tests that we can send data from two different users and retrieve it as part of a joint 
+   * project.
+   * @throws Exception If problems occur.
+   */
+  @Test
+  public void testMultiProjectMemberDataAccess() throws Exception {
+    // Make the project and a member.
+    Project project = makeProject(testProject1);
+    client1.putProject(project);
+    client1.invite(testUser2, testProject1);
+    client2.reply(testUser1, testProject1, ACCEPT);
+    // Delete all preexisting sensor data from these test users. 
+    client1.deleteSensorData(testUser1);
+    client2.deleteSensorData(testUser2);
+    // Now have each client send some data.
+    client1.putSensorData(makeSensorData(testUser1));
+    client2.putSensorData(makeSensorData(testUser2));
+    // Now check to see that there are two sensor data instances associated with this project.
+    SensorDataIndex index1 = client1.getProjectSensorData(testUser1, testProject1);
+    assertEquals("Checking index1", 2, index1.getSensorDataRef().size());
+    SensorDataIndex index2 = client2.getProjectSensorData(testUser1, testProject1);
+    assertEquals("Checking index2", 2, index2.getSensorDataRef().size());
+  }
+  
   
   /**
    * Create a project with the passed name.
+   * The project start time is now, and the end time is one day from now.
    * @param projectName The name of the Project.
    * @return The newly created Project representation.
    */
@@ -151,13 +181,37 @@ public class TestProjectMembershipRestApi extends SensorBaseRestApiHelper {
     project.setDescription("Test Project Invitation");
     XMLGregorianCalendar tstamp = Tstamp.makeTimestamp();
     project.setStartTime(tstamp);
-    project.setEndTime(tstamp);
+    project.setEndTime(Tstamp.incrementDays(tstamp, 1));
     UriPatterns uris = new UriPatterns();
     uris.getUriPattern().add("**/test/**");
     project.setUriPatterns(uris);
     Invitations invitations = new Invitations();
     project.setInvitations(invitations);
     return project;
+  }
+  
+  /**
+   * Creates a sample SensorData instance given a timestamp and a user. 
+   * @param user The user.
+   * @return The new SensorData instance. 
+   */
+  private SensorData makeSensorData(String user) {
+    String sdt = "TestSdt";
+    SensorData data = new SensorData();
+    String tool = "Subversion";
+    data.setTool(tool);
+    data.setOwner(user);
+    data.setSensorDataType(sdt);
+    data.setTimestamp(Tstamp.makeTimestamp());
+    data.setResource("file://foo/bar/baz.txt");
+    data.setRuntime(Tstamp.makeTimestamp());
+    Property property = new Property();
+    property.setKey("SampleField");
+    property.setValue("The test value for Sample Field");
+    Properties properties = new Properties();
+    properties.getProperty().add(property);
+    data.setProperties(properties);
+    return data;
   }
 
  

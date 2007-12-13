@@ -64,14 +64,14 @@ public abstract class DbImplementation {
   /**
    * Returns an XML SensorDataIndex representing the SensorData for the given user between
    * start and end time whose resource string matches at least one of the UriPatterns.
-   * @param user The user whose SensorData will be returned.
+   * @param users The list of users whose SensorData will be returned.
    * @param startTime The earliest Sensor Data to be returned.
    * @param endTime The latest SensorData to be returned.
    * @param uriPatterns At least one UriPattern must match the SensorData resource field.
    * @param sdt The SDT of interest, or null if data from all SDTs should be retrieved.
    * @return An XML String containing a SensorDataIndex of matching SensorData. 
    */
-  public abstract String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
+  public abstract String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime, List<UriPattern> uriPatterns, String sdt);
   
   /**

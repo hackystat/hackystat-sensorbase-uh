@@ -57,7 +57,7 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
    * Returns an error condition if:
    * <ul>
    * <li> The user does not exist.
-   * <li> The authenticated user is not the uriUser or the Admin. 
+   * <li> The authenticated user is not the uriUser or the Admin or a member of the project.
    * <li> The Project Resource named by the User and Project does not exist.
    * <li> startTime or endTime is not an XMLGregorianCalendar string.
    * <li> One or the other but not both of startTime and endTime is provided.
@@ -69,17 +69,22 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
+    // The user must be defined.
     if (this.user == null) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");
       return null;
-    }  
-    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
-      return null;
-    }
-    // If this User/Project pair does not exist, return an error.
+    } 
+    // The project must be defined.
     if (!super.projectManager.hasProject(this.user, this.projectName)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown project");
+      return null;
+    }
+    // The authorized user must be an admin, or the project owner, or a member, or invitee.
+    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser) &&
+        !super.projectManager.isMember(this.user, this.projectName, this.authUser) &&
+        !super.projectManager.isInvited(this.user, this.projectName, this.authUser)) {
+      String msg = "User " + this.authUser + "is not authorized to obtain data from this Project.";
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
     }
     // If startTime or endTime is provided, but is not an XMLGregorianCalendar, then return error.

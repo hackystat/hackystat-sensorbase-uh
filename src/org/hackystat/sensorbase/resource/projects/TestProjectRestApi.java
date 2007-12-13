@@ -3,6 +3,7 @@ package org.hackystat.sensorbase.resource.projects;
 import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 import org.hackystat.sensorbase.client.SensorBaseClient;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
@@ -12,7 +13,6 @@ import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.hackystat.utilities.tstamp.Tstamp;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -183,7 +183,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
    * 
    * @throws Exception If problems occur.
    */
-  @Ignore
+  //@Ignore
   @Test
   public void putMultipleProject() throws Exception {
     // First, create a sample Project.
@@ -200,31 +200,22 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     uris.getUriPattern().add("**/test/**");
     project.setUriPatterns(uris);
 
-    // Create the TestUser client, check authentication, and post the Project to
-    // the server.
-    // Create an admin client and check authentication.
+    // Create the TestUser client.
     SensorBaseClient client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);
     client.authenticate();
-    // Get the index of all Projects.
-    ProjectIndex pIndex1 = client.getProjectIndex();
-    int numProjectsBefore = pIndex1.getProjectRef().size();
+    // Now add a project.
     client.putProject(project);
-    ProjectIndex pIndex2 = client.getProjectIndex();
-    int numProjectsAfter = pIndex2.getProjectRef().size();
-    assertEquals("Checking ProjectIndex after adding duplicate Project", numProjectsBefore,
-        numProjectsAfter);
-    pIndex2 = client.getProjectIndex(testUser);
-    numProjectsAfter = pIndex2.getProjectRef().size();
-    assertEquals("2nd check ProjectIndex after adding duplicate Project", numProjectsBefore,
-        numProjectsAfter);
-    int forLoopCount = 0;
-    for (ProjectRef ref : pIndex2.getProjectRef()) {
-      ref.getHref(); // eliminate warning associated with unused 'ref' variable.
-      forLoopCount++;
-    }
-    assertEquals("For loop count check", forLoopCount, numProjectsBefore);
-
+    // Get the size after adding.
+    int before = client.getProjectIndex().getProjectRef().size();
+    // Now add it again.
+    client.putProject(project);
+    // Get the size after adding.
+    int after = client.getProjectIndex().getProjectRef().size();
+    // Check that the size hasn't changed.
+    assertEquals("Checking ProjectIndex after adding duplicate Project", before, after);
   }
+  
+
 
   /**
    * Tests that after creating a new User, it has a Default Project.

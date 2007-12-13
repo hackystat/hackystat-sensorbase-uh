@@ -995,15 +995,15 @@ public class SensorBaseClient {
   /**
    * Returns a SensorDataIndex representing all the SensorData for this Project.
    * 
-   * @param email The user email.
+   * @param owner The project owner's email.
    * @param projectName The project name.
    * @return A SensorDataIndex.
    * @throws SensorBaseClientException If the server does not return success or returns something
    *         that cannot be marshalled into Java SensorDataIndex instance.
    */
-  public synchronized SensorDataIndex getProjectSensorData(String email, String projectName)
+  public synchronized SensorDataIndex getProjectSensorData(String owner, String projectName)
       throws SensorBaseClientException {
-    Response response = makeRequest(Method.GET, projectsUri + userEmail + "/" + projectName
+    Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName
         + "/sensordata", null);
     SensorDataIndex index;
     if (!response.getStatus().isSuccess()) {
@@ -1022,7 +1022,7 @@ public class SensorBaseClient {
   /**
    * Returns a SensorDataIndex representing the SensorData for the Project during the time interval.
    * 
-   * @param email The user email.
+   * @param owner The project owner's email.
    * @param projectName The project name.
    * @param startTime The start time.
    * @param endTime The end time.
@@ -1030,10 +1030,10 @@ public class SensorBaseClient {
    * @throws SensorBaseClientException If the server does not return success or returns something
    *         that cannot be marshalled into Java SensorDataIndex instance.
    */
-  public synchronized SensorDataIndex getProjectSensorData(String email, String projectName,
+  public synchronized SensorDataIndex getProjectSensorData(String owner, String projectName,
       XMLGregorianCalendar startTime, XMLGregorianCalendar endTime)
       throws SensorBaseClientException {
-    Response response = makeRequest(Method.GET, projectsUri + userEmail + "/" + projectName
+    Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName
         + "/sensordata?startTime=" + startTime + "&endTime=" + endTime, null);
     SensorDataIndex index;
     if (!response.getStatus().isSuccess()) {
@@ -1053,7 +1053,7 @@ public class SensorBaseClient {
    * Returns a SensorDataIndex representing the SensorData with the given SDT for the Project 
    * during the time interval.
    * 
-   * @param email The user email.
+   * @param owner The project owner's email.
    * @param projectName The project name.
    * @param startTime The start time.
    * @param endTime The end time.
@@ -1062,10 +1062,10 @@ public class SensorBaseClient {
    * @throws SensorBaseClientException If the server does not return success or returns something
    *         that cannot be marshalled into Java SensorDataIndex instance.
    */
-  public synchronized SensorDataIndex getProjectSensorData(String email, String projectName,
+  public synchronized SensorDataIndex getProjectSensorData(String owner, String projectName,
       XMLGregorianCalendar startTime, XMLGregorianCalendar endTime, String sdt)
       throws SensorBaseClientException {
-    Response response = makeRequest(Method.GET, projectsUri + userEmail + "/" + projectName
+    Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName
         + "/sensordata?sdt=" + sdt + "&startTime=" + startTime + "&endTime=" + endTime, null);
     SensorDataIndex index;
     if (!response.getStatus().isSuccess()) {
@@ -1108,9 +1108,9 @@ public class SensorBaseClient {
   }
 
   /**
-   * Deletes the Project given its user and projectName.
+   * Deletes the Project given its owner and projectName.
    * 
-   * @param email The email of the User.
+   * @param email The email of the project owner.
    * @param projectName The project name.
    * @throws SensorBaseClientException If the server does not indicate success.
    */

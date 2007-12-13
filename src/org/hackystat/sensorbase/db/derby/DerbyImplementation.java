@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -24,6 +25,7 @@ import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
 import org.hackystat.sensorbase.uripattern.UriPattern;
+
 
 /**
  * Provides a implementation of DbImplementation using Derby in embedded mode.
@@ -62,7 +64,8 @@ public class DerbyImplementation extends DbImplementation {
   private static final String sdtEquals = " sdt = '";
   
   /** Required by PMD as above. */
-  private static final String andClause = "' AND ";
+  private static final String quoteAndClause = "' AND ";
+  private static final String andClause = " AND ";
   
   private static final String derbyError = "Derby: Error ";
 
@@ -338,34 +341,60 @@ public class DerbyImplementation extends DbImplementation {
   public String getSensorDataIndex(User user, String sdtName) {
     String st = 
       "SELECT XmlSensorDataRef FROM SensorData WHERE " 
-      + ownerEquals + user.getEmail() + andClause
+      + ownerEquals + user.getEmail() + quoteAndClause
       + " Sdt='" + sdtName + "'";
     return getIndex("SensorData", st);
   }
   
   /** {@inheritDoc} */
   @Override
-  public String getSensorDataIndex(User user, XMLGregorianCalendar startTime, 
+  public String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime, List<UriPattern> uriPatterns, String sdt) {
     String statement;
     
     if (sdt == null) { // Retrieve sensor data of all SDTs 
       statement =
         "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
-        + ownerEquals + user.getEmail() + andClause 
+        + constructOwnerClause(users)
+        + andClause 
         + " Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
         + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
     }
     else { // Retrieve sensor data of the specified SDT.
       statement = 
         "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
-        + ownerEquals + user.getEmail() + andClause  
-        + sdtEquals + sdt + andClause 
+        + constructOwnerClause(users)
+        + andClause  
+        + sdtEquals + sdt + quoteAndClause 
         + " Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
         + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
     }
+    
+    //System.out.println(statement);
         
     return getIndex("SensorData", statement);
+  }
+  
+  /**
+   * Constructs a clause of form ( OWNER = 'user1' [ OR OWNER = 'user2']* ). 
+   * @param users The list of users whose ownership is being searched for.
+   * @return The String to be used in the where clause to check for ownership.
+   */
+  private String constructOwnerClause(List<User> users) {
+    StringBuffer buff = new StringBuffer();
+    buff.append('(');
+    // Use old school iterator so we can do a hasNext() inside the loop.
+    for (Iterator<User> i = users.iterator(); i.hasNext(); ) {
+      User user = i.next();
+      buff.append(ownerEquals);
+      buff.append(user.getEmail());
+      buff.append('\'');
+      if (i.hasNext()) {
+        buff.append(" OR");
+      }
+    }
+    buff.append(") ");
+    return buff.toString();
   }
   
   /** {@inheritDoc} */
@@ -374,7 +403,7 @@ public class DerbyImplementation extends DbImplementation {
       XMLGregorianCalendar lastModEndTime) {
     String statement = 
       "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
-      + ownerEquals + user.getEmail() + andClause 
+      + ownerEquals + user.getEmail() + quoteAndClause 
       + " LastMod BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(lastModStartTime) + "') AND "
       + " TIMESTAMP('" + Tstamp.makeTimestamp(lastModEndTime) + "')";
     return getIndex("SensorData", statement);
@@ -393,7 +422,7 @@ public class DerbyImplementation extends DbImplementation {
       // 
       String statement = 
         "SELECT XmlSensorDataRef FROM SensorData WHERE "
-        + ownerEquals + user.getEmail() + andClause 
+        + ownerEquals + user.getEmail() + quoteAndClause 
         + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
       server.getLogger().fine(executeQueryMsg + statement);
       s = conn.prepareStatement(statement);
@@ -424,7 +453,7 @@ public class DerbyImplementation extends DbImplementation {
   public void deleteSensorData(User user, XMLGregorianCalendar timestamp) {
     String statement =
       "DELETE FROM SensorData WHERE "
-      + ownerEquals + user.getEmail() + andClause 
+      + ownerEquals + user.getEmail() + quoteAndClause 
       + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
     deleteResource(statement);
   }
@@ -443,7 +472,7 @@ public class DerbyImplementation extends DbImplementation {
   public String getSensorData(User user, XMLGregorianCalendar timestamp) {
     String statement =
       "SELECT XmlSensorData FROM SensorData WHERE "
-      + ownerEquals + user.getEmail() + andClause 
+      + ownerEquals + user.getEmail() + quoteAndClause 
       + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
     return getResource("SensorData", statement);
   }
@@ -692,7 +721,7 @@ public class DerbyImplementation extends DbImplementation {
   public void deleteProject(User owner, String projectName) {
     String statement =
       "DELETE FROM Project WHERE "
-      + ownerEquals + owner.getEmail() + andClause 
+      + ownerEquals + owner.getEmail() + quoteAndClause 
       + " ProjectName = '" + projectName + "'";
     deleteResource(statement);
   }
@@ -702,7 +731,7 @@ public class DerbyImplementation extends DbImplementation {
   public String getProject(User owner, String projectName) {
     String statement =
       "SELECT XmlProject FROM Project WHERE "
-      + ownerEquals + owner.getEmail() + andClause 
+      + ownerEquals + owner.getEmail() + quoteAndClause 
       + " ProjectName ='" + projectName + "'";
     return getResource("Project", statement);
   }

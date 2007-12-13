@@ -5,6 +5,7 @@ import static org.hackystat.sensorbase.server.ServerProperties.XML_DIR_KEY;
 import java.io.File;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -75,10 +76,10 @@ public class ProjectManager {
     new HashMap<User, Map<String, Project>>(projectSetSize);
   
   /** The in-memory repository of Project XML strings, keyed by Project. */
-  private Map<Project, String> project2xml = new HashMap<Project, String>(projectSetSize);
+  private ProjectStringMap project2xml = new ProjectStringMap();
   
   /** The in-memory repository of ProjectRef XML strings, keyed by Project. */
-  private Map<Project, String> project2ref = new HashMap<Project, String>(projectSetSize);  
+  private ProjectStringMap project2ref = new ProjectStringMap();  
   
   /** The http string identifier. */
   private static final String http = "http";
@@ -400,9 +401,11 @@ public class ProjectManager {
   public synchronized void deleteProject(User owner, String projectName) {
     if (this.owner2name2project.containsKey(owner)) {
       Project project = this.owner2name2project.get(owner).get(projectName);
-      this.project2ref.remove(project);
-      this.project2xml.remove(project);
-      this.owner2name2project.get(owner).remove(projectName);
+      if (project != null) {
+        this.project2ref.remove(project);
+        this.project2xml.remove(project);
+        this.owner2name2project.get(owner).remove(projectName);
+      }
     }
     this.dbManager.deleteProject(owner, projectName);
   }
@@ -438,7 +441,8 @@ public class ProjectManager {
  
  
   /**
-   * Returns an XML SensorDataIndex String for all data associated with this User and Project.
+   * Returns an XML SensorDataIndex String for all data associated with the Project
+   * owned by this user.
    * Assumes that the owner and projectName define an existing Project.
    * @param owner The User that owns this Project.
    * @param projectName the Project name.
@@ -453,7 +457,15 @@ public class ProjectManager {
     XMLGregorianCalendar startTime = project.getStartTime();
     XMLGregorianCalendar endTime = project.getEndTime();
     List<UriPattern> patterns = UriPattern.getPatterns(project);
-    return sensorDataManager.getSensorDataIndex(owner, startTime, endTime, patterns, null);
+    List<User> users = new ArrayList<User>();
+    users.add(owner);
+    for (String member : project.getMembers().getMember()) {
+      User user = userManager.getUser(member);
+      if (user != null) {
+        users.add(user);
+      }
+    }
+    return sensorDataManager.getSensorDataIndex(users, startTime, endTime, patterns, null);
   }
   
 
@@ -487,7 +499,15 @@ public class ProjectManager {
     endTime = (Tstamp.lessThan(endTime, project.getEndTime())) ? 
         endTime : project.getEndTime();
     List<UriPattern> patterns = UriPattern.getPatterns(project);
-    return sensorDataManager.getSensorDataIndex(owner, startTime, endTime, patterns, sdt);
+    List<User> users = new ArrayList<User>();
+    users.add(owner);
+    for (String member : project.getMembers().getMember()) {
+      User user = userManager.getUser(member);
+      if (user != null) {
+        users.add(user);
+      }
+    }
+    return sensorDataManager.getSensorDataIndex(users, startTime, endTime, patterns, sdt);
     
   }
   
