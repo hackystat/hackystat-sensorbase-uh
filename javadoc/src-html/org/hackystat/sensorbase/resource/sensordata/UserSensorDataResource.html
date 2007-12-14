@@ -293,30 +293,48 @@
 <FONT color="green">290</FONT>       * &lt;li&gt; The timestamp must be well-formed.<a name="line.290"></a>
 <FONT color="green">291</FONT>       * &lt;li&gt; The authenticated user must be the uriUser or the admin. <a name="line.291"></a>
 <FONT color="green">292</FONT>       * &lt;/ul&gt;<a name="line.292"></a>
-<FONT color="green">293</FONT>       */<a name="line.293"></a>
-<FONT color="green">294</FONT>      @Override<a name="line.294"></a>
-<FONT color="green">295</FONT>      public void delete() {<a name="line.295"></a>
-<FONT color="green">296</FONT>        // If this User does not exist, return an error.<a name="line.296"></a>
-<FONT color="green">297</FONT>        if (this.user == null) {<a name="line.297"></a>
-<FONT color="green">298</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.uriUser);<a name="line.298"></a>
-<FONT color="green">299</FONT>          return;<a name="line.299"></a>
-<FONT color="green">300</FONT>        } <a name="line.300"></a>
-<FONT color="green">301</FONT>        if (!super.userManager.isAdmin(this.uriUser) &amp;&amp; !this.uriUser.equals(this.authUser)) {<a name="line.301"></a>
-<FONT color="green">302</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);<a name="line.302"></a>
-<FONT color="green">303</FONT>          return;<a name="line.303"></a>
-<FONT color="green">304</FONT>        }<a name="line.304"></a>
-<FONT color="green">305</FONT>        XMLGregorianCalendar tstamp;<a name="line.305"></a>
-<FONT color="green">306</FONT>        try {<a name="line.306"></a>
-<FONT color="green">307</FONT>          tstamp = Tstamp.makeTimestamp(this.timestamp);<a name="line.307"></a>
-<FONT color="green">308</FONT>        }<a name="line.308"></a>
-<FONT color="green">309</FONT>        catch (Exception e) { <a name="line.309"></a>
-<FONT color="green">310</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad timestamp " + this.timestamp);<a name="line.310"></a>
-<FONT color="green">311</FONT>          return;<a name="line.311"></a>
-<FONT color="green">312</FONT>        }<a name="line.312"></a>
-<FONT color="green">313</FONT>        super.sensorDataManager.deleteData(this.user, tstamp);      <a name="line.313"></a>
-<FONT color="green">314</FONT>        getResponse().setStatus(Status.SUCCESS_OK);<a name="line.314"></a>
-<FONT color="green">315</FONT>      }<a name="line.315"></a>
-<FONT color="green">316</FONT>    }<a name="line.316"></a>
+<FONT color="green">293</FONT>       * If not timestamp is supplied, then all sensor data will be deleted if the user is the<a name="line.293"></a>
+<FONT color="green">294</FONT>       * test user. <a name="line.294"></a>
+<FONT color="green">295</FONT>       */<a name="line.295"></a>
+<FONT color="green">296</FONT>      @Override<a name="line.296"></a>
+<FONT color="green">297</FONT>      public void delete() {<a name="line.297"></a>
+<FONT color="green">298</FONT>        // If this User does not exist, return an error.<a name="line.298"></a>
+<FONT color="green">299</FONT>        if (this.user == null) {<a name="line.299"></a>
+<FONT color="green">300</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.uriUser);<a name="line.300"></a>
+<FONT color="green">301</FONT>          return;<a name="line.301"></a>
+<FONT color="green">302</FONT>        } <a name="line.302"></a>
+<FONT color="green">303</FONT>        if (!super.userManager.isAdmin(this.uriUser) &amp;&amp; !this.uriUser.equals(this.authUser)) {<a name="line.303"></a>
+<FONT color="green">304</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);<a name="line.304"></a>
+<FONT color="green">305</FONT>          return;<a name="line.305"></a>
+<FONT color="green">306</FONT>        }<a name="line.306"></a>
+<FONT color="green">307</FONT>        // If timestamp is null, then delete all data if a test user is deleting its own data.<a name="line.307"></a>
+<FONT color="green">308</FONT>        if (this.timestamp == null) {<a name="line.308"></a>
+<FONT color="green">309</FONT>          if ((this.authUser != null) &amp;&amp;<a name="line.309"></a>
+<FONT color="green">310</FONT>              this.authUser.equals(this.uriUser) &amp;&amp;<a name="line.310"></a>
+<FONT color="green">311</FONT>              userManager.isTestUser(this.user)) { <a name="line.311"></a>
+<FONT color="green">312</FONT>            super.sensorDataManager.deleteData(this.user);<a name="line.312"></a>
+<FONT color="green">313</FONT>            getResponse().setStatus(Status.SUCCESS_OK);<a name="line.313"></a>
+<FONT color="green">314</FONT>            return;<a name="line.314"></a>
+<FONT color="green">315</FONT>          }<a name="line.315"></a>
+<FONT color="green">316</FONT>          else {<a name="line.316"></a>
+<FONT color="green">317</FONT>            String errMsg = "Can't delete all sensor data from a non-test user.";<a name="line.317"></a>
+<FONT color="green">318</FONT>            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, errMsg);<a name="line.318"></a>
+<FONT color="green">319</FONT>            return;<a name="line.319"></a>
+<FONT color="green">320</FONT>          }<a name="line.320"></a>
+<FONT color="green">321</FONT>        }<a name="line.321"></a>
+<FONT color="green">322</FONT>        <a name="line.322"></a>
+<FONT color="green">323</FONT>        XMLGregorianCalendar tstamp;<a name="line.323"></a>
+<FONT color="green">324</FONT>        try {<a name="line.324"></a>
+<FONT color="green">325</FONT>          tstamp = Tstamp.makeTimestamp(this.timestamp);<a name="line.325"></a>
+<FONT color="green">326</FONT>          super.sensorDataManager.deleteData(this.user, tstamp);      <a name="line.326"></a>
+<FONT color="green">327</FONT>        }<a name="line.327"></a>
+<FONT color="green">328</FONT>        catch (Exception e) { <a name="line.328"></a>
+<FONT color="green">329</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad timestamp " + this.timestamp);<a name="line.329"></a>
+<FONT color="green">330</FONT>          return;<a name="line.330"></a>
+<FONT color="green">331</FONT>        }<a name="line.331"></a>
+<FONT color="green">332</FONT>        getResponse().setStatus(Status.SUCCESS_OK);<a name="line.332"></a>
+<FONT color="green">333</FONT>      }<a name="line.333"></a>
+<FONT color="green">334</FONT>    }<a name="line.334"></a>
 
 
 

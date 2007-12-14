@@ -18,141 +18,156 @@
 <FONT color="green">015</FONT>    import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;<a name="line.15"></a>
 <FONT color="green">016</FONT>    <a name="line.16"></a>
 <FONT color="green">017</FONT>    import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;<a name="line.17"></a>
-<FONT color="green">018</FONT>    import org.junit.Test;<a name="line.18"></a>
-<FONT color="green">019</FONT>    <a name="line.19"></a>
-<FONT color="green">020</FONT>    <a name="line.20"></a>
-<FONT color="green">021</FONT>    /**<a name="line.21"></a>
-<FONT color="green">022</FONT>     * Tests the SensorBase REST API for Users and User resources.<a name="line.22"></a>
-<FONT color="green">023</FONT>     * @author Philip M. Johnson<a name="line.23"></a>
-<FONT color="green">024</FONT>     */<a name="line.24"></a>
-<FONT color="green">025</FONT>    public class TestUsersRestApi extends SensorBaseRestApiHelper {<a name="line.25"></a>
-<FONT color="green">026</FONT>    <a name="line.26"></a>
-<FONT color="green">027</FONT>      /** The TestUser user email. */<a name="line.27"></a>
-<FONT color="green">028</FONT>      private String testUser = "TestUser@hackystat.org";<a name="line.28"></a>
-<FONT color="green">029</FONT>    <a name="line.29"></a>
-<FONT color="green">030</FONT>    <a name="line.30"></a>
-<FONT color="green">031</FONT>      /**<a name="line.31"></a>
-<FONT color="green">032</FONT>       * Test that GET host/sensorbase/users returns an index containing TestUser and<a name="line.32"></a>
-<FONT color="green">033</FONT>       * that the HREFs are OK. <a name="line.33"></a>
-<FONT color="green">034</FONT>       * @throws Exception If problems occur.<a name="line.34"></a>
-<FONT color="green">035</FONT>       */<a name="line.35"></a>
-<FONT color="green">036</FONT>      @Test public void getUsersIndex() throws Exception {  <a name="line.36"></a>
-<FONT color="green">037</FONT>        // Create an admin client and check authentication.<a name="line.37"></a>
-<FONT color="green">038</FONT>        SensorBaseClient client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);<a name="line.38"></a>
-<FONT color="green">039</FONT>        client.authenticate();<a name="line.39"></a>
-<FONT color="green">040</FONT>        // Get the index of all users. <a name="line.40"></a>
-<FONT color="green">041</FONT>        UserIndex userIndex = client.getUserIndex();<a name="line.41"></a>
-<FONT color="green">042</FONT>        // Make sure that we can iterate through the Users, find the test user, and dereference hrefs. <a name="line.42"></a>
-<FONT color="green">043</FONT>        boolean foundTestUser = false;<a name="line.43"></a>
-<FONT color="green">044</FONT>        for (UserRef ref : userIndex.getUserRef()) {<a name="line.44"></a>
-<FONT color="green">045</FONT>          if (testUser.equals(ref.getEmail())) {<a name="line.45"></a>
-<FONT color="green">046</FONT>            foundTestUser = true;<a name="line.46"></a>
-<FONT color="green">047</FONT>          }<a name="line.47"></a>
-<FONT color="green">048</FONT>          // Make sure the href is OK. <a name="line.48"></a>
-<FONT color="green">049</FONT>          client.getUser(ref);<a name="line.49"></a>
-<FONT color="green">050</FONT>        }<a name="line.50"></a>
-<FONT color="green">051</FONT>        assertTrue("Checking that we found the TestUser", foundTestUser);<a name="line.51"></a>
-<FONT color="green">052</FONT>      }<a name="line.52"></a>
-<FONT color="green">053</FONT>      <a name="line.53"></a>
-<FONT color="green">054</FONT>      /**<a name="line.54"></a>
-<FONT color="green">055</FONT>       * Test that the SensorBaseClient.isHost() method operates correctly.<a name="line.55"></a>
-<FONT color="green">056</FONT>       * @throws Exception If problems occur.<a name="line.56"></a>
-<FONT color="green">057</FONT>       */<a name="line.57"></a>
-<FONT color="green">058</FONT>      @Test public void isHost() throws Exception {<a name="line.58"></a>
-<FONT color="green">059</FONT>        assertTrue("Checking isHost() with sensorbase", SensorBaseClient.isHost(getHostName()));<a name="line.59"></a>
-<FONT color="green">060</FONT>        assertFalse("Checking isHost() with bogus URL", SensorBaseClient.isHost("http://Foo"));<a name="line.60"></a>
-<FONT color="green">061</FONT>      }<a name="line.61"></a>
-<FONT color="green">062</FONT>      <a name="line.62"></a>
-<FONT color="green">063</FONT>      /**<a name="line.63"></a>
-<FONT color="green">064</FONT>       * Test that the SensorBaseClient.isRegistered() method operates correctly.<a name="line.64"></a>
-<FONT color="green">065</FONT>       * @throws Exception If problems occur.<a name="line.65"></a>
-<FONT color="green">066</FONT>       */<a name="line.66"></a>
-<FONT color="green">067</FONT>      @Test public void isRegistered() throws Exception {<a name="line.67"></a>
-<FONT color="green">068</FONT>        assertTrue("OK register", SensorBaseClient.isRegistered(getHostName(), testUser, testUser));<a name="line.68"></a>
-<FONT color="green">069</FONT>        assertFalse("Bad register", SensorBaseClient.isRegistered(getHostName(), "foo", "bar"));<a name="line.69"></a>
-<FONT color="green">070</FONT>      }<a name="line.70"></a>
-<FONT color="green">071</FONT>    <a name="line.71"></a>
-<FONT color="green">072</FONT>      /**<a name="line.72"></a>
-<FONT color="green">073</FONT>       * Test that GET host/sensorbase/users/TestUser@hackystat.org returns the TestUser test user. <a name="line.73"></a>
-<FONT color="green">074</FONT>       * @throws Exception If problems occur.<a name="line.74"></a>
-<FONT color="green">075</FONT>       */<a name="line.75"></a>
-<FONT color="green">076</FONT>      @Test public void getUser() throws Exception {<a name="line.76"></a>
-<FONT color="green">077</FONT>        // Create the TestUser client and check authentication.<a name="line.77"></a>
-<FONT color="green">078</FONT>        SensorBaseClient client = new SensorBaseClient(getHostName(), testUser, testUser);<a name="line.78"></a>
-<FONT color="green">079</FONT>        client.authenticate();<a name="line.79"></a>
-<FONT color="green">080</FONT>        // Retrieve the TestUser User resource and test a couple of fields.<a name="line.80"></a>
-<FONT color="green">081</FONT>        User user = client.getUser(testUser);<a name="line.81"></a>
-<FONT color="green">082</FONT>        assertEquals("Bad email", testUser, user.getEmail());<a name="line.82"></a>
-<FONT color="green">083</FONT>        assertEquals("Bad password", testUser, user.getPassword());<a name="line.83"></a>
-<FONT color="green">084</FONT>      }<a name="line.84"></a>
-<FONT color="green">085</FONT>      <a name="line.85"></a>
-<FONT color="green">086</FONT>      /**<a name="line.86"></a>
-<FONT color="green">087</FONT>       * Tests the POST method that registers a new user. <a name="line.87"></a>
-<FONT color="green">088</FONT>       * @throws Exception If problems occur.<a name="line.88"></a>
-<FONT color="green">089</FONT>       */<a name="line.89"></a>
-<FONT color="green">090</FONT>      @Test public void registerUser() throws Exception {<a name="line.90"></a>
-<FONT color="green">091</FONT>        // Register the TestPost@hackystat.org user.<a name="line.91"></a>
-<FONT color="green">092</FONT>        String testPost = "TestPost@" + server.getServerProperties().get(TEST_DOMAIN_KEY);<a name="line.92"></a>
-<FONT color="green">093</FONT>        SensorBaseClient.registerUser(getHostName(), testPost);<a name="line.93"></a>
-<FONT color="green">094</FONT>        // Now that TestPost is registered, see if we can retrieve him (her?) <a name="line.94"></a>
-<FONT color="green">095</FONT>        SensorBaseClient client = new SensorBaseClient(getHostName(), testPost, testPost);<a name="line.95"></a>
-<FONT color="green">096</FONT>        client.authenticate();<a name="line.96"></a>
-<FONT color="green">097</FONT>        User user = client.getUser(testPost);<a name="line.97"></a>
-<FONT color="green">098</FONT>        assertEquals("Bad email", testPost, user.getEmail());<a name="line.98"></a>
-<FONT color="green">099</FONT>        // Clean up, get rid of this user. <a name="line.99"></a>
-<FONT color="green">100</FONT>        client.deleteUser(testPost);<a name="line.100"></a>
-<FONT color="green">101</FONT>      }<a name="line.101"></a>
-<FONT color="green">102</FONT>      <a name="line.102"></a>
-<FONT color="green">103</FONT>      /**<a name="line.103"></a>
-<FONT color="green">104</FONT>       * Tests that a user can be deleted after creation. <a name="line.104"></a>
-<FONT color="green">105</FONT>       * @throws Exception If problems occur. <a name="line.105"></a>
-<FONT color="green">106</FONT>       */<a name="line.106"></a>
-<FONT color="green">107</FONT>      @Test public void deleteUser () throws Exception {<a name="line.107"></a>
-<FONT color="green">108</FONT>        // Register the TestPost@hackystat.org user<a name="line.108"></a>
-<FONT color="green">109</FONT>        String testPost = "TestPost@" + server.getServerProperties().get(TEST_DOMAIN_KEY);<a name="line.109"></a>
-<FONT color="green">110</FONT>        SensorBaseClient.registerUser(getHostName(), testPost);<a name="line.110"></a>
-<FONT color="green">111</FONT>        // Now that TestPost is registered, see if we can delete him (her?) <a name="line.111"></a>
-<FONT color="green">112</FONT>        SensorBaseClient client = new SensorBaseClient(getHostName(), testPost, testPost);<a name="line.112"></a>
-<FONT color="green">113</FONT>        client.deleteUser(testPost);<a name="line.113"></a>
-<FONT color="green">114</FONT>    <a name="line.114"></a>
-<FONT color="green">115</FONT>        //Ensure that TestPost is no longer found as a user.<a name="line.115"></a>
-<FONT color="green">116</FONT>        try {<a name="line.116"></a>
-<FONT color="green">117</FONT>          client.authenticate();<a name="line.117"></a>
-<FONT color="green">118</FONT>          fail("Authentication should not have succeeded.");<a name="line.118"></a>
-<FONT color="green">119</FONT>        }<a name="line.119"></a>
-<FONT color="green">120</FONT>        catch (SensorBaseClientException e) { //NOPMD<a name="line.120"></a>
-<FONT color="green">121</FONT>          // good, we got here. <a name="line.121"></a>
-<FONT color="green">122</FONT>          // We can't use the JUnit annotation idiom because the code above us could throw<a name="line.122"></a>
-<FONT color="green">123</FONT>          // the same exception type, and that would be a valid error. <a name="line.123"></a>
-<FONT color="green">124</FONT>        }<a name="line.124"></a>
-<FONT color="green">125</FONT>      }<a name="line.125"></a>
-<FONT color="green">126</FONT>      <a name="line.126"></a>
-<FONT color="green">127</FONT>      /**<a name="line.127"></a>
-<FONT color="green">128</FONT>       * Tests that a user can have their properties updated. <a name="line.128"></a>
-<FONT color="green">129</FONT>       * @throws Exception If problems occur. <a name="line.129"></a>
-<FONT color="green">130</FONT>       */<a name="line.130"></a>
-<FONT color="green">131</FONT>      @Test public void postUserProperties () throws Exception {<a name="line.131"></a>
-<FONT color="green">132</FONT>        // Register the TestPost@hackystat.org user.<a name="line.132"></a>
-<FONT color="green">133</FONT>        String testPost = "TestPost@" + server.getServerProperties().get(TEST_DOMAIN_KEY);<a name="line.133"></a>
-<FONT color="green">134</FONT>        SensorBaseClient.registerUser(getHostName(), testPost);<a name="line.134"></a>
-<FONT color="green">135</FONT>        // Now that TestPost is registered, see if we can update his properties. <a name="line.135"></a>
-<FONT color="green">136</FONT>        Properties properties = new Properties();<a name="line.136"></a>
-<FONT color="green">137</FONT>        Property property = new Property();<a name="line.137"></a>
-<FONT color="green">138</FONT>        property.setKey("testKey");<a name="line.138"></a>
-<FONT color="green">139</FONT>        property.setValue("testValue");<a name="line.139"></a>
-<FONT color="green">140</FONT>        properties.getProperty().add(property);<a name="line.140"></a>
-<FONT color="green">141</FONT>        <a name="line.141"></a>
-<FONT color="green">142</FONT>        SensorBaseClient client = <a name="line.142"></a>
-<FONT color="green">143</FONT>          new SensorBaseClient(getHostName(), testPost, testPost);<a name="line.143"></a>
-<FONT color="green">144</FONT>        client.updateUserProperties(testPost, properties);<a name="line.144"></a>
-<FONT color="green">145</FONT>    <a name="line.145"></a>
-<FONT color="green">146</FONT>        User user = client.getUser(testPost);<a name="line.146"></a>
-<FONT color="green">147</FONT>        Property theProperty = user.getProperties().getProperty().get(0);<a name="line.147"></a>
-<FONT color="green">148</FONT>        assertEquals("Got the property", "testValue", theProperty.getValue());<a name="line.148"></a>
-<FONT color="green">149</FONT>        // Clean up, get rid of this user. <a name="line.149"></a>
-<FONT color="green">150</FONT>        client.deleteUser(testPost);<a name="line.150"></a>
-<FONT color="green">151</FONT>      }<a name="line.151"></a>
-<FONT color="green">152</FONT>    }<a name="line.152"></a>
+<FONT color="green">018</FONT>    <a name="line.18"></a>
+<FONT color="green">019</FONT>    import org.junit.Ignore;<a name="line.19"></a>
+<FONT color="green">020</FONT>    import org.junit.Test;<a name="line.20"></a>
+<FONT color="green">021</FONT>    <a name="line.21"></a>
+<FONT color="green">022</FONT>    <a name="line.22"></a>
+<FONT color="green">023</FONT>    /**<a name="line.23"></a>
+<FONT color="green">024</FONT>     * Tests the SensorBase REST API for Users and User resources.<a name="line.24"></a>
+<FONT color="green">025</FONT>     * @author Philip M. Johnson<a name="line.25"></a>
+<FONT color="green">026</FONT>     */<a name="line.26"></a>
+<FONT color="green">027</FONT>    public class TestUsersRestApi extends SensorBaseRestApiHelper {<a name="line.27"></a>
+<FONT color="green">028</FONT>    <a name="line.28"></a>
+<FONT color="green">029</FONT>      /** The TestUser user email. */<a name="line.29"></a>
+<FONT color="green">030</FONT>      private String testUser = "TestUser@hackystat.org";<a name="line.30"></a>
+<FONT color="green">031</FONT>    <a name="line.31"></a>
+<FONT color="green">032</FONT>    <a name="line.32"></a>
+<FONT color="green">033</FONT>      /**<a name="line.33"></a>
+<FONT color="green">034</FONT>       * Test that GET host/sensorbase/users returns an index containing TestUser and<a name="line.34"></a>
+<FONT color="green">035</FONT>       * that the HREFs are OK. <a name="line.35"></a>
+<FONT color="green">036</FONT>       * @throws Exception If problems occur.<a name="line.36"></a>
+<FONT color="green">037</FONT>       */<a name="line.37"></a>
+<FONT color="green">038</FONT>      @Test public void getUsersIndex() throws Exception {  <a name="line.38"></a>
+<FONT color="green">039</FONT>        // Create an admin client and check authentication.<a name="line.39"></a>
+<FONT color="green">040</FONT>        SensorBaseClient client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);<a name="line.40"></a>
+<FONT color="green">041</FONT>        client.authenticate();<a name="line.41"></a>
+<FONT color="green">042</FONT>        // Get the index of all users. <a name="line.42"></a>
+<FONT color="green">043</FONT>        UserIndex userIndex = client.getUserIndex();<a name="line.43"></a>
+<FONT color="green">044</FONT>        // Make sure that we can iterate through the Users, find the test user, and dereference hrefs. <a name="line.44"></a>
+<FONT color="green">045</FONT>        boolean foundTestUser = false;<a name="line.45"></a>
+<FONT color="green">046</FONT>        for (UserRef ref : userIndex.getUserRef()) {<a name="line.46"></a>
+<FONT color="green">047</FONT>          if (testUser.equals(ref.getEmail())) {<a name="line.47"></a>
+<FONT color="green">048</FONT>            foundTestUser = true;<a name="line.48"></a>
+<FONT color="green">049</FONT>          }<a name="line.49"></a>
+<FONT color="green">050</FONT>          // Make sure the href is OK. <a name="line.50"></a>
+<FONT color="green">051</FONT>          client.getUser(ref);<a name="line.51"></a>
+<FONT color="green">052</FONT>        }<a name="line.52"></a>
+<FONT color="green">053</FONT>        assertTrue("Checking that we found the TestUser", foundTestUser);<a name="line.53"></a>
+<FONT color="green">054</FONT>      }<a name="line.54"></a>
+<FONT color="green">055</FONT>      <a name="line.55"></a>
+<FONT color="green">056</FONT>      /**<a name="line.56"></a>
+<FONT color="green">057</FONT>       * Test that the SensorBaseClient.isHost() method operates correctly.<a name="line.57"></a>
+<FONT color="green">058</FONT>       * @throws Exception If problems occur.<a name="line.58"></a>
+<FONT color="green">059</FONT>       */<a name="line.59"></a>
+<FONT color="green">060</FONT>      @Test public void isHost() throws Exception {<a name="line.60"></a>
+<FONT color="green">061</FONT>        assertTrue("Checking isHost() with sensorbase", SensorBaseClient.isHost(getHostName()));<a name="line.61"></a>
+<FONT color="green">062</FONT>        assertFalse("Checking isHost() with bogus URL", SensorBaseClient.isHost("http://Foo"));<a name="line.62"></a>
+<FONT color="green">063</FONT>      }<a name="line.63"></a>
+<FONT color="green">064</FONT>      <a name="line.64"></a>
+<FONT color="green">065</FONT>      /**<a name="line.65"></a>
+<FONT color="green">066</FONT>       * Test that the SensorBaseClient.isRegistered() method operates correctly.<a name="line.66"></a>
+<FONT color="green">067</FONT>       * @throws Exception If problems occur.<a name="line.67"></a>
+<FONT color="green">068</FONT>       */<a name="line.68"></a>
+<FONT color="green">069</FONT>      @Test public void isRegistered() throws Exception {<a name="line.69"></a>
+<FONT color="green">070</FONT>        assertTrue("OK register", SensorBaseClient.isRegistered(getHostName(), testUser, testUser));<a name="line.70"></a>
+<FONT color="green">071</FONT>        assertFalse("Bad register", SensorBaseClient.isRegistered(getHostName(), "foo", "bar"));<a name="line.71"></a>
+<FONT color="green">072</FONT>      }<a name="line.72"></a>
+<FONT color="green">073</FONT>    <a name="line.73"></a>
+<FONT color="green">074</FONT>      /**<a name="line.74"></a>
+<FONT color="green">075</FONT>       * Test that GET host/sensorbase/users/TestUser@hackystat.org returns the TestUser test user. <a name="line.75"></a>
+<FONT color="green">076</FONT>       * @throws Exception If problems occur.<a name="line.76"></a>
+<FONT color="green">077</FONT>       */<a name="line.77"></a>
+<FONT color="green">078</FONT>      @Test public void getUser() throws Exception {<a name="line.78"></a>
+<FONT color="green">079</FONT>        // Create the TestUser client and check authentication.<a name="line.79"></a>
+<FONT color="green">080</FONT>        SensorBaseClient client = new SensorBaseClient(getHostName(), testUser, testUser);<a name="line.80"></a>
+<FONT color="green">081</FONT>        client.authenticate();<a name="line.81"></a>
+<FONT color="green">082</FONT>        // Retrieve the TestUser User resource and test a couple of fields.<a name="line.82"></a>
+<FONT color="green">083</FONT>        User user = client.getUser(testUser);<a name="line.83"></a>
+<FONT color="green">084</FONT>        assertEquals("Bad email", testUser, user.getEmail());<a name="line.84"></a>
+<FONT color="green">085</FONT>        assertEquals("Bad password", testUser, user.getPassword());<a name="line.85"></a>
+<FONT color="green">086</FONT>      }<a name="line.86"></a>
+<FONT color="green">087</FONT>      <a name="line.87"></a>
+<FONT color="green">088</FONT>      /**<a name="line.88"></a>
+<FONT color="green">089</FONT>       * Tests the POST method that registers a new user. <a name="line.89"></a>
+<FONT color="green">090</FONT>       * @throws Exception If problems occur.<a name="line.90"></a>
+<FONT color="green">091</FONT>       */<a name="line.91"></a>
+<FONT color="green">092</FONT>      @Test public void registerUser() throws Exception {<a name="line.92"></a>
+<FONT color="green">093</FONT>        // Register the TestPost@hackystat.org user.<a name="line.93"></a>
+<FONT color="green">094</FONT>        String testPost = "TestPost@" + server.getServerProperties().get(TEST_DOMAIN_KEY);<a name="line.94"></a>
+<FONT color="green">095</FONT>        SensorBaseClient.registerUser(getHostName(), testPost);<a name="line.95"></a>
+<FONT color="green">096</FONT>        // Now that TestPost is registered, see if we can retrieve him (her?) <a name="line.96"></a>
+<FONT color="green">097</FONT>        SensorBaseClient client = new SensorBaseClient(getHostName(), testPost, testPost);<a name="line.97"></a>
+<FONT color="green">098</FONT>        client.authenticate();<a name="line.98"></a>
+<FONT color="green">099</FONT>        User user = client.getUser(testPost);<a name="line.99"></a>
+<FONT color="green">100</FONT>        assertEquals("Bad email", testPost, user.getEmail());<a name="line.100"></a>
+<FONT color="green">101</FONT>        // Clean up, get rid of this user. <a name="line.101"></a>
+<FONT color="green">102</FONT>        client.deleteUser(testPost);<a name="line.102"></a>
+<FONT color="green">103</FONT>      }<a name="line.103"></a>
+<FONT color="green">104</FONT>      <a name="line.104"></a>
+<FONT color="green">105</FONT>      <a name="line.105"></a>
+<FONT color="green">106</FONT>      /**<a name="line.106"></a>
+<FONT color="green">107</FONT>       * Tests multiple register users. <a name="line.107"></a>
+<FONT color="green">108</FONT>       * @throws Exception If problems occur.<a name="line.108"></a>
+<FONT color="green">109</FONT>       */<a name="line.109"></a>
+<FONT color="green">110</FONT>      @Ignore<a name="line.110"></a>
+<FONT color="green">111</FONT>      @Test public void registerUsers() throws Exception {<a name="line.111"></a>
+<FONT color="green">112</FONT>        String testPost = "TestRegisterUser@" + server.getServerProperties().get(TEST_DOMAIN_KEY);<a name="line.112"></a>
+<FONT color="green">113</FONT>        for (int i = 0; i &lt; 5; i++) {<a name="line.113"></a>
+<FONT color="green">114</FONT>          SensorBaseClient.registerUser(getHostName(), testPost);<a name="line.114"></a>
+<FONT color="green">115</FONT>        }<a name="line.115"></a>
+<FONT color="green">116</FONT>      }<a name="line.116"></a>
+<FONT color="green">117</FONT>      <a name="line.117"></a>
+<FONT color="green">118</FONT>      /**<a name="line.118"></a>
+<FONT color="green">119</FONT>       * Tests that a user can be deleted after creation. <a name="line.119"></a>
+<FONT color="green">120</FONT>       * @throws Exception If problems occur. <a name="line.120"></a>
+<FONT color="green">121</FONT>       */<a name="line.121"></a>
+<FONT color="green">122</FONT>      @Test public void deleteUser () throws Exception {<a name="line.122"></a>
+<FONT color="green">123</FONT>        // Register the TestPost@hackystat.org user<a name="line.123"></a>
+<FONT color="green">124</FONT>        String testPost = "TestPost@" + server.getServerProperties().get(TEST_DOMAIN_KEY);<a name="line.124"></a>
+<FONT color="green">125</FONT>        SensorBaseClient.registerUser(getHostName(), testPost);<a name="line.125"></a>
+<FONT color="green">126</FONT>        // Now that TestPost is registered, see if we can delete him (her?) <a name="line.126"></a>
+<FONT color="green">127</FONT>        SensorBaseClient client = new SensorBaseClient(getHostName(), testPost, testPost);<a name="line.127"></a>
+<FONT color="green">128</FONT>        client.deleteUser(testPost);<a name="line.128"></a>
+<FONT color="green">129</FONT>    <a name="line.129"></a>
+<FONT color="green">130</FONT>        //Ensure that TestPost is no longer found as a user.<a name="line.130"></a>
+<FONT color="green">131</FONT>        try {<a name="line.131"></a>
+<FONT color="green">132</FONT>          client.authenticate();<a name="line.132"></a>
+<FONT color="green">133</FONT>          fail("Authentication should not have succeeded.");<a name="line.133"></a>
+<FONT color="green">134</FONT>        }<a name="line.134"></a>
+<FONT color="green">135</FONT>        catch (SensorBaseClientException e) { //NOPMD<a name="line.135"></a>
+<FONT color="green">136</FONT>          // good, we got here. <a name="line.136"></a>
+<FONT color="green">137</FONT>          // We can't use the JUnit annotation idiom because the code above us could throw<a name="line.137"></a>
+<FONT color="green">138</FONT>          // the same exception type, and that would be a valid error. <a name="line.138"></a>
+<FONT color="green">139</FONT>        }<a name="line.139"></a>
+<FONT color="green">140</FONT>      }<a name="line.140"></a>
+<FONT color="green">141</FONT>      <a name="line.141"></a>
+<FONT color="green">142</FONT>      /**<a name="line.142"></a>
+<FONT color="green">143</FONT>       * Tests that a user can have their properties updated. <a name="line.143"></a>
+<FONT color="green">144</FONT>       * @throws Exception If problems occur. <a name="line.144"></a>
+<FONT color="green">145</FONT>       */<a name="line.145"></a>
+<FONT color="green">146</FONT>      @Test public void postUserProperties () throws Exception {<a name="line.146"></a>
+<FONT color="green">147</FONT>        // Register the TestPost@hackystat.org user.<a name="line.147"></a>
+<FONT color="green">148</FONT>        String testPost = "TestPost@" + server.getServerProperties().get(TEST_DOMAIN_KEY);<a name="line.148"></a>
+<FONT color="green">149</FONT>        SensorBaseClient.registerUser(getHostName(), testPost);<a name="line.149"></a>
+<FONT color="green">150</FONT>        // Now that TestPost is registered, see if we can update his properties. <a name="line.150"></a>
+<FONT color="green">151</FONT>        Properties properties = new Properties();<a name="line.151"></a>
+<FONT color="green">152</FONT>        Property property = new Property();<a name="line.152"></a>
+<FONT color="green">153</FONT>        property.setKey("testKey");<a name="line.153"></a>
+<FONT color="green">154</FONT>        property.setValue("testValue");<a name="line.154"></a>
+<FONT color="green">155</FONT>        properties.getProperty().add(property);<a name="line.155"></a>
+<FONT color="green">156</FONT>        <a name="line.156"></a>
+<FONT color="green">157</FONT>        SensorBaseClient client = <a name="line.157"></a>
+<FONT color="green">158</FONT>          new SensorBaseClient(getHostName(), testPost, testPost);<a name="line.158"></a>
+<FONT color="green">159</FONT>        client.updateUserProperties(testPost, properties);<a name="line.159"></a>
+<FONT color="green">160</FONT>    <a name="line.160"></a>
+<FONT color="green">161</FONT>        User user = client.getUser(testPost);<a name="line.161"></a>
+<FONT color="green">162</FONT>        Property theProperty = user.getProperties().getProperty().get(0);<a name="line.162"></a>
+<FONT color="green">163</FONT>        assertEquals("Got the property", "testValue", theProperty.getValue());<a name="line.163"></a>
+<FONT color="green">164</FONT>        // Clean up, get rid of this user. <a name="line.164"></a>
+<FONT color="green">165</FONT>        client.deleteUser(testPost);<a name="line.165"></a>
+<FONT color="green">166</FONT>      }<a name="line.166"></a>
+<FONT color="green">167</FONT>    }<a name="line.167"></a>
 
 
 

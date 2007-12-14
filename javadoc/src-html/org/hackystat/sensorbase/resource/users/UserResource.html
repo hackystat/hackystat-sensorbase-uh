@@ -39,7 +39,7 @@
 <FONT color="green">036</FONT>       */<a name="line.36"></a>
 <FONT color="green">037</FONT>      @Override<a name="line.37"></a>
 <FONT color="green">038</FONT>      public Representation getRepresentation(Variant variant) {<a name="line.38"></a>
-<FONT color="green">039</FONT>        if (!super.userManager.hasUser(this.uriUser)) {<a name="line.39"></a>
+<FONT color="green">039</FONT>        if (!super.userManager.isUser(this.uriUser)) {<a name="line.39"></a>
 <FONT color="green">040</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown: " + this.uriUser);<a name="line.40"></a>
 <FONT color="green">041</FONT>          return null;<a name="line.41"></a>
 <FONT color="green">042</FONT>        } <a name="line.42"></a>
@@ -101,7 +101,7 @@
 <FONT color="green">098</FONT>      @Override<a name="line.98"></a>
 <FONT color="green">099</FONT>      public void post(Representation entity) {<a name="line.99"></a>
 <FONT color="green">100</FONT>        // Return failure if the User doesn't exist.<a name="line.100"></a>
-<FONT color="green">101</FONT>        if (!super.userManager.hasUser(this.uriUser)) {<a name="line.101"></a>
+<FONT color="green">101</FONT>        if (!super.userManager.isUser(this.uriUser)) {<a name="line.101"></a>
 <FONT color="green">102</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown User: " + this.uriUser);<a name="line.102"></a>
 <FONT color="green">103</FONT>          return;<a name="line.103"></a>
 <FONT color="green">104</FONT>        }<a name="line.104"></a>

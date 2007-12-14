@@ -16,114 +16,125 @@
 <FONT color="green">013</FONT>    <a name="line.13"></a>
 <FONT color="green">014</FONT>    /**<a name="line.14"></a>
 <FONT color="green">015</FONT>     * The resource for processing GET host/projects/{user}/{projectname}/sensordata.<a name="line.15"></a>
-<FONT color="green">016</FONT>     * Returns an index to the SensorData resources associated with this User and Project.<a name="line.16"></a>
-<FONT color="green">017</FONT>     * <a name="line.17"></a>
-<FONT color="green">018</FONT>     * @author Philip Johnson<a name="line.18"></a>
-<FONT color="green">019</FONT>     */<a name="line.19"></a>
-<FONT color="green">020</FONT>    public class UserProjectSensorDataResource extends SensorBaseResource {<a name="line.20"></a>
-<FONT color="green">021</FONT>      <a name="line.21"></a>
-<FONT color="green">022</FONT>      /** The user corresponding to email, or null if not found. */<a name="line.22"></a>
-<FONT color="green">023</FONT>      private User user;<a name="line.23"></a>
-<FONT color="green">024</FONT>      /** To be retrieved from the URL. */<a name="line.24"></a>
-<FONT color="green">025</FONT>      private String projectName;<a name="line.25"></a>
-<FONT color="green">026</FONT>      /** An optional query parameter */<a name="line.26"></a>
-<FONT color="green">027</FONT>      private String startTime;<a name="line.27"></a>
-<FONT color="green">028</FONT>      /** An optional query string parameter. */<a name="line.28"></a>
-<FONT color="green">029</FONT>      private String endTime;<a name="line.29"></a>
-<FONT color="green">030</FONT>      /** An optional query parameter. */<a name="line.30"></a>
-<FONT color="green">031</FONT>      private String sdt;<a name="line.31"></a>
-<FONT color="green">032</FONT>    <a name="line.32"></a>
-<FONT color="green">033</FONT>      <a name="line.33"></a>
-<FONT color="green">034</FONT>      /**<a name="line.34"></a>
-<FONT color="green">035</FONT>       * Provides the following representational variants: TEXT_XML.<a name="line.35"></a>
-<FONT color="green">036</FONT>       * @param context The context.<a name="line.36"></a>
-<FONT color="green">037</FONT>       * @param request The request object.<a name="line.37"></a>
-<FONT color="green">038</FONT>       * @param response The response object.<a name="line.38"></a>
-<FONT color="green">039</FONT>       */<a name="line.39"></a>
-<FONT color="green">040</FONT>      public UserProjectSensorDataResource(Context context, Request request, Response response) {<a name="line.40"></a>
-<FONT color="green">041</FONT>        super(context, request, response);<a name="line.41"></a>
-<FONT color="green">042</FONT>        this.projectName = (String) request.getAttributes().get("projectname"); <a name="line.42"></a>
-<FONT color="green">043</FONT>        this.startTime = (String) request.getAttributes().get("startTime");<a name="line.43"></a>
-<FONT color="green">044</FONT>        this.endTime = (String) request.getAttributes().get("endTime");<a name="line.44"></a>
-<FONT color="green">045</FONT>        this.sdt = (String) request.getAttributes().get("sdt");<a name="line.45"></a>
-<FONT color="green">046</FONT>        this.user = super.userManager.getUser(super.uriUser);<a name="line.46"></a>
-<FONT color="green">047</FONT>      }<a name="line.47"></a>
-<FONT color="green">048</FONT>      <a name="line.48"></a>
-<FONT color="green">049</FONT>      /**<a name="line.49"></a>
-<FONT color="green">050</FONT>       * Returns a SensorDataIndex of all SensorData associated with this Project and User.<a name="line.50"></a>
-<FONT color="green">051</FONT>       * Returns an error condition if:<a name="line.51"></a>
-<FONT color="green">052</FONT>       * &lt;ul&gt;<a name="line.52"></a>
-<FONT color="green">053</FONT>       * &lt;li&gt; The user does not exist.<a name="line.53"></a>
-<FONT color="green">054</FONT>       * &lt;li&gt; The authenticated user is not the uriUser or the Admin. <a name="line.54"></a>
-<FONT color="green">055</FONT>       * &lt;li&gt; The Project Resource named by the User and Project does not exist.<a name="line.55"></a>
-<FONT color="green">056</FONT>       * &lt;li&gt; startTime or endTime is not an XMLGregorianCalendar string.<a name="line.56"></a>
-<FONT color="green">057</FONT>       * &lt;li&gt; One or the other but not both of startTime and endTime is provided.<a name="line.57"></a>
-<FONT color="green">058</FONT>       * &lt;li&gt; endTime is greater than startTime.<a name="line.58"></a>
-<FONT color="green">059</FONT>       * &lt;/ul&gt;<a name="line.59"></a>
-<FONT color="green">060</FONT>       * <a name="line.60"></a>
-<FONT color="green">061</FONT>       * @param variant The representational variant requested.<a name="line.61"></a>
-<FONT color="green">062</FONT>       * @return The representation. <a name="line.62"></a>
-<FONT color="green">063</FONT>       */<a name="line.63"></a>
-<FONT color="green">064</FONT>      @Override<a name="line.64"></a>
-<FONT color="green">065</FONT>      public Representation getRepresentation(Variant variant) {<a name="line.65"></a>
-<FONT color="green">066</FONT>        if (this.user == null) {<a name="line.66"></a>
-<FONT color="green">067</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");<a name="line.67"></a>
-<FONT color="green">068</FONT>          return null;<a name="line.68"></a>
-<FONT color="green">069</FONT>        }  <a name="line.69"></a>
-<FONT color="green">070</FONT>        if (!super.userManager.isAdmin(this.authUser) &amp;&amp; !this.uriUser.equals(this.authUser)) {<a name="line.70"></a>
-<FONT color="green">071</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);<a name="line.71"></a>
-<FONT color="green">072</FONT>          return null;<a name="line.72"></a>
-<FONT color="green">073</FONT>        }<a name="line.73"></a>
-<FONT color="green">074</FONT>        // If this User/Project pair does not exist, return an error.<a name="line.74"></a>
-<FONT color="green">075</FONT>        if (!super.projectManager.hasProject(this.user, this.projectName)) {<a name="line.75"></a>
-<FONT color="green">076</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown project");<a name="line.76"></a>
-<FONT color="green">077</FONT>          return null;<a name="line.77"></a>
-<FONT color="green">078</FONT>        }<a name="line.78"></a>
-<FONT color="green">079</FONT>        // If startTime or endTime is provided, but is not an XMLGregorianCalendar, then return error.<a name="line.79"></a>
-<FONT color="green">080</FONT>        if ((this.startTime != null) &amp;&amp; (!Tstamp.isTimestamp(this.startTime))) {<a name="line.80"></a>
-<FONT color="green">081</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad startTime");<a name="line.81"></a>
-<FONT color="green">082</FONT>          return null;<a name="line.82"></a>
-<FONT color="green">083</FONT>        }<a name="line.83"></a>
-<FONT color="green">084</FONT>        if ((this.endTime != null) &amp;&amp; (!Tstamp.isTimestamp(this.endTime))) {<a name="line.84"></a>
-<FONT color="green">085</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad endTime");<a name="line.85"></a>
-<FONT color="green">086</FONT>          return null;<a name="line.86"></a>
-<FONT color="green">087</FONT>        }<a name="line.87"></a>
-<FONT color="green">088</FONT>        // If end time is greater than start time, return an error.<a name="line.88"></a>
-<FONT color="green">089</FONT>        if ((this.endTime != null) &amp;&amp; (Tstamp.isTimestamp(this.endTime)) &amp;&amp;<a name="line.89"></a>
-<FONT color="green">090</FONT>            (this.startTime != null) &amp;&amp; (Tstamp.isTimestamp(this.startTime)) &amp;&amp;<a name="line.90"></a>
-<FONT color="green">091</FONT>            (Tstamp.greaterThan(this.startTime, this.endTime))) {<a name="line.91"></a>
-<FONT color="green">092</FONT>            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Start time after end time.");<a name="line.92"></a>
-<FONT color="green">093</FONT>            return null;<a name="line.93"></a>
+<FONT color="green">016</FONT>     * Returns an index to the SensorData resources associated with this  Project.<a name="line.16"></a>
+<FONT color="green">017</FONT>     * This includes all of the SensorData from all members that matches the UriPattern.<a name="line.17"></a>
+<FONT color="green">018</FONT>     * Note that this could be quite large if you do not also specify a start and end time.<a name="line.18"></a>
+<FONT color="green">019</FONT>     * <a name="line.19"></a>
+<FONT color="green">020</FONT>     * @author Philip Johnson<a name="line.20"></a>
+<FONT color="green">021</FONT>     */<a name="line.21"></a>
+<FONT color="green">022</FONT>    public class UserProjectSensorDataResource extends SensorBaseResource {<a name="line.22"></a>
+<FONT color="green">023</FONT>      <a name="line.23"></a>
+<FONT color="green">024</FONT>      /** The user corresponding to email, or null if not found. */<a name="line.24"></a>
+<FONT color="green">025</FONT>      private User user;<a name="line.25"></a>
+<FONT color="green">026</FONT>      /** To be retrieved from the URL. */<a name="line.26"></a>
+<FONT color="green">027</FONT>      private String projectName;<a name="line.27"></a>
+<FONT color="green">028</FONT>      /** An optional query parameter */<a name="line.28"></a>
+<FONT color="green">029</FONT>      private String startTime;<a name="line.29"></a>
+<FONT color="green">030</FONT>      /** An optional query string parameter. */<a name="line.30"></a>
+<FONT color="green">031</FONT>      private String endTime;<a name="line.31"></a>
+<FONT color="green">032</FONT>      /** An optional query parameter. */<a name="line.32"></a>
+<FONT color="green">033</FONT>      private String sdt;<a name="line.33"></a>
+<FONT color="green">034</FONT>    <a name="line.34"></a>
+<FONT color="green">035</FONT>      <a name="line.35"></a>
+<FONT color="green">036</FONT>      /**<a name="line.36"></a>
+<FONT color="green">037</FONT>       * Provides the following representational variants: TEXT_XML.<a name="line.37"></a>
+<FONT color="green">038</FONT>       * @param context The context.<a name="line.38"></a>
+<FONT color="green">039</FONT>       * @param request The request object.<a name="line.39"></a>
+<FONT color="green">040</FONT>       * @param response The response object.<a name="line.40"></a>
+<FONT color="green">041</FONT>       */<a name="line.41"></a>
+<FONT color="green">042</FONT>      public UserProjectSensorDataResource(Context context, Request request, Response response) {<a name="line.42"></a>
+<FONT color="green">043</FONT>        super(context, request, response);<a name="line.43"></a>
+<FONT color="green">044</FONT>        this.projectName = (String) request.getAttributes().get("projectname"); <a name="line.44"></a>
+<FONT color="green">045</FONT>        this.startTime = (String) request.getAttributes().get("startTime");<a name="line.45"></a>
+<FONT color="green">046</FONT>        this.endTime = (String) request.getAttributes().get("endTime");<a name="line.46"></a>
+<FONT color="green">047</FONT>        this.sdt = (String) request.getAttributes().get("sdt");<a name="line.47"></a>
+<FONT color="green">048</FONT>        this.user = super.userManager.getUser(super.uriUser);<a name="line.48"></a>
+<FONT color="green">049</FONT>      }<a name="line.49"></a>
+<FONT color="green">050</FONT>      <a name="line.50"></a>
+<FONT color="green">051</FONT>      /**<a name="line.51"></a>
+<FONT color="green">052</FONT>       * Returns a SensorDataIndex of all SensorData associated with this Project.  This<a name="line.52"></a>
+<FONT color="green">053</FONT>       * includes all SensorData from all Members in this project over the <a name="line.53"></a>
+<FONT color="green">054</FONT>       * (optional) specified time period  for the (optional) SDT that match at least<a name="line.54"></a>
+<FONT color="green">055</FONT>       * one of the UriPatterns in the project definition.<a name="line.55"></a>
+<FONT color="green">056</FONT>       * <a name="line.56"></a>
+<FONT color="green">057</FONT>       * Returns an error condition if:<a name="line.57"></a>
+<FONT color="green">058</FONT>       * &lt;ul&gt;<a name="line.58"></a>
+<FONT color="green">059</FONT>       * &lt;li&gt; The user does not exist.<a name="line.59"></a>
+<FONT color="green">060</FONT>       * &lt;li&gt; The authenticated user is not the uriUser or the Admin or a member of the project.<a name="line.60"></a>
+<FONT color="green">061</FONT>       * &lt;li&gt; The Project Resource named by the User and Project does not exist.<a name="line.61"></a>
+<FONT color="green">062</FONT>       * &lt;li&gt; startTime or endTime is not an XMLGregorianCalendar string.<a name="line.62"></a>
+<FONT color="green">063</FONT>       * &lt;li&gt; One or the other but not both of startTime and endTime is provided.<a name="line.63"></a>
+<FONT color="green">064</FONT>       * &lt;li&gt; endTime is earlier than startTime.<a name="line.64"></a>
+<FONT color="green">065</FONT>       * &lt;/ul&gt;<a name="line.65"></a>
+<FONT color="green">066</FONT>       * <a name="line.66"></a>
+<FONT color="green">067</FONT>       * @param variant The representational variant requested.<a name="line.67"></a>
+<FONT color="green">068</FONT>       * @return The representation. <a name="line.68"></a>
+<FONT color="green">069</FONT>       */<a name="line.69"></a>
+<FONT color="green">070</FONT>      @Override<a name="line.70"></a>
+<FONT color="green">071</FONT>      public Representation getRepresentation(Variant variant) {<a name="line.71"></a>
+<FONT color="green">072</FONT>        // The user must be defined.<a name="line.72"></a>
+<FONT color="green">073</FONT>        if (this.user == null) {<a name="line.73"></a>
+<FONT color="green">074</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");<a name="line.74"></a>
+<FONT color="green">075</FONT>          return null;<a name="line.75"></a>
+<FONT color="green">076</FONT>        } <a name="line.76"></a>
+<FONT color="green">077</FONT>        // The project must be defined.<a name="line.77"></a>
+<FONT color="green">078</FONT>        if (!super.projectManager.hasProject(this.user, this.projectName)) {<a name="line.78"></a>
+<FONT color="green">079</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown project");<a name="line.79"></a>
+<FONT color="green">080</FONT>          return null;<a name="line.80"></a>
+<FONT color="green">081</FONT>        }<a name="line.81"></a>
+<FONT color="green">082</FONT>        // The authorized user must be an admin, or the project owner, or a member, or invitee.<a name="line.82"></a>
+<FONT color="green">083</FONT>        if (!super.userManager.isAdmin(this.authUser) &amp;&amp; !this.uriUser.equals(this.authUser) &amp;&amp;<a name="line.83"></a>
+<FONT color="green">084</FONT>            !super.projectManager.isMember(this.user, this.projectName, this.authUser) &amp;&amp;<a name="line.84"></a>
+<FONT color="green">085</FONT>            !super.projectManager.isInvited(this.user, this.projectName, this.authUser)) {<a name="line.85"></a>
+<FONT color="green">086</FONT>          String msg = "User " + this.authUser + "is not authorized to obtain data from this Project.";<a name="line.86"></a>
+<FONT color="green">087</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);<a name="line.87"></a>
+<FONT color="green">088</FONT>          return null;<a name="line.88"></a>
+<FONT color="green">089</FONT>        }<a name="line.89"></a>
+<FONT color="green">090</FONT>        // If startTime or endTime is provided, but is not an XMLGregorianCalendar, then return error.<a name="line.90"></a>
+<FONT color="green">091</FONT>        if ((this.startTime != null) &amp;&amp; (!Tstamp.isTimestamp(this.startTime))) {<a name="line.91"></a>
+<FONT color="green">092</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad startTime");<a name="line.92"></a>
+<FONT color="green">093</FONT>          return null;<a name="line.93"></a>
 <FONT color="green">094</FONT>        }<a name="line.94"></a>
-<FONT color="green">095</FONT>        // If startType is provided but not endTime, or vice versa, return an error. <a name="line.95"></a>
-<FONT color="green">096</FONT>        if ((this.endTime == null) &amp;&amp; (this.startTime != null) ||<a name="line.96"></a>
-<FONT color="green">097</FONT>            (this.endTime != null) &amp;&amp; (this.startTime == null)) {<a name="line.97"></a>
-<FONT color="green">098</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "startTime &amp; endTime required.");<a name="line.98"></a>
-<FONT color="green">099</FONT>          return null;<a name="line.99"></a>
-<FONT color="green">100</FONT>        }<a name="line.100"></a>
-<FONT color="green">101</FONT>    <a name="line.101"></a>
-<FONT color="green">102</FONT>        if (variant.getMediaType().equals(MediaType.TEXT_XML)) {<a name="line.102"></a>
-<FONT color="green">103</FONT>          try {<a name="line.103"></a>
-<FONT color="green">104</FONT>            if (startTime == null) {<a name="line.104"></a>
-<FONT color="green">105</FONT>              // Return all sensor data for this user and project if no query parameters.<a name="line.105"></a>
-<FONT color="green">106</FONT>              String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName);<a name="line.106"></a>
-<FONT color="green">107</FONT>              return SensorBaseResource.getStringRepresentation(data);<a name="line.107"></a>
-<FONT color="green">108</FONT>            }<a name="line.108"></a>
-<FONT color="green">109</FONT>            else {<a name="line.109"></a>
-<FONT color="green">110</FONT>              // Return the sensor data starting at startTime and ending with endTime. <a name="line.110"></a>
-<FONT color="green">111</FONT>              String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName,<a name="line.111"></a>
-<FONT color="green">112</FONT>                  this.startTime, this.endTime, this.sdt);<a name="line.112"></a>
-<FONT color="green">113</FONT>              return SensorBaseResource.getStringRepresentation(data);<a name="line.113"></a>
-<FONT color="green">114</FONT>            }<a name="line.114"></a>
-<FONT color="green">115</FONT>          }<a name="line.115"></a>
-<FONT color="green">116</FONT>          catch (Exception e) {<a name="line.116"></a>
-<FONT color="green">117</FONT>            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Problems marshalling");<a name="line.117"></a>
-<FONT color="green">118</FONT>            return null;<a name="line.118"></a>
-<FONT color="green">119</FONT>          }<a name="line.119"></a>
-<FONT color="green">120</FONT>        }<a name="line.120"></a>
-<FONT color="green">121</FONT>        return null;<a name="line.121"></a>
-<FONT color="green">122</FONT>      }<a name="line.122"></a>
-<FONT color="green">123</FONT>    }<a name="line.123"></a>
+<FONT color="green">095</FONT>        if ((this.endTime != null) &amp;&amp; (!Tstamp.isTimestamp(this.endTime))) {<a name="line.95"></a>
+<FONT color="green">096</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad endTime");<a name="line.96"></a>
+<FONT color="green">097</FONT>          return null;<a name="line.97"></a>
+<FONT color="green">098</FONT>        }<a name="line.98"></a>
+<FONT color="green">099</FONT>        // If end time is greater than start time, return an error.<a name="line.99"></a>
+<FONT color="green">100</FONT>        if ((this.endTime != null) &amp;&amp; (Tstamp.isTimestamp(this.endTime)) &amp;&amp;<a name="line.100"></a>
+<FONT color="green">101</FONT>            (this.startTime != null) &amp;&amp; (Tstamp.isTimestamp(this.startTime)) &amp;&amp;<a name="line.101"></a>
+<FONT color="green">102</FONT>            (Tstamp.greaterThan(this.startTime, this.endTime))) {<a name="line.102"></a>
+<FONT color="green">103</FONT>            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Start time after end time.");<a name="line.103"></a>
+<FONT color="green">104</FONT>            return null;<a name="line.104"></a>
+<FONT color="green">105</FONT>        }<a name="line.105"></a>
+<FONT color="green">106</FONT>        // If startType is provided but not endTime, or vice versa, return an error. <a name="line.106"></a>
+<FONT color="green">107</FONT>        if ((this.endTime == null) &amp;&amp; (this.startTime != null) ||<a name="line.107"></a>
+<FONT color="green">108</FONT>            (this.endTime != null) &amp;&amp; (this.startTime == null)) {<a name="line.108"></a>
+<FONT color="green">109</FONT>          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "startTime &amp; endTime required.");<a name="line.109"></a>
+<FONT color="green">110</FONT>          return null;<a name="line.110"></a>
+<FONT color="green">111</FONT>        }<a name="line.111"></a>
+<FONT color="green">112</FONT>    <a name="line.112"></a>
+<FONT color="green">113</FONT>        if (variant.getMediaType().equals(MediaType.TEXT_XML)) {<a name="line.113"></a>
+<FONT color="green">114</FONT>          try {<a name="line.114"></a>
+<FONT color="green">115</FONT>            if (startTime == null) {<a name="line.115"></a>
+<FONT color="green">116</FONT>              // Return all sensor data for this project if no query parameters.<a name="line.116"></a>
+<FONT color="green">117</FONT>              String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName);<a name="line.117"></a>
+<FONT color="green">118</FONT>              return SensorBaseResource.getStringRepresentation(data);<a name="line.118"></a>
+<FONT color="green">119</FONT>            }<a name="line.119"></a>
+<FONT color="green">120</FONT>            else {<a name="line.120"></a>
+<FONT color="green">121</FONT>              // Return the sensor data starting at startTime and ending with endTime. <a name="line.121"></a>
+<FONT color="green">122</FONT>              String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName,<a name="line.122"></a>
+<FONT color="green">123</FONT>                  this.startTime, this.endTime, this.sdt);<a name="line.123"></a>
+<FONT color="green">124</FONT>              return SensorBaseResource.getStringRepresentation(data);<a name="line.124"></a>
+<FONT color="green">125</FONT>            }<a name="line.125"></a>
+<FONT color="green">126</FONT>          }<a name="line.126"></a>
+<FONT color="green">127</FONT>          catch (Exception e) {<a name="line.127"></a>
+<FONT color="green">128</FONT>            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Problems marshalling");<a name="line.128"></a>
+<FONT color="green">129</FONT>            return null;<a name="line.129"></a>
+<FONT color="green">130</FONT>          }<a name="line.130"></a>
+<FONT color="green">131</FONT>        }<a name="line.131"></a>
+<FONT color="green">132</FONT>        return null;<a name="line.132"></a>
+<FONT color="green">133</FONT>      }<a name="line.133"></a>
+<FONT color="green">134</FONT>    }<a name="line.134"></a>
 
 
 
