@@ -203,7 +203,7 @@ public class TestProjectMembershipRestApi extends SensorBaseRestApiHelper {
     data.setOwner(user);
     data.setSensorDataType(sdt);
     data.setTimestamp(Tstamp.makeTimestamp());
-    data.setResource("file://foo/bar/baz.txt");
+    data.setResource("file://foo/bar/test/baz.txt");
     data.setRuntime(Tstamp.makeTimestamp());
     Property property = new Property();
     property.setKey("SampleField");

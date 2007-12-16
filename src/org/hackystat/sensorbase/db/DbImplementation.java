@@ -14,7 +14,6 @@ import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
-import org.hackystat.sensorbase.uripattern.UriPattern;
 
 /**
  * Provides a specification of the operations that must be implemented by every
@@ -72,7 +71,7 @@ public abstract class DbImplementation {
    * @return An XML String containing a SensorDataIndex of matching SensorData. 
    */
   public abstract String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns, String sdt);
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt);
   
   /**
    * Returns the XML SensorDataIndex for all sensor data for the given user that arrived

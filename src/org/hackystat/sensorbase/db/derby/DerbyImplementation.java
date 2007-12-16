@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -24,7 +25,6 @@ import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
-import org.hackystat.sensorbase.uripattern.UriPattern;
 
 
 /**
@@ -66,6 +66,7 @@ public class DerbyImplementation extends DbImplementation {
   /** Required by PMD as above. */
   private static final String quoteAndClause = "' AND ";
   private static final String andClause = " AND ";
+  private static final String selectPrefix = "SELECT XmlSensorDataRef FROM SensorData WHERE "; 
   
   private static final String derbyError = "Derby: Error ";
 
@@ -90,7 +91,7 @@ public class DerbyImplementation extends DbImplementation {
       throw new RuntimeException(msg, e);
     }
   }
-
+  
 
   /** {@inheritDoc} */
   @Override
@@ -340,7 +341,7 @@ public class DerbyImplementation extends DbImplementation {
   @Override
   public String getSensorDataIndex(User user, String sdtName) {
     String st = 
-      "SELECT XmlSensorDataRef FROM SensorData WHERE " 
+      selectPrefix
       + ownerEquals + user.getEmail() + quoteAndClause
       + " Sdt='" + sdtName + "'";
     return getIndex("SensorData", st);
@@ -349,30 +350,130 @@ public class DerbyImplementation extends DbImplementation {
   /** {@inheritDoc} */
   @Override
   public String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns, String sdt) {
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt) {
     String statement;
     
     if (sdt == null) { // Retrieve sensor data of all SDTs 
       statement =
-        "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
+        selectPrefix
         + constructOwnerClause(users)
         + andClause 
-        + " Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
-        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
+        + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
+        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))"
+        + constructLikeClauses(uriPatterns);
     }
     else { // Retrieve sensor data of the specified SDT.
       statement = 
-        "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
+        selectPrefix
         + constructOwnerClause(users)
         + andClause  
         + sdtEquals + sdt + quoteAndClause 
-        + " Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
-        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "')";
+        + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
+        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))"
+        + constructLikeClauses(uriPatterns);
     }
-    
     //System.out.println(statement);
-        
     return getIndex("SensorData", statement);
+  }
+  
+  /**
+   * Constructs a set of LIKE clauses corresponding to the passed set of UriPatterns.
+   * <p>
+   * Each UriPattern is translated in the following way:
+   * <ul>
+   * <li> If there is an occurrence of a "\" or a "/" in the UriPattern, then 
+   * two translated UriPatterns are generated, one with all "\" replaced with "/", and one with 
+   * all "/" replaced with "\".
+   * <li> The escape character is "\", unless we are generating a LIKE clause containing a 
+   * "\", in which case the escape character will be "/".
+   * <li> All occurrences of "%" in the UriPattern are escaped.
+   * <li> All occurrences of "_" in the UriPattern are escaped.
+   * <li> All occurrences of "*" are changed to "%".
+   * </ul>
+   * The new set of 'translated' UriPatterns are now used to generate a set of LIKE clauses
+   * with the following form:
+   * <pre>
+   * (RESOURCE like 'translatedUriPattern1' escape 'escapeChar1') OR
+   * (RESOURCE like 'translatedUriPattern2' escape 'escapeChar2') ..
+   * </pre>
+   * <p>
+   * There is one special case.  If the List<UriPattern> is null, empty, or consists of exactly one 
+   * UriPattern which is "**" or "*", then the empty string is returned. This is an optimization for
+   * the common case where all resources should be matched and so we don't need any LIKE clauses.
+   * <p>
+   * We return either the empty string (""), or else a string of the form:
+   * " AND ([like clause] AND [like clause] ... )"
+   * This enables the return value to be appended to the SELECT statement.
+   * <p>
+   * This method is static and package private to support testing. See the class 
+   * TestConstructUriPattern for example invocations and expected return values. 
+   *  
+   * @param uriPatterns The list of uriPatterns.
+   * @return The String to be used in the where clause to check for resource correctness.
+   */
+  static String constructLikeClauses(List<String> uriPatterns) {
+    // Deal with special case. UriPatterns is null, or empty, or "**", or "*"
+    if (((uriPatterns == null) || uriPatterns.isEmpty()) ||
+        ((uriPatterns.size() == 1) && uriPatterns.get(0).equals("**")) ||
+        ((uriPatterns.size() == 1) && uriPatterns.get(0).equals("*"))) {
+      return "";
+    }
+    // Deal with the potential presence of path separator character in UriPattern.
+    List<String> translatedPatterns = new ArrayList<String>();
+    for (String pattern : uriPatterns) {
+      if (pattern.contains("\\") || pattern.contains("/")) {
+        translatedPatterns.add(pattern.replace('\\', '/'));
+        translatedPatterns.add(pattern.replace('/', '\\'));
+      }
+      else {
+        translatedPatterns.add(pattern);
+      }        
+    }
+    // Now escape the SQL wildcards, and make our UriPattern wildcard into the SQL wildcard.
+    for (int i = 0; i < translatedPatterns.size(); i++) {
+      String pattern = translatedPatterns.get(i);
+      pattern = pattern.replace("%", "`%"); // used to be /
+      pattern = pattern.replace("_", "`_"); // used to be /
+      pattern = pattern.replace('*', '%');
+      translatedPatterns.set(i, pattern);
+    }
+
+    // Now generate the return string: " AND (<like clause> OR <like clause> ... )".
+    StringBuffer buff = new StringBuffer();
+    buff.append(" AND (");
+    if (!translatedPatterns.isEmpty()) {
+      buff.append(makeLikeClause(translatedPatterns, "`")); // used to be /
+    }
+
+    buff.append(')');
+    
+    return buff.toString();
+  }
+  
+  /**
+   * Creates a set of LIKE clauses with the specified escape character.
+   * @param patterns The patterns. 
+   * @param escape The escape character.
+   * @return The StringBuffer with the LIKE clauses. 
+   */
+  private static StringBuffer makeLikeClause(List<String> patterns, String escape) {
+    StringBuffer buff = new StringBuffer(); //NOPMD generates false warning about buff size.
+    if (patterns.isEmpty()) {
+      return buff;
+    }
+    for (Iterator<String> i = patterns.iterator(); i.hasNext(); ) {
+      String pattern = i.next();
+      buff.append("(RESOURCE LIKE '");
+      buff.append(pattern);
+      buff.append("' ESCAPE '");
+      buff.append(escape);
+      buff.append("')");
+      if (i.hasNext()) {
+        buff.append(" OR ");
+      }
+    }
+    buff.append(' ');
+    return buff;
   }
   
   /**
@@ -402,7 +503,7 @@ public class DerbyImplementation extends DbImplementation {
   public String getSensorDataIndexLastMod(User user, XMLGregorianCalendar lastModStartTime,
       XMLGregorianCalendar lastModEndTime) {
     String statement = 
-      "SELECT XmlSensorDataRef, Resource FROM SensorData WHERE "
+      selectPrefix
       + ownerEquals + user.getEmail() + quoteAndClause 
       + " LastMod BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(lastModStartTime) + "') AND "
       + " TIMESTAMP('" + Tstamp.makeTimestamp(lastModEndTime) + "')";
@@ -421,7 +522,7 @@ public class DerbyImplementation extends DbImplementation {
       conn = DriverManager.getConnection(connectionURL);
       // 
       String statement = 
-        "SELECT XmlSensorDataRef FROM SensorData WHERE "
+        selectPrefix
         + ownerEquals + user.getEmail() + quoteAndClause 
         + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
       server.getLogger().fine(executeQueryMsg + statement);
@@ -835,6 +936,7 @@ public class DerbyImplementation extends DbImplementation {
       }
     }
     builder.append("</").append(resourceName).append("Index>");
+    //System.out.println(builder.toString());
     return builder.toString();
   }
   

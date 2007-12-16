@@ -9,7 +9,6 @@ import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
 import static org.hackystat.sensorbase.server.ServerProperties.DB_IMPL_KEY;
-import org.hackystat.sensorbase.uripattern.UriPattern;
 import org.hackystat.utilities.stacktrace.StackTrace;
 
 /**
@@ -156,7 +155,7 @@ public class DbManager {
    * @return The XML SensorDataIndex string corresponding to the matching sensor data. 
    */
   public String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime, List<UriPattern> uriPatterns, String sdt) {
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt) {
     return this.dbImpl.getSensorDataIndex(users, startTime, endTime, uriPatterns, sdt);
   }
   

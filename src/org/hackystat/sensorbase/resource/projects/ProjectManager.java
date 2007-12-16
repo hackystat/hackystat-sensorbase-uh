@@ -38,7 +38,6 @@ import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.users.UserManager;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.server.Server;
-import org.hackystat.sensorbase.uripattern.UriPattern;
 import org.w3c.dom.Document;
 
 /**
@@ -121,9 +120,7 @@ public class ProjectManager {
       Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
       Projects projects = (Projects) unmarshaller.unmarshal(defaultsFile);
       for (Project project : projects.getProject()) {
-        if (project.getLastMod() == null) {
-          project.setLastMod(Tstamp.makeTimestamp());
-        }
+        provideDefaults(project);
         this.dbManager.storeProject(project, this.makeProject(project), 
             this.makeProjectRefString(project));
       }
@@ -153,7 +150,8 @@ public class ProjectManager {
           }
           else {
             String projectString = this.dbManager.getProject(user, projectName);
-            Project project = makeProject(projectString);
+            Project project = makeProject(projectString); 
+            provideDefaults(project);
             this.updateCache(project);
           }
         }
@@ -170,10 +168,7 @@ public class ProjectManager {
    * @throws Exception If problems occur updating the cache. 
    */
   private final void updateCache(Project project) throws Exception {
-    // Make sure project has an Invitations element.
-    if (project.getInvitations() == null) {
-      project.setInvitations(new Invitations());
-    }
+    provideDefaults(project);
     // Fix bogus default project start/end dates. 
     if (project.getName().equals("Default") && Tstamp.isBogusStartTime(project.getStartTime())) {
         project.setStartTime(Tstamp.getDefaultProjectStartTime());
@@ -299,11 +294,40 @@ public class ProjectManager {
   }  
   
   /**
+   * Ensures that project has default values for Invitations, Members, Properties, and UriPatterns.
+   * @param project The project to check.
+   * @return The project representation with initialized fields as needed.
+   */
+  private Project provideDefaults(Project project) {
+    if (project.getInvitations() == null) {
+      project.setInvitations(new Invitations());
+    }
+    if (project.getMembers() == null) {
+      project.setMembers(new Members());
+    }
+    if (project.getProperties() == null) {
+      project.setProperties(new Properties());
+    }
+    if (project.getUriPatterns() == null) {
+      // If missing, default to matching everything. 
+      UriPatterns uriPatterns = new UriPatterns();
+      uriPatterns.getUriPattern().add("*");
+      project.setUriPatterns(uriPatterns);
+    }
+    if (project.getLastMod() == null) {
+      project.setLastMod(Tstamp.makeTimestamp());
+    }
+    return project;
+  }
+  
+  /**
    * Updates the Manager with this Project. Any old definition is overwritten.
+   * Provide default values for UriPatterns, Properties, Members, and Invitations if not provided.
    * @param project The Project.
    */
   public synchronized void putProject(Project project) {
     try {
+      provideDefaults(project);
       project.setLastMod(Tstamp.makeTimestamp());
       String xmlProject =  this.makeProject(project);
       String xmlRef =  this.makeProjectRefString(project);
@@ -456,7 +480,7 @@ public class ProjectManager {
     Project project = this.getProject(owner, projectName);
     XMLGregorianCalendar startTime = project.getStartTime();
     XMLGregorianCalendar endTime = project.getEndTime();
-    List<UriPattern> patterns = UriPattern.getPatterns(project);
+    List<String> patterns = project.getUriPatterns().getUriPattern();
     List<User> users = new ArrayList<User>();
     users.add(owner);
     for (String member : project.getMembers().getMember()) {
@@ -498,7 +522,7 @@ public class ProjectManager {
     // make endTime the lesser of endTime and the Project endTime.
     endTime = (Tstamp.lessThan(endTime, project.getEndTime())) ? 
         endTime : project.getEndTime();
-    List<UriPattern> patterns = UriPattern.getPatterns(project);
+    List<String> patterns = project.getUriPatterns().getUriPattern();
     List<User> users = new ArrayList<User>();
     users.add(owner);
     for (String member : project.getMembers().getMember()) {
@@ -517,17 +541,13 @@ public class ProjectManager {
    */
   public final synchronized void addDefaultProject(User owner) {
     Project project = new Project();
+    provideDefaults(project);
     project.setDescription("The default Project");
     project.setStartTime(Tstamp.getDefaultProjectStartTime());
     project.setEndTime(Tstamp.getDefaultProjectEndTime());
-    project.setMembers(new Members());
     project.setName(DEFAULT_PROJECT_NAME);
     project.setOwner(owner.getEmail());
-    project.setProperties(new Properties());
-    project.setLastMod(Tstamp.makeTimestamp());
-    UriPatterns uriPatterns = new UriPatterns();
-    uriPatterns.getUriPattern().add("**");
-    project.setUriPatterns(uriPatterns);
+    project.getUriPatterns().getUriPattern().add("**");
     putProject(project);
   }
   
@@ -547,7 +567,12 @@ public class ProjectManager {
    * @return The project, or null if not found.
    */
   public synchronized Project getProject(User owner, String projectName) {
-    return (hasProject(owner, projectName)) ? owner2name2project.get(owner).get(projectName) : null;
+    Project project = ((hasProject(owner, projectName)) ? 
+        owner2name2project.get(owner).get(projectName) : null);
+    if (project != null) {
+      project = provideDefaults(project);
+    }
+    return project;
 
   }
   
