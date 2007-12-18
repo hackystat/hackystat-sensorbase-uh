@@ -5,6 +5,8 @@
 
   <import file="build.xml" />
   <property environment="env" />
+  <!-- If the JAXB_TARGET env var is not defined, provide a default definition. -->
+  <property name="env.JAXB_TARGET" value="2.0"/> 
 
   <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
     <classpath>
@@ -13,23 +15,24 @@
   </taskdef>
 
   <target name="jaxb" description="Runs the XJC compiler.">
+    <echo message="Compiling using ${env.JAXB_HOME} for target version ${env.JAXB_TARGET}."/>
     <xjc schema="${basedir}/xml/schema/sensordatatypes.xsd" extension="true" destdir="src" 
-      target="2.0"
+      target="${env.JAXB_TARGET}"
       package="org.hackystat.sensorbase.resource.sensordatatypes.jaxb">
       <produces dir="${src.dir}/org/hackystat/sensorbase/resource/sensordatatypes/jaxb" includes="*" />
     </xjc>
     <xjc schema="${basedir}/xml/schema/users.xsd" extension="true" destdir="src" 
-      target="2.0"
+      target="${env.JAXB_TARGET}"
       package="org.hackystat.sensorbase.resource.users.jaxb">
       <produces dir="${src.dir}/org/hackystat/sensorbase/resource/users/jaxb" includes="*" />
     </xjc>
     <xjc schema="${basedir}/xml/schema/sensordata.xsd" extension="true" destdir="src" 
-      target="2.0"
+      target="${env.JAXB_TARGET}"
       package="org.hackystat.sensorbase.resource.sensordata.jaxb">
       <produces dir="${src.dir}/org/hackystat/sensorbase/resource/sensordata/jaxb" includes="*" />
     </xjc>
     <xjc schema="${basedir}/xml/schema/projects.xsd" extension="true" destdir="src" 
-      target="2.0"
+      target="${env.JAXB_TARGET}"
       package="org.hackystat.sensorbase.resource.projects.jaxb" >
     <produces dir="${src.dir}/org/hackystat/sensorbase/resource/projects/jaxb" includes="*" />
   </xjc>
