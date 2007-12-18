@@ -14,18 +14,22 @@
 
   <target name="jaxb" description="Runs the XJC compiler.">
     <xjc schema="${basedir}/xml/schema/sensordatatypes.xsd" extension="true" destdir="src" 
+      target="2.0"
       package="org.hackystat.sensorbase.resource.sensordatatypes.jaxb">
       <produces dir="${src.dir}/org/hackystat/sensorbase/resource/sensordatatypes/jaxb" includes="*" />
     </xjc>
     <xjc schema="${basedir}/xml/schema/users.xsd" extension="true" destdir="src" 
+      target="2.0"
       package="org.hackystat.sensorbase.resource.users.jaxb">
       <produces dir="${src.dir}/org/hackystat/sensorbase/resource/users/jaxb" includes="*" />
     </xjc>
     <xjc schema="${basedir}/xml/schema/sensordata.xsd" extension="true" destdir="src" 
+      target="2.0"
       package="org.hackystat.sensorbase.resource.sensordata.jaxb">
       <produces dir="${src.dir}/org/hackystat/sensorbase/resource/sensordata/jaxb" includes="*" />
     </xjc>
     <xjc schema="${basedir}/xml/schema/projects.xsd" extension="true" destdir="src" 
+      target="2.0"
       package="org.hackystat.sensorbase.resource.projects.jaxb" >
     <produces dir="${src.dir}/org/hackystat/sensorbase/resource/projects/jaxb" includes="*" />
   </xjc>
