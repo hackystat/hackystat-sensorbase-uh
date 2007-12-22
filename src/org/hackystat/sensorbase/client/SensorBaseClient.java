@@ -3,6 +3,8 @@ package org.hackystat.sensorbase.client;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
@@ -95,6 +97,9 @@ public class SensorBaseClient {
   /** Indicates whether or not cache is enabled. */
   private boolean isCacheEnabled = false;
   private static final String cr = "\n";
+  
+  /** Timestamp of last time we tried to contact a server and failed, since this is expensive. */
+  private static Map<String, Long> lastHostNotAvailable = new HashMap<String, Long>();
 
   // JAXBContexts are thread safe, so we can share them across all instances and threads.
   // https://jaxb.dev.java.net/guide/Performance_and_thread_safety.html
@@ -143,14 +148,7 @@ public class SensorBaseClient {
    * @param milliseconds The number of milliseconds to wait before timing out. 
    */
   public synchronized void setTimeout(int milliseconds) {
-    // Whether this work depends upon which client connector is being used.
-    // For the JDK-based client.    
-    this.client.getContext().getParameters().add("connectTimeout", String.valueOf(milliseconds));
-    this.client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
-    // For the Apache Commons client.
-    this.client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
-    this.client.getContext().getParameters().add("connectionManagerTimeout", 
-        String.valueOf(milliseconds));
+    setClientTimeout(this.client, milliseconds);
   }
 
   /**
@@ -1139,51 +1137,73 @@ public class SensorBaseClient {
     form.add("email", email);
     request.setEntity(form.getWebRepresentation());
     Client client = new Client(Protocol.HTTP);
-    int milliseconds = 5000;
-    client.getContext().getParameters().add("connectTimeout", String.valueOf(milliseconds));
-    client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
-    // For the Apache Commons client.
-    client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
-    client.getContext().getParameters().add("connectionManagerTimeout", 
-        String.valueOf(milliseconds));
+    setClientTimeout(client, 5000);
     Response response = client.handle(request);
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
     }
   }
+  
+  /**
+   * Sets the lastHostNotAvailable timestamp for the passed host.
+   * @param host The host that was determined to be not available.
+   */
+  private static void setLastHostNotAvailable(String host) {
+    lastHostNotAvailable.put(host, (new Date()).getTime());
+  }
+  
+  /**
+   * Gets the lastHostNotAvailable timestamp associated with host.
+   * Returns 0 if there is no lastHostNotAvailable timestamp.
+   * @param host The host whose lastNotAvailable timestamp is to be retrieved.
+   * @return The timestamp.
+   */
+  private static long getLastHostNotAvailable(String host) {
+    Long time = lastHostNotAvailable.get(host);
+    return (time == null) ? 0 : time;
+  }
 
   /**
    * Returns true if the passed host is a SensorBase host.
    * The timeout is set at 2 seconds. 
+   * Since checking isHost() when the host is not available is expensive, we cache the timestamp
+   * whenever we find the host to be unavailable and if there is another call to isHost() within
+   * two minutes, we will immediately return false.  This makes startup of clients like 
+   * SensorShell go much faster, since they call isHost() several times during startup. 
    * 
    * @param host The URL of a sensorbase host, such as "http://localhost:9876/sensorbase".
    * @return True if this URL responds as a SensorBase host.
    */
   public static boolean isHost(String host) {
+    // We return false immediately if we failed to contact the host within the last two minutes. 
+    long currTime = (new Date()).getTime();
+    if ((currTime - getLastHostNotAvailable(host)) < 120 * 1000) {
+      return false;
+    }
+
     // All sensorbase hosts use the HTTP protocol.
     if (!host.startsWith("http://")) {
+      setLastHostNotAvailable(host);
       return false;
     }
     // Create the host/register URL.
     try {
- 
       String registerUri = host.endsWith("/") ? host + "ping" : host + "/ping";
       Request request = new Request();
       request.setResourceRef(registerUri);
       request.setMethod(Method.GET);
       Client client = new Client(Protocol.HTTP);
-      int milliseconds = 2000;
-      client.getContext().getParameters().add("connectTimeout", String.valueOf(milliseconds));
-      client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
-      // For the Apache Commons client.
-      client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
-      client.getContext().getParameters().add("connectionManagerTimeout", 
-          String.valueOf(milliseconds));
+      setClientTimeout(client, 2000);
       Response response = client.handle(request);
       String pingText = response.getEntity().getText();
-      return (response.getStatus().isSuccess() && "SensorBase".equals(pingText));
+      boolean isAvailable = (response.getStatus().isSuccess() && "SensorBase".equals(pingText)); 
+      if (!isAvailable) {
+        setLastHostNotAvailable(host);
+      }
+      return isAvailable;
     }
     catch (Exception e) {
+      setLastHostNotAvailable(host);
       return false;
     }
   }
@@ -1211,6 +1231,8 @@ public class SensorBaseClient {
       return false;
     }
   }
+  
+  
 
   /**
    * Throws an unchecked illegal argument exception if the arg is null or empty.
@@ -1482,6 +1504,20 @@ public class SensorBaseClient {
     // Now remove the processing instruction. This approach seems like a total hack.
     xmlString = xmlString.substring(xmlString.indexOf('>') + 1);
     return xmlString;
+  }
+  
+  /**
+   * Attempts to set timeout values for the passed client. 
+   * @param client The client .
+   * @param milliseconds The timeout value. 
+   */
+  private static void setClientTimeout(Client client, int milliseconds) {
+    client.getContext().getParameters().add("connectTimeout", String.valueOf(milliseconds));
+    client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
+    // For the Apache Commons client.
+    client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
+    client.getContext().getParameters().add("connectionManagerTimeout", 
+        String.valueOf(milliseconds));
   }
 
   /**
