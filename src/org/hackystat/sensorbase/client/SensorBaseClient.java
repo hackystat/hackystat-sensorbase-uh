@@ -1124,6 +1124,7 @@ public class SensorBaseClient {
 
   /**
    * Registers the given user email with the given SensorBase.
+   * Timeout is set to 5 seconds. 
    * 
    * @param host The host name, such as "http://localhost:9876/sensorbase".
    * @param email The user email.
@@ -1138,6 +1139,13 @@ public class SensorBaseClient {
     form.add("email", email);
     request.setEntity(form.getWebRepresentation());
     Client client = new Client(Protocol.HTTP);
+    int milliseconds = 5000;
+    client.getContext().getParameters().add("connectTimeout", String.valueOf(milliseconds));
+    client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
+    // For the Apache Commons client.
+    client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
+    client.getContext().getParameters().add("connectionManagerTimeout", 
+        String.valueOf(milliseconds));
     Response response = client.handle(request);
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
@@ -1146,6 +1154,7 @@ public class SensorBaseClient {
 
   /**
    * Returns true if the passed host is a SensorBase host.
+   * The timeout is set at 2 seconds. 
    * 
    * @param host The URL of a sensorbase host, such as "http://localhost:9876/sensorbase".
    * @return True if this URL responds as a SensorBase host.
@@ -1157,11 +1166,19 @@ public class SensorBaseClient {
     }
     // Create the host/register URL.
     try {
+ 
       String registerUri = host.endsWith("/") ? host + "ping" : host + "/ping";
       Request request = new Request();
       request.setResourceRef(registerUri);
       request.setMethod(Method.GET);
       Client client = new Client(Protocol.HTTP);
+      int milliseconds = 2000;
+      client.getContext().getParameters().add("connectTimeout", String.valueOf(milliseconds));
+      client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
+      // For the Apache Commons client.
+      client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
+      client.getContext().getParameters().add("connectionManagerTimeout", 
+          String.valueOf(milliseconds));
       Response response = client.handle(request);
       String pingText = response.getEntity().getText();
       return (response.getStatus().isSuccess() && "SensorBase".equals(pingText));
