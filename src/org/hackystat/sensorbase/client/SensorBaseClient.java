@@ -1137,7 +1137,7 @@ public class SensorBaseClient {
     form.add("email", email);
     request.setEntity(form.getWebRepresentation());
     Client client = new Client(Protocol.HTTP);
-    setClientTimeout(client, 5000);
+    setClientTimeout(client, 10000);
     Response response = client.handle(request);
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());

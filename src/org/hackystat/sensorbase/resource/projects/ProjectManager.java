@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
@@ -414,6 +415,60 @@ public class ProjectManager {
     }
     // Got here, which means that we never found the invitee.
     return false;
+  }
+  
+  
+  /**
+   * Returns true if user1 and user2 are members of the same Project that encompasses the given day.
+   * @param userEmail1 The first user.
+   * @param userEmail2 The second user.
+   * @param tstampString The date in question, which could be null.
+   * @return True if the two users are in the same project that encompasses the given day.
+   */
+  public synchronized boolean inProject(String userEmail1, String userEmail2, String tstampString) {
+    // If any params are null, return false.
+    if ((tstampString == null) || (userEmail1 == null) || (userEmail2 == null)) {
+      return false;
+    }
+    // If either email cannot be converted to a user, return false.
+    User user1 = this.userManager.getUser(userEmail1);
+    if (user1 == null) {
+      return false;
+    }
+    User user2 = this.userManager.getUser(userEmail2);
+    if (user2 == null) {
+      return false;
+    }
+    // Return false if timestamp is null or cannot be converted to a real timestamp.
+    XMLGregorianCalendar timestamp = null;
+    try {
+      timestamp = Tstamp.makeTimestamp(tstampString);
+    }
+    catch (Exception e) {
+      return false;
+    }
+    // Now look through all projects and see if there is a project with both users that encompasses
+    // the given timestamp.
+    for (Entry<User, Map<String, Project>> entry : this.owner2name2project.entrySet()) {
+      for (Project project : entry.getValue().values()) {
+        if (belongs(project, user1) && belongs(project, user2) && 
+            Tstamp.inBetween(project.getStartTime(), timestamp, project.getEndTime())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns true if user is the owner or a member of Project.
+   * @param project The project. 
+   * @param user The user who's belonging is being assessed. 
+   * @return True if user is the owner or a member of project.
+   */
+  private boolean belongs(Project project, User user) {
+    return (project.getOwner().equals(user.getEmail()) ||
+        (project.getMembers().getMember().contains(user.getEmail())));
   }
   
   

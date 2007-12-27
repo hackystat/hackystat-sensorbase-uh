@@ -41,6 +41,9 @@ public class UserSensorDataResource extends SensorBaseResource {
   private String lastModStartTime;
   /** To be retrieved from the URL, or else null if not found. */
   private String lastModEndTime;
+  /** The error message when the Auth user is not authorized. */
+  private String notAuth = 
+    "Authorized user is not the URI user, not the admin, and not in a Project with the URI User.";
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -69,7 +72,8 @@ public class UserSensorDataResource extends SensorBaseResource {
    * <li> sensordata/{email}/{timestamp}
    * </ul>
    * <p>
-   * The user must be defined, and the authenticated user must be the uriUser or the Admin.
+   * The user must be defined, and the authenticated user must be the uriUser or the Admin or in the
+   * same project with the uriUser.
    * @param variant The representational variant requested.
    * @return The representation. 
    */
@@ -80,9 +84,10 @@ public class UserSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.uriUser);
       return null;
     } 
-    // Return error if authUser is not the UriUser but it's not the admin.
-    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
+    // Return error if authUser is not UriUser, not admin, and not in a Project with UriUser.
+    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser) &&
+        !super.projectManager.inProject(this.authUser, this.uriUser, this.timestamp)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, notAuth);
       return null;
     }
     // Now check to make sure they want XML.

@@ -175,13 +175,13 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     // Retrieve the TestUser User resource and test a couple of fields.
     XMLGregorianCalendar timestamp = Tstamp.makeTimestamp("2007-04-30T09:00:00.000");
     SensorData data = client.getSensorData(user, timestamp);
-    assertEquals("Checking timestamp 1", timestamp, data.getTimestamp());
+    assertTrue("Checking timestamp 1", Tstamp.equal(timestamp, data.getTimestamp()));
     
     // Check that the admin can retrieve other people's data.
     client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);
     client.authenticate();
     data = client.getSensorData(user, timestamp);
-    assertEquals("Checking timestamp 2", timestamp, data.getTimestamp());
+    assertTrue("Checking timestamp 2", Tstamp.equal(timestamp, data.getTimestamp()));
   }
   
   

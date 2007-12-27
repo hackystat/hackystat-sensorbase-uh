@@ -256,7 +256,8 @@ public class UserManager {
   
 
   /**
-   * Returns the User associated with this email address if they are currently registered.
+   * Returns the User associated with this email address if they are currently registered, or null
+   * if not found.
    * @param email The email address
    * @return The User, or null if not found.
    */
@@ -265,7 +266,8 @@ public class UserManager {
   }
   
   /**
-   * Returns the User Xml String associated with this email address if they are registered.
+   * Returns the User Xml String associated with this email address if they are registered, or 
+   * null if user not found.
    * @param email The email address
    * @return The User XML string, or null if not found.
    */
