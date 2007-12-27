@@ -227,6 +227,7 @@ public class UserProjectResource extends SensorBaseResource {
    * <li> The User must be currently defined.
    * <li> The authenticated user must be the uriUser or the Admin. 
    * <li> The User must be the admin or the Owner.
+   * <li> The project name must not be "Default".
    * </ul>
    * If the Project doesn't exist, that's fine, it's still "deleted".
    */
@@ -239,6 +240,10 @@ public class UserProjectResource extends SensorBaseResource {
     } 
     if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
+      return;
+    }    
+    if ("Default".equals(this.projectName)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Cannot delete Default project.");
       return;
     }    
     // Otherwise, delete it and return successs.
