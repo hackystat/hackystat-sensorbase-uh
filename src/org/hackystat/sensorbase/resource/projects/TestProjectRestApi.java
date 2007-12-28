@@ -234,8 +234,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     Project project = client.getProject(newUser, defaultProject);
     assertEquals("Checking default project", defaultProject, project.getName());
 
-    // Now we delete the user and the project.
-    client.deleteProject(newUser, defaultProject);
+    // Now we delete the user
     client.deleteUser(newUser);
   }
 
