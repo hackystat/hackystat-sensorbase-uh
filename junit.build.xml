@@ -24,6 +24,7 @@
       <batchtest todir="${junit.dir}">
         <fileset dir="${src.dir}" includes="**/Test*.java"/>
       </batchtest>
+      <sysproperty key="user.dir" value="${basedir}"/>
     </junit>
   </target>  
 
