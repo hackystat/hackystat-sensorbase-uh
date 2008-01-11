@@ -85,18 +85,21 @@ public class RegistrationResource extends SensorBaseResource {
     super.projectManager.addDefaultProject(user);
     // Now send the email to the (non-test) user and the hackystat admin.
     Mailer mailer = Mailer.getInstance();
+    String adminEmail = server.getServerProperties().get(ADMIN_EMAIL_KEY);
     String emailSubject = "Hackystat Version 8 Registration";
     String emailBody = 
-      "Welcome to Hackystat Version 8. " +
-      "\nYou are registered with the server: " + server.getServerProperties().getFullHost() +
-      "\nYour user name is: " + user.getEmail() +
-      "\nYour password is: " + user.getPassword() +
-      "\n\nNote that the user name and password are both case sensitive!";
+      "Welcome to Hackystat. " +
+      "\nYou are registered with: " + server.getServerProperties().getFullHost() +
+      "\nYour user name is:       " + user.getEmail() +
+      "\nYour password is:        " + user.getPassword() +
+      "\n\nFor questions, email:  " + adminEmail +
+      "\nYou can also see documentation at http://www.hackystat.org/" +
+      "\nWe hope you enjoy using Hackystat!";
     boolean success = mailer.send(email, emailSubject, emailBody);
     if (success) {
       // Don't send the administrator emails about test user registration.
       if (!userManager.isTestUser(user)) {
-        mailer.send(server.getServerProperties().get(ADMIN_EMAIL_KEY), 
+        mailer.send(adminEmail, 
             "Hackystat 8 Admin Registration",
             "User " + email + " registered and received password: " + user.getPassword() + "\n" +
             "for host: " + server.getServerProperties().get(HOSTNAME_KEY));
