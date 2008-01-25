@@ -109,6 +109,7 @@ public class ServerProperties {
         stream.close();
       }
     }
+    trimProperties(properties);
     
     // Now add to System properties. Since the Mailer class expects to find this stuff on the 
     // System Properties, we will add everything to it.  In general, however, clients should not
@@ -137,6 +138,7 @@ public class ServerProperties {
     properties.setProperty(DB_DIR_KEY, properties.getProperty(TEST_DB_DIR_KEY));
     properties.setProperty(PORT_KEY, properties.getProperty(TEST_PORT_KEY));
     properties.setProperty(TEST_INSTALL_KEY, "true");
+    trimProperties(properties);
     // update the system properties object to reflect these new values. 
     Properties systemProperties = System.getProperties();
     systemProperties.putAll(properties);
@@ -175,6 +177,17 @@ public class ServerProperties {
     return this.properties.getProperty(key);
   }
   
+  /**
+   * Ensures that the there is no leading or trailing whitespace in the property values.
+   * The fact that we need to do this indicates a bug in Java's Properties implementation to me. 
+   * @param properties The properties. 
+   */
+  private void trimProperties(Properties properties) {
+    for (String propName : properties.stringPropertyNames()) {
+      properties.setProperty(propName, properties.getProperty(propName).trim());
+    }
+  }
+   
   /**
    * Returns the fully qualified host name, such as "http://localhost:9876/sensorbase/".
    * @return The fully qualified host name.
