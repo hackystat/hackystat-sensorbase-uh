@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.server;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -183,7 +184,9 @@ public class ServerProperties {
    * @param properties The properties. 
    */
   private void trimProperties(Properties properties) {
-    for (String propName : properties.stringPropertyNames()) {
+    // Have to do this iteration in a Java 5 compatible manner. no stringPropertyNames().
+    for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+      String propName = (String)entry.getKey();
       properties.setProperty(propName, properties.getProperty(propName).trim());
     }
   }
