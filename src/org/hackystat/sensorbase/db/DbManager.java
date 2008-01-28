@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
+import org.hackystat.sensorbase.resource.projects.jaxb.ProjectSummary;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -160,6 +161,25 @@ public class DbManager {
   }
   
   /**
+   * Returns the XML SensorDataIndex for all sensor data matching these users, start/end time, and 
+   * whose resource string matches at least one in the list of UriPatterns. 
+   * Client must guarantee that startTime and endTime are within Project dates, and that 
+   * startIndex and maxInstances are non-negative.
+   * @param users The users. 
+   * @param startTime The start time. 
+   * @param endTime The end time. 
+   * @param uriPatterns A list of UriPatterns. 
+   * @param startIndex The starting index.
+   * @param maxInstances The maximum number of instances to return.
+   * @return The XML SensorDataIndex string corresponding to the matching sensor data. 
+   */
+  public String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<String> uriPatterns, int startIndex, int maxInstances) {
+    return this.dbImpl.getSensorDataIndex(users, startTime, endTime, uriPatterns, startIndex,
+        maxInstances);
+  }  
+  
+  /**
    * Returns the XML SensorDataIndex for all sensor data for the given user that arrived
    * at the server between the two timestamps.  This method uses the LastMod timestamp
    * rather than the "regular" timestamp, and is used for real-time monitoring of data
@@ -198,6 +218,22 @@ public class DbManager {
     return this.dbImpl.getProjectIndex();
   }
   
+  
+  /**
+   * Returns a ProjectSummary instance constructed for the given Project between the startTime
+   * and endTime. This summary provides a breakdown of the number of sensor data instances found
+   * of the given type during the given time period.
+   * @param users The list of users in this project.
+   * @param startTime The startTime
+   * @param endTime The endTime.
+   * @param uriPatterns The uriPatterns for this project.
+   * @param href The URL naming this resource.
+   * @return The ProjectSummary instance. 
+   */
+  public ProjectSummary getProjectSummary(List<User> users, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String href) {
+    return this.dbImpl.getProjectSummary(users, startTime, endTime, uriPatterns, href);
+  }
   
   /**
    * Returns the SensorData instance as an XML string, or null.

@@ -12,6 +12,7 @@
   <target name="validateXml" description="Validates XML files against their schemas.">
     <schemavalidate noNamespaceFile="${schema.dir}/projects.xsd" file="${examples.dir}/projects.example.xml"/>
     <schemavalidate noNamespaceFile="${schema.dir}/projects.xsd" file="${examples.dir}/projects.index.example.xml"/>
+    <schemavalidate noNamespaceFile="${schema.dir}/projects.xsd" file="${examples.dir}/projects.summary.example.xml"/>
     <schemavalidate noNamespaceFile="${schema.dir}/projects.xsd" file="${defaults.dir}/projects.defaults.xml"/>
 
     <schemavalidate noNamespaceFile="${schema.dir}/sensordata.xsd" file="${examples.dir}/sensordata.example.xml"/>

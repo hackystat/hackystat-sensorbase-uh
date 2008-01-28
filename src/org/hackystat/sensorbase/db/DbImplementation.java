@@ -7,6 +7,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
+import org.hackystat.sensorbase.resource.projects.jaxb.ProjectSummary;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.SdtManager;
@@ -72,6 +73,23 @@ public abstract class DbImplementation {
    */
   public abstract String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt);
+  
+  /**
+   * Returns the XML SensorDataIndex for all sensor data matching these users, start/end time, and 
+   * whose resource string matches at least one in the list of UriPatterns. 
+   * Client must guarantee that startTime and endTime are within Project dates, and that 
+   * startIndex and maxInstances are non-negative.
+   * @param users The users. 
+   * @param startTime The start time. 
+   * @param endTime The end time. 
+   * @param uriPatterns A list of UriPatterns. 
+   * @param startIndex The starting index.
+   * @param maxInstances The maximum number of instances to return.
+   * @return The XML SensorDataIndex string corresponding to the matching sensor data. 
+   */
+  public abstract String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<String> uriPatterns, int startIndex, int maxInstances);
+
   
   /**
    * Returns the XML SensorDataIndex for all sensor data for the given user that arrived
@@ -220,6 +238,20 @@ public abstract class DbImplementation {
    */
   public abstract void deleteProject(User owner, String projectName);
   
+  /**
+   * Returns a ProjectSummary instance constructed for the given Project between the startTime
+   * and endTime. This summary provides a breakdown of the number of sensor data instances found
+   * of the given type during the given time period.
+   * @param users The users in this project.
+   * @param startTime The startTime
+   * @param endTime The endTime.
+   * @param uriPatterns The UriPatterns for this project.
+   * @param href The URL naming this resource. 
+   * @return The ProjectSummary instance. 
+   */
+  public abstract ProjectSummary getProjectSummary(List<User> users, XMLGregorianCalendar startTime,
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String href);
+
   
   /** Keeps a pointer to this Server for use in accessing the managers. */
   protected Server server;

@@ -262,7 +262,7 @@ public class UserManager {
    * @return The User, or null if not found.
    */
   public synchronized User getUser(String email) {
-    return email2user.get(email);
+    return (email == null) ? null : email2user.get(email);
   }
   
   /**

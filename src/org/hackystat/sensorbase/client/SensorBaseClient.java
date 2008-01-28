@@ -22,6 +22,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Invitations;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
+import org.hackystat.sensorbase.resource.projects.jaxb.ProjectSummary;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.Property;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
@@ -1078,6 +1079,36 @@ public class SensorBaseClient {
     }
     return index;
   }
+  
+  /**
+   * Returns a ProjectSummary representing a summary of the number of sensor data instances of
+   * each type for the given interval.
+   * @param owner The project owner.
+   * @param projectName The project name.
+   * @param startTime The start time. 
+   * @param endTime The end time.
+   * @return A ProjectSummary.
+   * @throws SensorBaseClientException If problems occur.
+   */
+  public synchronized ProjectSummary getProjectSummary(String owner, String projectName, 
+      XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) 
+  throws  SensorBaseClientException {
+    Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName 
+        + "/summary?startTime=" + startTime + "&endTime=" + endTime, null);
+    
+    ProjectSummary summary;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      summary = makeProjectSummary(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return summary;
+  }
 
   /**
    * Creates the passed Project on the server.
@@ -1389,6 +1420,18 @@ public class SensorBaseClient {
   private SensorDataIndex makeSensorDataIndex(String xmlString) throws Exception {
     Unmarshaller unmarshaller = sensordataJAXB.createUnmarshaller();
     return (SensorDataIndex) unmarshaller.unmarshal(new StringReader(xmlString));
+  }
+  
+  /**
+   * Takes an XML Document representing a ProjectSummary and converts it to an instance.
+   * 
+   * @param xmlString The XML string representing a ProjectSummary.
+   * @return The corresponding ProjectSummary instance.
+   * @throws Exception If problems occur during unmarshalling.
+   */
+  private ProjectSummary makeProjectSummary(String xmlString) throws Exception {
+    Unmarshaller unmarshaller = projectJAXB.createUnmarshaller();
+    return (ProjectSummary) unmarshaller.unmarshal(new StringReader(xmlString));
   }
 
   /**

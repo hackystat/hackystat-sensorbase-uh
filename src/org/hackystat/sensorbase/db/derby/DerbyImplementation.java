@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.db.derby;
 
 import static org.hackystat.sensorbase.server.ServerProperties.DB_DIR_KEY;
 
+import java.math.BigInteger;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,8 +13,10 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -21,6 +24,9 @@ import org.hackystat.sensorbase.db.DbImplementation;
 import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.utilities.tstamp.Tstamp;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
+import org.hackystat.sensorbase.resource.projects.jaxb.ProjectSummary;
+import org.hackystat.sensorbase.resource.projects.jaxb.SensorDataSummaries;
+import org.hackystat.sensorbase.resource.projects.jaxb.SensorDataSummary;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -29,6 +35,12 @@ import org.hackystat.sensorbase.server.Server;
 
 /**
  * Provides a implementation of DbImplementation using Derby in embedded mode.
+ * 
+ * Note: If you are using this implementation as a guide for implementing an alternative database,
+ * you should be aware that this implementation does not do connection pooling.  It turns out
+ * that embedded Derby does not require connection pooling, so it is not present in this code.
+ * You will probably want it for your version, of course. 
+ * 
  * @author Philip Johnson
  */
 public class DerbyImplementation extends DbImplementation {
@@ -69,6 +81,7 @@ public class DerbyImplementation extends DbImplementation {
   private static final String selectPrefix = "SELECT XmlSensorDataRef FROM SensorData WHERE "; 
   
   private static final String derbyError = "Derby: Error ";
+  private static final String indexSuffix = "Index>";
 
   /**
    * Instantiates the Derby implementation.  Throws a Runtime exception if the Derby
@@ -352,14 +365,13 @@ public class DerbyImplementation extends DbImplementation {
   public String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt) {
     String statement;
-    
     if (sdt == null) { // Retrieve sensor data of all SDTs 
       statement =
         selectPrefix
         + constructOwnerClause(users)
         + andClause 
-        + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
-        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))"
+        + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND " //NOPMD
+        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))" //NOPMD
         + constructLikeClauses(uriPatterns);
     }
     else { // Retrieve sensor data of the specified SDT.
@@ -368,12 +380,30 @@ public class DerbyImplementation extends DbImplementation {
         + constructOwnerClause(users)
         + andClause  
         + sdtEquals + sdt + quoteAndClause 
-        + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
-        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))"
+        + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND " //NOPMD
+        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))" //NOPMD
         + constructLikeClauses(uriPatterns);
     }
     //System.out.println(statement);
     return getIndex("SensorData", statement);
+  }
+  
+  /** {@inheritDoc} */
+  @Override
+  public String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<String> uriPatterns, int startIndex, 
+      int maxInstances) {
+    String statement;
+
+    statement =
+        selectPrefix
+        + constructOwnerClause(users)
+        + andClause 
+        + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND " //NOPMD
+        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))" //NOPMD
+        + constructLikeClauses(uriPatterns);
+    //System.out.println(statement);
+    return getIndex("SensorData", statement, startIndex, maxInstances);
   }
   
   /**
@@ -842,6 +872,94 @@ public class DerbyImplementation extends DbImplementation {
   public String getProjectIndex() {
     return getIndex("Project", "SELECT XmlProjectRef FROM Project");
   }
+  
+  /** {@inheritDoc} */
+  @Override  
+  public ProjectSummary getProjectSummary(List<User> users, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String href) {
+    // Make a statement to return all SensorData for this project in the time period.
+    String column = "Sdt";
+    String statement = 
+      "SELECT Sdt FROM SensorData WHERE "
+      + constructOwnerClause(users)
+      + andClause 
+      + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
+      + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))"
+      + constructLikeClauses(uriPatterns);
+    
+    // Create the data structure to count the per-sdt numinstances.
+    Map<String, Integer> sdtInstances = new HashMap<String, Integer>();
+    
+    // Retrieve the sensordata for this project and time period.
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      // Loop through all retrieved SensorData records, focusing on the SDT column.
+      while (rs.next()) {
+        String sdt = rs.getString(column);
+        // Don't want null SDTs, call them the empty string instead.
+        if (sdt == null) {
+          sdt = "";
+        }
+        // Now update our numInstance data structure.
+        if (!sdtInstances.containsKey(sdt)) {
+          sdtInstances.put(sdt, 0);
+        }
+        sdtInstances.put(sdt, sdtInstances.get(sdt) + 1);
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in getProjectSummary()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    
+    //Now create the project summary object from our data structures.
+    return makeProjectSummary(href, startTime, endTime, sdtInstances);
+  }
+
+  /**
+   * Creates a ProjectSummary instances from the passed data. 
+   * @param href  The Href representing this resource.
+   * @param startTime The startTime for this data.
+   * @param endTime The endTime for this data.
+   * @param sdtInstances The data structure containing the instances. 
+   * @return The ProjectSummary instance. 
+   */
+  private ProjectSummary makeProjectSummary(String href, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, Map<String, Integer> sdtInstances) {
+    ProjectSummary projectSummary = new ProjectSummary();
+    projectSummary.setHref(href);
+    projectSummary.setStartTime(startTime);
+    projectSummary.setEndTime(endTime);
+    projectSummary.setLastMod(Tstamp.makeTimestamp());
+    SensorDataSummaries summaries = new SensorDataSummaries();
+    projectSummary.setSensorDataSummaries(summaries);
+    int totalInstances = 0;
+    for (Map.Entry<String, Integer> entry : sdtInstances.entrySet()) {
+      SensorDataSummary summary = new SensorDataSummary();
+      summary.setSensorDataType(entry.getKey());
+      int numInstances = entry.getValue();
+      totalInstances += numInstances;
+      summary.setNumInstances(BigInteger.valueOf(numInstances));
+      summaries.getSensorDataSummary().add(summary);
+    }
+    summaries.setNumInstances(BigInteger.valueOf(totalInstances));
+    return projectSummary;
+  }
+  
 
   /** {@inheritDoc} */
   @Override
@@ -908,7 +1026,7 @@ public class DerbyImplementation extends DbImplementation {
    */
   private String getIndex(String resourceName, String statement) {
     StringBuilder builder = new StringBuilder(512);
-    builder.append("<").append(resourceName).append("Index>");
+    builder.append("<").append(resourceName).append(indexSuffix);
     // Retrieve all the SensorData
     Connection conn = null;
     PreparedStatement s = null;
@@ -935,7 +1053,57 @@ public class DerbyImplementation extends DbImplementation {
         this.logger.warning(errorClosingMsg + StackTrace.toString(e));
       }
     }
-    builder.append("</").append(resourceName).append("Index>");
+    builder.append("</").append(resourceName).append(indexSuffix);
+    //System.out.println(builder.toString());
+    return builder.toString();
+  }
+  
+  /**
+   * Returns a string containing the Index for the given resource indicated by resourceName, 
+   * returning only the instances starting at startIndex, and with the maximum number of
+   * returned instances indicated by maxInstances.   
+   * @param resourceName The resource name, such as "Project".
+   * @param startIndex The (zero-based) starting index for instances to be returned.
+   * @param maxInstances The maximum number of instances to return.  
+   * @param statement The SQL Statement to be used to retrieve the resource references.
+   * @return The aggregate Index XML string. 
+   */
+  private String getIndex(String resourceName, String statement, int startIndex, int maxInstances) {
+    StringBuilder builder = new StringBuilder(512);
+    builder.append("<").append(resourceName).append(indexSuffix);
+    // Retrieve all the SensorData to start.
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      int currIndex = 0;
+      int totalInstances = 0;
+      String resourceRefColumnName = "Xml" + resourceName + "Ref";
+      while (rs.next()) {
+        if ((currIndex >= startIndex) && (totalInstances < maxInstances)) {
+          builder.append(rs.getString(resourceRefColumnName));
+          totalInstances++;
+        }
+        currIndex++;
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in getIndex()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    builder.append("</").append(resourceName).append(indexSuffix);
     //System.out.println(builder.toString());
     return builder.toString();
   }

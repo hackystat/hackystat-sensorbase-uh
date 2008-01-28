@@ -1,5 +1,8 @@
 package org.hackystat.sensorbase.resource.projects;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.utilities.tstamp.Tstamp;
@@ -31,6 +34,10 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
   private String endTime;
   /** An optional query parameter. */
   private String sdt;
+  /** An optional query parameter. */
+  private String startIndex;
+  /** An optional query parameter. */
+  private String maxInstances;
 
   
   /**
@@ -45,6 +52,8 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
     this.startTime = (String) request.getAttributes().get("startTime");
     this.endTime = (String) request.getAttributes().get("endTime");
     this.sdt = (String) request.getAttributes().get("sdt");
+    this.startIndex = (String) request.getAttributes().get("startIndex");
+    this.maxInstances = (String) request.getAttributes().get("maxInstances");
     this.user = super.userManager.getUser(super.uriUser);
   }
   
@@ -69,13 +78,14 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    // The user must be defined.
+    // The user (project owner) must be defined.
     if (this.user == null) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");
       return null;
     } 
     // The project must be defined.
-    if (!super.projectManager.hasProject(this.user, this.projectName)) {
+    Project project = super.projectManager.getProject(this.user, this.projectName);
+    if (project == null) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown project");
       return null;
     }
@@ -87,41 +97,80 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
     }
-    // If startTime or endTime is provided, but is not an XMLGregorianCalendar, then return error.
-    if ((this.startTime != null) && (!Tstamp.isTimestamp(this.startTime))) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad startTime");
-      return null;
-    }
-    if ((this.endTime != null) && (!Tstamp.isTimestamp(this.endTime))) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad endTime");
-      return null;
-    }
-    // If end time is greater than start time, return an error.
-    if ((this.endTime != null) && (Tstamp.isTimestamp(this.endTime)) &&
-        (this.startTime != null) && (Tstamp.isTimestamp(this.startTime)) &&
-        (Tstamp.greaterThan(this.startTime, this.endTime))) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Start time after end time.");
+    // If startTime is provided, then both startTime and endTime must be XMLGregorianCalendars,
+    // and startTime must be <= endTime.
+    XMLGregorianCalendar startTimeXml = null;
+    XMLGregorianCalendar endTimeXml = null;
+    if (this.startTime != null) {
+      try {
+        startTimeXml = Tstamp.makeTimestamp(this.startTime);
+        endTimeXml = Tstamp.makeTimestamp(this.endTime);
+      }
+      catch (Exception e) {
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+        "startTime (or endTime) is not supplied and/or is not a timestamp");
         return null;
+      }
+      // We have a legal start and end time. Make sure startTime is not greater than endTime.
+      if (Tstamp.greaterThan(startTimeXml, endTimeXml)) {
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+        "startTime cannot be greater than endTime.");
+        return null;
+      }
+      // Make sure that startTime is not less than project.startTime.
+      if (Tstamp.lessThan(startTimeXml, project.getStartTime())) {
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+        "startTime cannot be less than the project's start time.");
+        return null;
+      }
+      // And that endTime is not past the project endTime (if there is a project endTime).
+      if ((project.getEndTime() != null) && 
+          (Tstamp.greaterThan(endTimeXml, project.getEndTime()))) {
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+        "endTime cannot be greater than the project's end time.");
+        return null;
+      }
     }
-    // If startType is provided but not endTime, or vice versa, return an error. 
-    if ((this.endTime == null) && (this.startTime != null) ||
-        (this.endTime != null) && (this.startTime == null)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "startTime & endTime required.");
-      return null;
+    int startIndexInt = 0;
+    int maxInstancesInt = 0;
+    // Must supply both startIndex and maxInstances if either are supplied, and
+    // startIndex and maxInstances must be non-negative integers.
+    if (this.startIndex != null) {
+      try {
+        startIndexInt = Integer.parseInt(this.startIndex);
+        maxInstancesInt = Integer.parseInt(this.maxInstances);
+        if ((startIndexInt < 0) || (maxInstancesInt <= 0)) {
+          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+          "both startIndex & maxInstances must be non-negative.");
+          return null;
+        }
+      }
+      catch (Exception e) {
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+        "startIndex (or maxInstances) is not supplied and/or is not an integer.");
+        return null;
+      }
     }
 
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       try {
         if (startTime == null) {
           // Return all sensor data for this project if no query parameters.
-          String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName);
+          String data = super.projectManager.getProjectSensorDataIndex(this.user, project);
+          return SensorBaseResource.getStringRepresentation(data);
+        }
+        else if (startIndex == null) {
+          // Return the sensor data starting at startTime and ending with endTime.
+          String data = super.projectManager.getProjectSensorDataIndex(this.user, project,
+              startTimeXml, endTimeXml, this.sdt);
           return SensorBaseResource.getStringRepresentation(data);
         }
         else {
-          // Return the sensor data starting at startTime and ending with endTime. 
-          String data = super.projectManager.getProjectSensorDataIndex(this.user, this.projectName,
-              this.startTime, this.endTime, this.sdt);
+          // Return the data for startIndex and maxInstances. 
+          String data = super.projectManager.getProjectSensorDataIndex(this.user, project,
+              startTimeXml, endTimeXml, startIndexInt, maxInstancesInt);
           return SensorBaseResource.getStringRepresentation(data);
+          
         }
       }
       catch (Exception e) {

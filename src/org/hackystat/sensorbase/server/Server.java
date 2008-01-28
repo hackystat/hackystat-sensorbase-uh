@@ -10,6 +10,7 @@ import org.hackystat.sensorbase.resource.projects.ProjectsResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectInvitationResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectSensorDataResource;
+import org.hackystat.sensorbase.resource.projects.UserProjectSummaryResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectsResource;
 import org.hackystat.sensorbase.resource.registration.RegistrationResource;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
@@ -173,12 +174,19 @@ public class Server extends Application {
     authRouter.attach("/projects", ProjectsResource.class);
     authRouter.attach("/projects/{user}", UserProjectsResource.class);
     authRouter.attach("/projects/{user}/{projectname}", UserProjectResource.class);
-    authRouter.attach("/projects/{user}/{projectname}/sensordata", 
+    authRouter.attach(
+        "/projects/{user}/{projectname}/summary?startTime={startTime}&endTime={endTime}", 
+        UserProjectSummaryResource.class);
+    String sensorDataUriPrefix = "/projects/{user}/{projectname}/sensordata";
+    authRouter.attach(sensorDataUriPrefix, 
         UserProjectSensorDataResource.class);
-    authRouter.attach("/projects/{user}/{projectname}/sensordata" + 
+    authRouter.attach(sensorDataUriPrefix + 
         "?startTime={startTime}&endTime={endTime}", UserProjectSensorDataResource.class);
-    authRouter.attach("/projects/{user}/{projectname}/sensordata" + 
-        "?sdt={sdt}&startTime={startTime}&endTime={endTime}", UserProjectSensorDataResource.class);
+    authRouter.attach(sensorDataUriPrefix + 
+       "?startTime={startTime}&endTime={endTime}" + 
+       "&startIndex={startIndex}&maxInstances={maxInstances}", UserProjectSensorDataResource.class);
+    authRouter.attach(sensorDataUriPrefix + 
+       "?sdt={sdt}&startTime={startTime}&endTime={endTime}",  UserProjectSensorDataResource.class);
     authRouter.attach("/projects/{user}/{projectname}/invitation/{rsvp}", 
         UserProjectInvitationResource.class);
     // Here's the Guard that we will place in front of authRouter.

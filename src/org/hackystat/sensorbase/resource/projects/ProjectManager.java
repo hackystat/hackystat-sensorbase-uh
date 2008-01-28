@@ -32,6 +32,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Members;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
+import org.hackystat.sensorbase.resource.projects.jaxb.ProjectSummary;
 import org.hackystat.sensorbase.resource.projects.jaxb.Projects;
 import org.hackystat.sensorbase.resource.projects.jaxb.Properties;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
@@ -91,6 +92,7 @@ public class ProjectManager {
    */
   public ProjectManager(Server server) {
     this.server = server;
+    // Note: cannot get a SensorDataManager at this point; has not yet been instantiated.
     this.userManager = 
       (UserManager)this.server.getContext().getAttributes().get("UserManager");    
     this.dbManager = (DbManager)this.server.getContext().getAttributes().get("DbManager");
@@ -524,32 +526,101 @@ public class ProjectManager {
    * owned by this user.
    * Assumes that the owner and projectName define an existing Project.
    * @param owner The User that owns this Project.
-   * @param projectName the Project name.
-   * @return The XML SensorDataIndex string providing an index to all data for this user/project.
+   * @param project the Project instance.
+   * @return The XML SensorDataIndex string providing an index to all data for this project.
    * @throws Exception If things go wrong. 
    */
-  public synchronized String getProjectSensorDataIndex(User owner, String projectName) 
+  public synchronized String getProjectSensorDataIndex(User owner, Project project) 
   throws Exception {
     SensorDataManager sensorDataManager = 
       (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
-    Project project = this.getProject(owner, projectName);
     XMLGregorianCalendar startTime = project.getStartTime();
     XMLGregorianCalendar endTime = project.getEndTime();
     List<String> patterns = project.getUriPatterns().getUriPattern();
-    List<User> users = new ArrayList<User>();
-    users.add(owner);
-    for (String member : project.getMembers().getMember()) {
-      User user = userManager.getUser(member);
-      if (user != null) {
-        users.add(user);
-      }
-    }
+    List<User> users = getProjectUsers(project);
     return sensorDataManager.getSensorDataIndex(users, startTime, endTime, patterns, null);
   }
   
 
   /**
    * Returns the XML SensorDataIndex string for the data associated with this Project within the 
+   * specified start and end times.
+   * Assumes that owner, project, startTime, and endTime are non-null, and that startTime and
+   * endTime are within the Project start and end time interval.
+   * @param owner The User who owns this Project. 
+   * @param project the Project.
+   * @param startTime The startTime.
+   * @param endTime The endTime.
+   * @param sdt The SensorDataType of interest, or null if all sensordatatypes are to be retrieved.
+   * @return The XML String providing a SensorDataIndex to the sensor data in this project
+   * starting at startTime and ending at endTime. 
+   * @throws Exception if problems occur.
+   */  
+  public synchronized String getProjectSensorDataIndex(User owner, 
+      Project project, XMLGregorianCalendar startTime, XMLGregorianCalendar endTime, String sdt) 
+  throws Exception {
+    SensorDataManager sensorDataManager = 
+      (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
+    List<String> patterns = project.getUriPatterns().getUriPattern();
+    List<User> users = getProjectUsers(project);
+    return sensorDataManager.getSensorDataIndex(users, startTime, endTime, patterns, sdt);
+  }
+  
+  /**
+   * Returns the XML SensorDataIndex string for the data associated with this Project within the 
+   * specified start and end times and startIndex and maxInstances.
+   * Assumes that owner, project, startTime, and endTime are non-null, and that startTime and
+   * endTime are within the Project start and end time interval, and that startIndex and 
+   * maxInstances are non-negative.
+   * @param owner The User who owns this Project. 
+   * @param project the Project.
+   * @param startTime The startTime.
+   * @param endTime The endTime.
+   * @param startIndex The starting index within the timestamp-ordered list of all sensor data
+   * instances associated with this project at the time of this call.
+   * @param maxInstances The maximum number of instances to return in the index.
+   * @return The XML String providing a SensorDataIndex to the sensor data in this project
+   * starting at startTime and ending at endTime with the specified startIndex and maxInstances. 
+   * @throws Exception if problems occur.
+   */  
+  public synchronized String getProjectSensorDataIndex(User owner, 
+      Project project, XMLGregorianCalendar startTime, XMLGregorianCalendar endTime, int startIndex,
+      int maxInstances) 
+  throws Exception {
+    SensorDataManager sensorDataManager = 
+      (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
+    List<String> patterns = project.getUriPatterns().getUriPattern();
+    List<User> users = getProjectUsers(project);
+    return sensorDataManager.getSensorDataIndex(users, startTime, endTime, patterns, startIndex,
+        maxInstances);
+  }
+  
+  /**
+   * Creates and returns the list of User instances associated with project.
+   * The users are the owner plus all members.
+   * If the owner email or member emails cannot be resolved to User instances, they are silently
+   * ignored.
+   * @param project The project whose users are to be found and returned.
+   * @return The list of Users associated with this project.
+   */
+  private List<User> getProjectUsers(Project project) {
+    List<User> users = new ArrayList<User>();
+    User owner = userManager.getUser(project.getOwner());
+    if (owner != null) {
+      users.add(owner);
+    }
+    for (String member : project.getMembers().getMember()) {
+      User user = userManager.getUser(member);
+      if (user != null) {
+        users.add(user);
+      }
+    }
+    return users; 
+  }
+  
+
+  /**
+   * Returns the XML ProjectSummary string for the data associated with this Project within the 
    * specified start and end times.
    * Note that the Project start and end times may further constrain the returned set of data. 
    * This method chooses the greater of startString and the Project startTime, and the lesser of
@@ -559,15 +630,12 @@ public class ProjectManager {
    * @param projectName the Project name.
    * @param startString The startTime as a string. 
    * @param endString The endTime as a string.
-   * @param sdt The SensorDataType of interest, or null if all sensordatatypes are to be retrieved.
-   * @return The XML String providing a SensorDataIndex to the sensor data in this project
+   * @return The XML String providing a ProjectSummary of this project
    * starting at startTime and ending at endTime. 
    * @throws Exception if startString or endString are not XMLGregorianCalendars.
    */  
-  public synchronized String getProjectSensorDataIndex(User owner, 
-      String projectName, String startString, String endString, String sdt) throws Exception {
-    SensorDataManager sensorDataManager = 
-      (SensorDataManager)this.server.getContext().getAttributes().get("SensorDataManager");
+  public synchronized String getProjectSummaryString(User owner, 
+      String projectName, String startString, String endString) throws Exception {
     Project project = this.getProject(owner, projectName);
     XMLGregorianCalendar startTime = Tstamp.makeTimestamp(startString);
     XMLGregorianCalendar endTime = Tstamp.makeTimestamp(endString);
@@ -578,17 +646,13 @@ public class ProjectManager {
     endTime = (Tstamp.lessThan(endTime, project.getEndTime())) ? 
         endTime : project.getEndTime();
     List<String> patterns = project.getUriPatterns().getUriPattern();
-    List<User> users = new ArrayList<User>();
-    users.add(owner);
-    for (String member : project.getMembers().getMember()) {
-      User user = userManager.getUser(member);
-      if (user != null) {
-        users.add(user);
-      }
-    }
-    return sensorDataManager.getSensorDataIndex(users, startTime, endTime, patterns, sdt);
-    
+    List<User> users = getProjectUsers(project);
+    String href = this.server.getHostName() + "projects/" + owner.getEmail() + "/" +
+    projectName + "/summary?startTime=" + startString + "&endTime=" + endString;
+    ProjectSummary summary = dbManager.getProjectSummary(users, startTime, endTime, patterns, href);
+    return makeProjectSummaryString(summary);
   }
+  
   
   /**
    * Creates and stores the "Default" project for the specified user. 
@@ -616,7 +680,7 @@ public class ProjectManager {
   }
   
   /**
-   * Returns the Project associated with user and projectName.
+   * Returns the Project associated with user and projectName, or null if not found.
    * @param  owner The user. 
    * @param  projectName A project name
    * @return The project, or null if not found.
@@ -699,6 +763,32 @@ public class ProjectManager {
     DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
     Document doc = documentBuilder.newDocument();
     marshaller.marshal(ref, doc);
+    DOMSource domSource = new DOMSource(doc);
+    StringWriter writer = new StringWriter();
+    StreamResult result = new StreamResult(writer);
+    TransformerFactory tf = TransformerFactory.newInstance();
+    Transformer transformer = tf.newTransformer();
+    transformer.transform(domSource, result);
+    String xmlString = writer.toString();
+    // Now remove the processing instruction.  This approach seems like a total hack.
+    xmlString = xmlString.substring(xmlString.indexOf('>') + 1);
+    return xmlString;
+  }
+  
+  /**
+   * Returns the passed ProjectSummary instance as a String encoding of its XML representation. 
+   * @param summary The ProjectSummary instance. 
+   * @return The XML String representation of it.
+   * @throws Exception If problems occur during translation. 
+   */
+  public final synchronized String makeProjectSummaryString (ProjectSummary summary) 
+  throws Exception {
+    Marshaller marshaller = jaxbContext.createMarshaller(); 
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+    Document doc = documentBuilder.newDocument();
+    marshaller.marshal(summary, doc);
     DOMSource domSource = new DOMSource(doc);
     StringWriter writer = new StringWriter();
     StreamResult result = new StreamResult(writer);

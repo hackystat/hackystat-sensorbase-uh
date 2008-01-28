@@ -9,6 +9,7 @@ import org.hackystat.sensorbase.client.SensorBaseClient;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
+import org.hackystat.sensorbase.resource.projects.jaxb.ProjectSummary;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
@@ -99,6 +100,27 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     assertTrue("Checking index has entries", index.getSensorDataRef().size() > 1);
   }
 
+  /**
+   * Test that GET host/sensorbase/projects/TestUser@hackystat.org/TestProject/sensordata?
+   * startTime=2006-04-30T09:00:00.000&endTime=2007-04-30T09:30:00.000 returns an index of
+   * SensorData containing one entry.
+   * 
+   * @throws Exception If problems occur.
+   */
+  @Test
+  public void getTestUserProjectSensorSummary() throws Exception {
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), testUser, testUser);
+    client.authenticate();
+    // Retrieve the SensorData for the TestProject project within the time
+    // interval.
+    XMLGregorianCalendar startTime = Tstamp.makeTimestamp("2007-04-30T09:00:00.000");
+    XMLGregorianCalendar endTime = Tstamp.makeTimestamp("2007-04-30T09:30:00.000");
+    ProjectSummary summary = client.getProjectSummary(testUser, testProject, startTime, endTime);
+    assertEquals("Checking summary size", 1, 
+        summary.getSensorDataSummaries().getNumInstances().intValue());
+  }
+  
   /**
    * Test that GET host/sensorbase/projects/TestUser@hackystat.org/TestProject/sensordata?
    * startTime=2006-04-30T09:00:00.000&endTime=2007-04-30T09:30:00.000 returns an index of
