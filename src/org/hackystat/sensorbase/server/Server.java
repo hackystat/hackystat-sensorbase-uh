@@ -181,10 +181,10 @@ public class Server extends Application {
     authRouter.attach(sensorDataUriPrefix, 
         UserProjectSensorDataResource.class);
     authRouter.attach(sensorDataUriPrefix + 
-        "?startTime={startTime}&endTime={endTime}", UserProjectSensorDataResource.class);
-    authRouter.attach(sensorDataUriPrefix + 
        "?startTime={startTime}&endTime={endTime}" + 
        "&startIndex={startIndex}&maxInstances={maxInstances}", UserProjectSensorDataResource.class);
+    authRouter.attach(sensorDataUriPrefix + 
+        "?startTime={startTime}&endTime={endTime}", UserProjectSensorDataResource.class);
     authRouter.attach(sensorDataUriPrefix + 
        "?sdt={sdt}&startTime={startTime}&endTime={endTime}",  UserProjectSensorDataResource.class);
     authRouter.attach("/projects/{user}/{projectname}/invitation/{rsvp}", 

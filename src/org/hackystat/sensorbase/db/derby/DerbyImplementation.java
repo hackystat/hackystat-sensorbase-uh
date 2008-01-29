@@ -79,7 +79,7 @@ public class DerbyImplementation extends DbImplementation {
   private static final String quoteAndClause = "' AND ";
   private static final String andClause = " AND ";
   private static final String selectPrefix = "SELECT XmlSensorDataRef FROM SensorData WHERE "; 
-  
+  private static final String orderByTstamp = " ORDER BY tstamp";
   private static final String derbyError = "Derby: Error ";
   private static final String indexSuffix = "Index>";
 
@@ -356,7 +356,8 @@ public class DerbyImplementation extends DbImplementation {
     String st = 
       selectPrefix
       + ownerEquals + user.getEmail() + quoteAndClause
-      + " Sdt='" + sdtName + "'";
+      + " Sdt='" + sdtName + "'"
+      + orderByTstamp;
     return getIndex("SensorData", st);
   }
   
@@ -372,7 +373,8 @@ public class DerbyImplementation extends DbImplementation {
         + andClause 
         + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND " //NOPMD
         + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))" //NOPMD
-        + constructLikeClauses(uriPatterns);
+        + constructLikeClauses(uriPatterns)
+        + orderByTstamp;
     }
     else { // Retrieve sensor data of the specified SDT.
       statement = 
@@ -382,7 +384,8 @@ public class DerbyImplementation extends DbImplementation {
         + sdtEquals + sdt + quoteAndClause 
         + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND " //NOPMD
         + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))" //NOPMD
-        + constructLikeClauses(uriPatterns);
+        + constructLikeClauses(uriPatterns)
+        + orderByTstamp;
     }
     //System.out.println(statement);
     return getIndex("SensorData", statement);
@@ -401,7 +404,8 @@ public class DerbyImplementation extends DbImplementation {
         + andClause 
         + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND " //NOPMD
         + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))" //NOPMD
-        + constructLikeClauses(uriPatterns);
+        + constructLikeClauses(uriPatterns)
+        + orderByTstamp;
     //System.out.println(statement);
     return getIndex("SensorData", statement, startIndex, maxInstances);
   }

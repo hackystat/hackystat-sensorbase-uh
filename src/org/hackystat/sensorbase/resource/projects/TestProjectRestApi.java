@@ -26,6 +26,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   private String testUser = "TestUser@hackystat.org";
   private String testProject = "TestProject";
   private String defaultProject = "Default";
+  private static final String nineAm = "2007-04-30T09:00:00.000";
 
   /**
    * Test that GET host/sensorbase/projects returns an index containing at least one Project. This
@@ -114,7 +115,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     client.authenticate();
     // Retrieve the SensorData for the TestProject project within the time
     // interval.
-    XMLGregorianCalendar startTime = Tstamp.makeTimestamp("2007-04-30T09:00:00.000");
+    XMLGregorianCalendar startTime = Tstamp.makeTimestamp(nineAm);
     XMLGregorianCalendar endTime = Tstamp.makeTimestamp("2007-04-30T09:30:00.000");
     ProjectSummary summary = client.getProjectSummary(testUser, testProject, startTime, endTime);
     assertEquals("Checking summary size", 1, 
@@ -135,7 +136,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     client.authenticate();
     // Retrieve the SensorData for the TestProject project within the time
     // interval.
-    XMLGregorianCalendar startTime = Tstamp.makeTimestamp("2007-04-30T09:00:00.000");
+    XMLGregorianCalendar startTime = Tstamp.makeTimestamp(nineAm);
     XMLGregorianCalendar endTime = Tstamp.makeTimestamp("2007-04-30T09:30:00.000");
     SensorDataIndex index = client.getProjectSensorData(testUser, testProject, startTime, endTime);
     assertEquals("Checking index contains one entry", 1, index.getSensorDataRef().size());
@@ -155,7 +156,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     client.authenticate();
     // Retrieve the SensorData for the TestProject project within the time
     // interval, and make sure we have the two entries that we expect. 
-    XMLGregorianCalendar startTime = Tstamp.makeTimestamp("2007-04-30T09:00:00.000");
+    XMLGregorianCalendar startTime = Tstamp.makeTimestamp(nineAm);
     XMLGregorianCalendar endTime = Tstamp.makeTimestamp("2007-04-30T10:00:00.000");
     SensorDataIndex index = client.getProjectSensorData(testUser, testProject, startTime, endTime);
     assertEquals("Checking our test data has 2 entries", 2, index.getSensorDataRef().size());
@@ -163,6 +164,47 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     // Now test the SDT param call to make sure we get only the SDT of interest.
     index = client.getProjectSensorData(testUser, testProject, startTime, endTime, "TestSdt");
     assertEquals("Checking our test data has 1 entries", 1, index.getSensorDataRef().size());
+  }
+  
+  
+  /**
+   * Test that the GET of a project with the startIndex/maxInstances parameters work correctly.
+   * Assumes that the default XML data files are loaded, which result in two sensor data entries
+   * for TestUser@hackystat.org on 2007-04-30, one with SDT=TestSdt and one with SDT=SampleSdt.
+   * We'll try a few combinations of startIndex and maxInstances to see that the proper number
+   * of instances are returned.
+   * 
+   * @throws Exception If problems occur.
+   */
+  @Test
+  public void getTestUserProjectStartIndexMaxInstancesParams() throws Exception {
+    // Create the TestUser client and check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), testUser, testUser);
+    client.authenticate();
+    // Retrieve the SensorData for the TestProject project within the time
+    // interval, and make sure we have the two entries that we expect. 
+    XMLGregorianCalendar startTime = Tstamp.makeTimestamp(nineAm);
+    XMLGregorianCalendar endTime = Tstamp.makeTimestamp("2007-04-30T10:00:00.000");
+    SensorDataIndex index = client.getProjectSensorData(testUser, testProject, startTime, endTime);
+    assertEquals("Checking our original data has 2 entries", 2, index.getSensorDataRef().size());
+    
+    // Now test the startIndex/maxInstances params.
+    index = client.getProjectSensorData(testUser, testProject, startTime, endTime, 0, 100);
+    assertEquals("Checking startindex 1 is 2", 2, index.getSensorDataRef().size());
+
+    index = client.getProjectSensorData(testUser, testProject, startTime, endTime, 1, 100);
+    assertEquals("Checking startindex 2 is 1", 1, index.getSensorDataRef().size());
+
+    index = client.getProjectSensorData(testUser, testProject, startTime, endTime, 0, 1);
+    assertEquals("Checking startindex 3 is 1", 1, index.getSensorDataRef().size());
+
+    index = client.getProjectSensorData(testUser, testProject, startTime, endTime, 1, 1);
+    assertEquals("Checking startindex 4 is 1", 1, index.getSensorDataRef().size());
+    
+    index = client.getProjectSensorData(testUser, testProject, startTime, endTime, 2, 1);
+    assertEquals("Checking startindex 5 is 0", 0, index.getSensorDataRef().size());
+
+
   }
 
   /**

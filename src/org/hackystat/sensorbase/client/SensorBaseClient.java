@@ -90,6 +90,9 @@ public class SensorBaseClient {
   private String sensordataUri = "sensordata/";
   /** For PMD */
   private String projectsUri = "projects/";
+  /** For PMD */
+  private String andEndTime = "&endTime=";
+  
   /** To facilitate debugging of problems using this system. */
   private boolean isTraceEnabled = false;
 
@@ -1033,7 +1036,7 @@ public class SensorBaseClient {
       XMLGregorianCalendar startTime, XMLGregorianCalendar endTime)
       throws SensorBaseClientException {
     Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName
-        + "/sensordata?startTime=" + startTime + "&endTime=" + endTime, null);
+        + "/sensordata?startTime=" + startTime + andEndTime + endTime, null);
     SensorDataIndex index;
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
@@ -1065,7 +1068,45 @@ public class SensorBaseClient {
       XMLGregorianCalendar startTime, XMLGregorianCalendar endTime, String sdt)
       throws SensorBaseClientException {
     Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName
-        + "/sensordata?sdt=" + sdt + "&startTime=" + startTime + "&endTime=" + endTime, null);
+        + "/sensordata?sdt=" + sdt + "&startTime=" + startTime + andEndTime + endTime, null);
+    SensorDataIndex index;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      index = makeSensorDataIndex(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return index;
+  }
+  
+  /**
+   * Returns a SensorDataIndex representing the SensorData with the startIndex and 
+   * maxInstances for the Project during the time interval.
+   * The startIndex must be non-negative, and is zero-based.  The maxInstances must be non-negative.
+   * If startIndex is greater than the number of instances in the time interval, then an 
+   * empty SensorDataIndex is returned.  
+   * 
+   * @param owner The project owner's email.
+   * @param projectName The project name.
+   * @param startTime The start time.
+   * @param endTime The end time.
+   * @param startIndex The zero-based index to the first Sensor Data instance to be returned in 
+   * the time interval, when the instances are all ordered by timestamp.
+   * @param maxInstances The maximum number of instances to return.
+   * @return A SensorDataIndex.
+   * @throws SensorBaseClientException If the server does not return success or returns something
+   *         that cannot be marshalled into Java SensorDataIndex instance.
+   */
+  public synchronized SensorDataIndex getProjectSensorData(String owner, String projectName,
+      XMLGregorianCalendar startTime, XMLGregorianCalendar endTime, int startIndex, 
+      int maxInstances) throws SensorBaseClientException {
+    Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName
+        + "/sensordata?startTime=" + startTime + andEndTime + endTime + "&startIndex="
+        + startIndex + "&maxInstances=" + maxInstances, null);
     SensorDataIndex index;
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
@@ -1094,7 +1135,7 @@ public class SensorBaseClient {
       XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) 
   throws  SensorBaseClientException {
     Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName 
-        + "/summary?startTime=" + startTime + "&endTime=" + endTime, null);
+        + "/summary?startTime=" + startTime + andEndTime + endTime, null);
     
     ProjectSummary summary;
     if (!response.getStatus().isSuccess()) {
