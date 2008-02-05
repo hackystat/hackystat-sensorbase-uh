@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ProjectSummary Href="http://dasha.ics.hawaii.edu:9876/sensorbase/projects/johnson@hawaii.edu/Default">
+  <StartTime>2008-01-01T00:00:00.000</StartTime>
+  <EndTime>2008-01-02T00:00:00.000</EndTime>
+  <SensorDataSummaries NumInstances="5247">
+    <SensorDataSummary SensorDataType="Commit" NumInstances="2001"/>
+    <SensorDataSummary SensorDataType="DevEvent" NumInstances="3214"/>
+    <SensorDataSummary SensorDataType=""  NumInstances="32"/>
+  </SensorDataSummaries>
+</ProjectSummary> 
