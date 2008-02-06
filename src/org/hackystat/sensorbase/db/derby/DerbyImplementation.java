@@ -882,17 +882,16 @@ public class DerbyImplementation extends DbImplementation {
   public ProjectSummary getProjectSummary(List<User> users, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime, List<String> uriPatterns, String href) {
     // Make a statement to return all SensorData for this project in the time period.
-    String column = "Sdt";
     String statement = 
-      "SELECT Sdt FROM SensorData WHERE "
+      "SELECT Sdt, Tool FROM SensorData WHERE "
       + constructOwnerClause(users)
       + andClause 
       + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND "
       + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))"
       + constructLikeClauses(uriPatterns);
     
-    // Create the data structure to count the per-sdt numinstances.
-    Map<String, Integer> sdtInstances = new HashMap<String, Integer>();
+    // Create the [SDT, Tool] -> NumInstances data structure.
+    Map<String, Map<String, Integer>> sdtInstances = new HashMap<String, Map<String, Integer>>();
     
     // Retrieve the sensordata for this project and time period.
     Connection conn = null;
@@ -902,18 +901,31 @@ public class DerbyImplementation extends DbImplementation {
       conn = DriverManager.getConnection(connectionURL);
       s = conn.prepareStatement(statement);
       rs = s.executeQuery();
-      // Loop through all retrieved SensorData records, focusing on the SDT column.
+      // Loop through all retrieved SensorData records.
       while (rs.next()) {
-        String sdt = rs.getString(column);
-        // Don't want null SDTs, call them the empty string instead.
+        String sdt = rs.getString("Sdt");
+        String tool = rs.getString("Tool");
+        // Don't want null SDTs or Tools, call them the empty string instead.
         if (sdt == null) {
           sdt = "";
         }
-        // Now update our numInstance data structure.
-        if (!sdtInstances.containsKey(sdt)) {
-          sdtInstances.put(sdt, 0);
+        if (tool == null) {
+          tool = "";
         }
-        sdtInstances.put(sdt, sdtInstances.get(sdt) + 1);
+        // Now update our numInstance data structure.
+        // First, initialize the data structure if this is a new SDT.
+        if (!sdtInstances.containsKey(sdt)) {
+          Map<String, Integer> tool2NumInstances = new HashMap<String, Integer>();
+          tool2NumInstances.put(tool, 0);
+          sdtInstances.put(sdt, tool2NumInstances);
+        }
+        Map<String, Integer> tool2NumInstances = sdtInstances.get(sdt);
+        // Second, initialize the data structure if this is a new tool for a preexisting SDT.
+        if (tool2NumInstances.get(tool) == null) {
+          tool2NumInstances.put(tool, 0);
+        }
+        // Finally, increment this entry.
+        tool2NumInstances.put(tool, tool2NumInstances.get(tool) + 1);
       }
     }
     catch (SQLException e) {
@@ -943,7 +955,7 @@ public class DerbyImplementation extends DbImplementation {
    * @return The ProjectSummary instance. 
    */
   private ProjectSummary makeProjectSummary(String href, XMLGregorianCalendar startTime, 
-      XMLGregorianCalendar endTime, Map<String, Integer> sdtInstances) {
+      XMLGregorianCalendar endTime, Map<String, Map<String, Integer>> sdtInstances) {
     ProjectSummary projectSummary = new ProjectSummary();
     projectSummary.setHref(href);
     projectSummary.setStartTime(startTime);
@@ -952,13 +964,18 @@ public class DerbyImplementation extends DbImplementation {
     SensorDataSummaries summaries = new SensorDataSummaries();
     projectSummary.setSensorDataSummaries(summaries);
     int totalInstances = 0;
-    for (Map.Entry<String, Integer> entry : sdtInstances.entrySet()) {
-      SensorDataSummary summary = new SensorDataSummary();
-      summary.setSensorDataType(entry.getKey());
-      int numInstances = entry.getValue();
-      totalInstances += numInstances;
-      summary.setNumInstances(BigInteger.valueOf(numInstances));
-      summaries.getSensorDataSummary().add(summary);
+    for (Map.Entry<String, Map<String, Integer>> entry : sdtInstances.entrySet()) {
+      String sdt = entry.getKey();
+      Map<String, Integer> tool2NumInstances = entry.getValue();
+      for (Map.Entry<String, Integer> entry2 : tool2NumInstances.entrySet()) {
+        SensorDataSummary summary = new SensorDataSummary();
+        summary.setSensorDataType(sdt);
+        summary.setTool(entry2.getKey());
+        int numInstances = entry2.getValue();
+        totalInstances += numInstances;
+        summary.setNumInstances(BigInteger.valueOf(numInstances));
+        summaries.getSensorDataSummary().add(summary);
+      }
     }
     summaries.setNumInstances(BigInteger.valueOf(totalInstances));
     return projectSummary;
