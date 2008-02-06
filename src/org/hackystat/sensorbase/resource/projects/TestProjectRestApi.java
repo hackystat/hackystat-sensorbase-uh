@@ -10,6 +10,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectSummary;
+import org.hackystat.sensorbase.resource.projects.jaxb.SensorDataSummary;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
@@ -120,6 +121,10 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     ProjectSummary summary = client.getProjectSummary(testUser, testProject, startTime, endTime);
     assertEquals("Checking summary size", 1, 
         summary.getSensorDataSummaries().getNumInstances().intValue());
+    SensorDataSummary dataSummary = summary.getSensorDataSummaries().getSensorDataSummary().get(0);
+    assertEquals("Checking summary tool", "Subversion", dataSummary.getTool());
+    assertEquals("Checking summary type", "TestSdt", dataSummary.getSensorDataType());
+    assertEquals("Checking summary instances", 1, dataSummary.getNumInstances().intValue());
   }
   
   /**
