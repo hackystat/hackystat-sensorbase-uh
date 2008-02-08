@@ -45,7 +45,7 @@ public class UriCacheManager {
    * @throws UriCacheException in the case of error.
    * @throws IOException if unable create property file.
    */
-  public static synchronized UriCache<String, Object> getCache(String storagePath,
+  public static synchronized UriCache getCache(String storagePath,
       String sensorBaseHost, String userEmail) throws UriCacheException, IOException {
 
     // let's figure out where to look for the cache(s)
@@ -64,7 +64,7 @@ public class UriCacheManager {
     }
 
     // now we are going to locate cache
-    UriCache<String, Object> tryCache = locateCache(cacheHome, sensorBaseHost, userEmail);
+    UriCache tryCache = locateCache(cacheHome, sensorBaseHost, userEmail);
 
     // but if cache is not found we will create one
     if (null == tryCache) {
@@ -75,7 +75,7 @@ public class UriCacheManager {
       // create, save cache and return UriCache handler
       UriCacheProperties cacheProp = new UriCacheProperties();
       cacheProp.setCacheStoragePath(cacheHome);
-      UriCache<String, Object> newCache = new UriCache<String, Object>(cacheDesc.getName(),
+      UriCache newCache = new UriCache(cacheDesc.getName(),
           cacheProp);
       newCache.clear();
       return newCache;
@@ -96,7 +96,7 @@ public class UriCacheManager {
    *         not found.
    * @throws UriCacheException if unable to operate with cache.
    */
-  private static synchronized UriCache<String, Object> locateCache(String storagePath,
+  private static synchronized UriCache locateCache(String storagePath,
       String sensorBaseHost, String userEmail) throws UriCacheException {
 
     // getting cache home folder
@@ -130,7 +130,7 @@ public class UriCacheManager {
     Integer length = candidatesList.size();
 
     Integer position = null;
-    UriCache<String, Object> cache = null;
+    UriCache cache = null;
 
     // We are going to iterate over caches from the latest file up to oldest one. The latest cache
     // which is not active will be returned from this method, all other inactive caches will be
@@ -141,7 +141,7 @@ public class UriCacheManager {
       try {
         UriCacheProperties cacheProperties = new UriCacheProperties();
         cacheProperties.setCacheStoragePath(cacheHome);
-        cache = new UriCache<String, Object>(desc.getName(), cacheProperties);
+        cache = new UriCache(desc.getName(), cacheProperties);
         // if we got this cache - break the loop and clean the rest of caches
         position = i;
         break;
@@ -166,7 +166,7 @@ public class UriCacheManager {
         try {
           UriCacheProperties cacheProperties = new UriCacheProperties();
           cacheProperties.setCacheStoragePath(cacheHome);
-          UriCache<String, Object> tryCache = new UriCache<String, Object>(desc.getName(),
+          UriCache tryCache = new UriCache(desc.getName(),
               cacheProperties);
           // if we were able to get this instance - this is leftover - wipe it
           tryCache.shutdown();

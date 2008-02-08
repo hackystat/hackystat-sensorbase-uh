@@ -65,7 +65,7 @@ public class TestUriCacheManager {
     }
 
     // setting up first cache
-    UriCache<String, Object> testCache1 = UriCacheManager.getCache(cacheHome, sensorBaseHost1,
+    UriCache testCache1 = UriCacheManager.getCache(cacheHome, sensorBaseHost1,
         user1Email);
     this.cache1Name = testCache1.getName();
     testCache1.clear();
@@ -75,7 +75,7 @@ public class TestUriCacheManager {
     testCache1.shutdown();
 
     // setting up second cache
-    UriCache<String, Object> testCache2 = UriCacheManager.getCache(cacheHome, sensorBaseHost2,
+    UriCache testCache2 = UriCacheManager.getCache(cacheHome, sensorBaseHost2,
         user2Email);
     this.cache2Name = testCache2.getName();
     testCache2.clear();
@@ -85,7 +85,7 @@ public class TestUriCacheManager {
     testCache2.shutdown();
 
     // setting up third cache
-    UriCache<String, Object> testCache3 = UriCacheManager.getCache(cacheHome, sensorBaseHost3,
+    UriCache testCache3 = UriCacheManager.getCache(cacheHome, sensorBaseHost3,
         user3Email);
     this.cache3Name = testCache3.getName();
     testCache3.clear();
@@ -136,7 +136,7 @@ public class TestUriCacheManager {
     try {
 
       // get cache #1
-      UriCache<String, Object> cache1;
+      UriCache cache1;
       cache1 = UriCacheManager.getCache(cacheHome, sensorBaseHost1, user1Email);
       // should be ABLE to read data back
       for (int i = 0; i < 500; i++) {
@@ -147,7 +147,7 @@ public class TestUriCacheManager {
       cache1.shutdown();
 
       // get cache #2
-      UriCache<String, Object> cache2;
+      UriCache cache2;
       cache2 = UriCacheManager.getCache(cacheHome, sensorBaseHost2, user2Email);
       // should be ABLE to read data back
       for (int i = 500; i < 1000; i++) {
@@ -158,7 +158,7 @@ public class TestUriCacheManager {
       cache2.shutdown();
 
       // get cache #3
-      UriCache<String, Object> cache3;
+      UriCache cache3;
       cache3 = UriCacheManager.getCache(cacheHome, sensorBaseHost3, user3Email);
       // should be ABLE to read data back
       for (int i = 1000; i < 1500; i++) {

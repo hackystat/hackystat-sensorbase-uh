@@ -49,7 +49,7 @@ public class TestUriCacheManagerConcurrentCacheRequest {
     if (!f.exists()) {
       f.mkdirs();
     }
-    UriCache<String, Object> testCache = UriCacheManager.getCache(cacheHome, sensorBaseHost,
+    UriCache testCache = UriCacheManager.getCache(cacheHome, sensorBaseHost,
         userEmail);
     testCache.clear();
     for (int i = 0; i < 500; i++) {
@@ -70,7 +70,7 @@ public class TestUriCacheManagerConcurrentCacheRequest {
   public void testSecondInstance() throws UriCacheException, IOException, InterruptedException {
 
     // get cache #1 at test it's functionality
-    UriCache<String, Object> cache1 = UriCacheManager
+    UriCache cache1 = UriCacheManager
         .getCache(cacheHome, sensorBaseHost, userEmail);
     for (int i = 0; i < 500; i++) {
       String element1 = (String) cache1.lookup(key + i);
@@ -80,7 +80,7 @@ public class TestUriCacheManagerConcurrentCacheRequest {
 
     // try to get the cache for the same host and e-mail, should get a cache instance
     try {
-      UriCache<String, Object> cache2 = UriCacheManager.getCache(cacheHome, sensorBaseHost,
+      UriCache cache2 = UriCacheManager.getCache(cacheHome, sensorBaseHost,
           userEmail);
       cache2.clear();
       for (int i = 0; i < 500; i++) {
@@ -119,7 +119,7 @@ public class TestUriCacheManagerConcurrentCacheRequest {
       InterruptedException {
 
     // get cache #1 at test it's functionality
-    UriCache<String, Object> cache1 = UriCacheManager
+    UriCache cache1 = UriCacheManager
         .getCache(cacheHome, sensorBaseHost, userEmail);
     for (int i = 0; i < 500; i++) {
       String element1 = (String) cache1.lookup(key + i);
@@ -128,25 +128,25 @@ public class TestUriCacheManagerConcurrentCacheRequest {
     }
 
     // getting another 4 instances for the same user and base
-    UriCache<String, Object> cache2 = UriCacheManager
+    UriCache cache2 = UriCacheManager
         .getCache(cacheHome, sensorBaseHost, userEmail);
     for (int i = 500; i < 1000; i++) {
       cache2.cache(key + i, data + i);
     }
 
-    UriCache<String, Object> cache3 = UriCacheManager
+    UriCache cache3 = UriCacheManager
         .getCache(cacheHome, sensorBaseHost, userEmail);
     for (int i = 1000; i < 1500; i++) {
       cache3.cache(key + i, data + i);
     }
 
-    UriCache<String, Object> cache4 = UriCacheManager
+    UriCache cache4 = UriCacheManager
         .getCache(cacheHome, sensorBaseHost, userEmail);
     for (int i = 1500; i < 2000; i++) {
       cache4.cache(key + i, data + i);
     }
 
-    UriCache<String, Object> cache5 = UriCacheManager
+    UriCache cache5 = UriCacheManager
         .getCache(cacheHome, sensorBaseHost, userEmail);
     for (int i = 2000; i < 2500; i++) {
       cache5.cache(key + i, data + i);
@@ -159,7 +159,7 @@ public class TestUriCacheManagerConcurrentCacheRequest {
 
     // now try to get the cache - should get cache 4 and delete caches 2 and 3
     try {
-      UriCache<String, Object> cache6 = UriCacheManager.getCache(cacheHome, sensorBaseHost,
+      UriCache cache6 = UriCacheManager.getCache(cacheHome, sensorBaseHost,
           userEmail);
       for (int i = 1500; i < 2000; i++) {
         String element1 = (String) cache6.lookup(key + i);

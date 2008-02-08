@@ -121,7 +121,7 @@ public class TestUriCacheManagerCorruptedCache {
         testCacheName).getsensorBaseHost()));
 
     // get cache
-    UriCache<String, Object> cache;
+    UriCache cache;
     cache = UriCacheManager.getCache(cacheHome, sensorBaseHost, userEmail);
     //
     // Should pass this point without any exception and reset the cache

@@ -96,10 +96,12 @@ public class SensorBaseClient {
   /** To facilitate debugging of problems using this system. */
   private boolean isTraceEnabled = false;
 
-  /** Facilitates UriCache to improve responsiveness. */
-  private UriCache<String, Object> uriCache;
+  /** An associated UriCache to improve responsiveness. */
+  private UriCache uriCache;
+  
   /** Indicates whether or not cache is enabled. */
   private boolean isCacheEnabled = false;
+  
   private static final String cr = "\n";
   
   /** Timestamp of last time we tried to contact a server and failed, since this is expensive. */
