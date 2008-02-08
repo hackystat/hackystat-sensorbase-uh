@@ -1605,16 +1605,17 @@ public class SensorBaseClient {
         String.valueOf(milliseconds));
   }
 
-//  /**
-//   * Enables caching of the data by using UriCache.
-//   * 
-//   * @throws Exception if unable to create cache files.
-//   */
-//  public synchronized void enableCaching() throws Exception {
-//    throw new Exception("This method no longer supported.");
-//    //this.uriCache = UriCacheManager.getCache(null, this.sensorBaseHost, this.userEmail);
-//    //this.isCacheEnabled = true;
-//  }
+  /**
+   * Enables caching of the data by using UriCache.
+   * 
+   * @throws Exception if unable to create cache files.
+   */
+  public synchronized void enableCaching() throws Exception {
+    
+    //throw new Exception("This method no longer supported.");
+    //this.uriCache = UriCacheManager.getCache(null, this.sensorBaseHost, this.userEmail);
+    //this.isCacheEnabled = true;
+  }
 
   /**
    * Enables caching for this client.  It is the callers responsibility to ensure that cacheName
