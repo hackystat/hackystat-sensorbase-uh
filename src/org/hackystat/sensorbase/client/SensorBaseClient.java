@@ -217,24 +217,24 @@ public class SensorBaseClient {
     XMLGregorianCalendar defaultTstamp = Tstamp.makeTimestamp();
     XMLGregorianCalendar tstamp = null;
     try {
-      tstamp = Tstamp.makeTimestamp(getMap(keyValMap, "Timestamp", defaultTstamp.toString()));
+      tstamp = Tstamp.makeTimestamp(takeFromMap(keyValMap, "Timestamp", defaultTstamp.toString()));
     }
     catch (Exception e) {
       throw new SensorBaseClientException("Error parsing tstamp", e);
     }
     XMLGregorianCalendar runtime = null;
     try {
-      runtime = Tstamp.makeTimestamp(getMap(keyValMap, "Runtime", defaultTstamp.toString()));
+      runtime = Tstamp.makeTimestamp(takeFromMap(keyValMap, "Runtime", defaultTstamp.toString()));
     }
     catch (Exception e) {
       throw new SensorBaseClientException("Error parsing runtime", e);
     }
-    data.setOwner(getMap(keyValMap, "Owner", userEmail));
-    data.setResource(getMap(keyValMap, "Resource", ""));
+    data.setOwner(takeFromMap(keyValMap, "Owner", userEmail));
+    data.setResource(takeFromMap(keyValMap, "Resource", ""));
     data.setRuntime(runtime);
-    data.setSensorDataType(getMap(keyValMap, "SensorDataType", ""));
+    data.setSensorDataType(takeFromMap(keyValMap, "SensorDataType", ""));
     data.setTimestamp(tstamp);
-    data.setTool(getMap(keyValMap, "Tool", "unknown"));
+    data.setTool(takeFromMap(keyValMap, "Tool", "unknown"));
     // Add all remaining key-val pairs to the property list.
     data.setProperties(new org.hackystat.sensorbase.resource.sensordata.jaxb.Properties());
     for (Map.Entry<String, String> entry : keyValMap.entrySet()) {
@@ -255,7 +255,7 @@ public class SensorBaseClient {
    * @param defaultValue The value to return if the key has no mapping.
    * @return The value to be used.
    */
-  private String getMap(Map<String, String> keyValMap, String key, String defaultValue) {
+  private String takeFromMap(Map<String, String> keyValMap, String key, String defaultValue) {
     String value = (keyValMap.get(key) == null) ? defaultValue : keyValMap.get(key);
     keyValMap.remove(key);
     return value;
@@ -1605,16 +1605,16 @@ public class SensorBaseClient {
         String.valueOf(milliseconds));
   }
 
-  /**
-   * Enables caching of the data by using UriCache.
-   * 
-   * @throws Exception if unable to create cache files.
-   */
-  public synchronized void enableCaching() throws Exception {
-    throw new Exception("This method no longer supported.");
-    //this.uriCache = UriCacheManager.getCache(null, this.sensorBaseHost, this.userEmail);
-    //this.isCacheEnabled = true;
-  }
+//  /**
+//   * Enables caching of the data by using UriCache.
+//   * 
+//   * @throws Exception if unable to create cache files.
+//   */
+//  public synchronized void enableCaching() throws Exception {
+//    throw new Exception("This method no longer supported.");
+//    //this.uriCache = UriCacheManager.getCache(null, this.sensorBaseHost, this.userEmail);
+//    //this.isCacheEnabled = true;
+//  }
 
   /**
    * Enables caching for this client.  It is the callers responsibility to ensure that cacheName
