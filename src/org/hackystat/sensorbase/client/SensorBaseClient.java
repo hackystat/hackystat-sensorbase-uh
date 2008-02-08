@@ -1,6 +1,5 @@
 package org.hackystat.sensorbase.client;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Date;
@@ -36,10 +35,10 @@ import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
-import org.hackystat.sensorbase.uricache.UriCacheManager;
 import org.hackystat.utilities.tstamp.Tstamp;
 import org.hackystat.utilities.uricache.UriCache;
 import org.hackystat.utilities.uricache.UriCacheException;
+import org.hackystat.utilities.uricache.UriCacheProperties;
 import org.restlet.Client;
 import org.restlet.data.ChallengeResponse;
 import org.restlet.data.ChallengeScheme;
@@ -1609,12 +1608,31 @@ public class SensorBaseClient {
   /**
    * Enables caching of the data by using UriCache.
    * 
-   * @throws IOException if unable to create cache files.
-   * @throws UriCacheException if unable to provide caching.
+   * @throws Exception if unable to create cache files.
    */
-  public synchronized void enableCaching() throws UriCacheException, IOException {
-    this.uriCache = UriCacheManager.getCache(null, this.sensorBaseHost, this.userEmail);
-    this.isCacheEnabled = true;
+  public synchronized void enableCaching() throws Exception {
+    throw new Exception("This method no longer supported.");
+    //this.uriCache = UriCacheManager.getCache(null, this.sensorBaseHost, this.userEmail);
+    //this.isCacheEnabled = true;
+  }
+
+  /**
+   * Enables caching for this client.  It is the callers responsibility to ensure that cacheName
+   * is unique and that there will be no concurrent access to the backing disk store for this 
+   * cache. 
+   * @param cacheName The name of the cache. 
+   * @param cacheProperties The properties to be associated with this cache. 
+   * @throws SensorBaseClientException If problems occur instantiating the cache.
+   */
+  public synchronized void enableCaching(String cacheName, UriCacheProperties cacheProperties) 
+  throws SensorBaseClientException {
+    try {
+      this.uriCache = new UriCache(cacheName, cacheProperties);
+      this.isCacheEnabled = true;
+    }
+    catch (UriCacheException e) {
+      throw new SensorBaseClientException("Error instantiating UriCache.", e);
+    }
   }
 
   /**
