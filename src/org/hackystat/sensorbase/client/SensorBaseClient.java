@@ -1,5 +1,6 @@
 package org.hackystat.sensorbase.client;
 
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Date;
@@ -36,9 +37,8 @@ import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
 import org.hackystat.utilities.tstamp.Tstamp;
-import org.hackystat.utilities.uricache.UriCache;
+import org.hackystat.utilities.uricache.NewUriCache;
 import org.hackystat.utilities.uricache.UriCacheException;
-import org.hackystat.utilities.uricache.UriCacheProperties;
 import org.restlet.Client;
 import org.restlet.data.ChallengeResponse;
 import org.restlet.data.ChallengeScheme;
@@ -96,12 +96,10 @@ public class SensorBaseClient {
   private boolean isTraceEnabled = false;
 
   /** An associated UriCache to improve responsiveness. */
-  private UriCache uriCache;
+  private NewUriCache uriCache;
   
   /** Indicates whether or not cache is enabled. */
   private boolean isCacheEnabled = false;
-  
-  private static final String cr = "\n";
   
   /** Timestamp of last time we tried to contact a server and failed, since this is expensive. */
   private static Map<String, Long> lastHostNotAvailable = new HashMap<String, Long>();
@@ -651,6 +649,7 @@ public class SensorBaseClient {
 
   /**
    * Returns the SensorData for this user from this server with the specified timestamp.
+   * Uses the cache if enabled.
    * 
    * @param email The user email.
    * @param timestamp The timestamp.
@@ -660,14 +659,27 @@ public class SensorBaseClient {
    */
   public synchronized SensorData getSensorData(String email, XMLGregorianCalendar timestamp)
       throws SensorBaseClientException {
-    Response response = makeRequest(Method.GET, sensordataUri + email + "/" + timestamp, null);
     SensorData data;
+    String uri = sensordataUri + email + "/" + timestamp;
+    // Check the cache, and return the sensor data instance from it if available. 
+    if (this.isCacheEnabled) {
+      data = (SensorData)this.uriCache.get(uri);
+      if (data != null) {
+        return data;
+      }
+    }
+    // If not in the cache, request it from the sensorbase service.
+    Response response = makeRequest(Method.GET, uri, null);
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
     }
     try {
       String xmlData = response.getEntity().getText();
       data = makeSensorData(xmlData);
+      // Add it to the cache if we're using one.
+      if (this.isCacheEnabled) {
+        this.uriCache.put(uri, data);
+      }
     }
     catch (Exception e) {
       throw new SensorBaseClientException(response.getStatus(), e);
@@ -684,14 +696,26 @@ public class SensorBaseClient {
    *         String that cannot be marshalled into Java SensorData instance.
    */
   public synchronized SensorData getSensorData(String uriString) throws SensorBaseClientException {
-    Response response = makeRequest(Method.GET, uriString, null);
     SensorData data;
+    // Check the cache, and return the sensor data instance from it if available. 
+    if (this.isCacheEnabled) {
+      data = (SensorData)this.uriCache.get(uriString);
+      if (data != null) {
+        return data;
+      }
+    }
+    // Otherwise get it from the sensorbase.
+    Response response = makeRequest(Method.GET, uriString, null);
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());
     }
     try {
       String xmlData = response.getEntity().getText();
       data = makeSensorData(xmlData);
+      // Add it to the cache if we're using one.
+      if (this.isCacheEnabled) {
+        this.uriCache.put(uriString, data);
+      }
     }
     catch (Exception e) {
       throw new SensorBaseClientException(response.getStatus(), e);
@@ -708,40 +732,33 @@ public class SensorBaseClient {
    *         that cannot be marshalled into Java SensorData instance.
    */
   public synchronized SensorData getSensorData(SensorDataRef ref) throws SensorBaseClientException {
-
-    Object sd = null;
-
+    SensorData data;
+    String uri = ref.getHref();
+    // Check the cache, and return the sensor data instance from it if available. 
     if (this.isCacheEnabled) {
-      sd = this.uriCache.lookup(ref.getHref());
+      data = (SensorData)this.uriCache.get(uri);
+      if (data != null) {
+        return data;
+      }
     }
-
-    if (null == sd) {
-      Response response = getUri(ref.getHref());
-      SensorData data;
-      if (!response.getStatus().isSuccess()) {
-        throw new SensorBaseClientException(response.getStatus());
-      }
-      try {
-        String xmlData = response.getEntity().getText();
-        data = makeSensorData(xmlData);
-      }
-      catch (Exception e) {
-        throw new SensorBaseClientException(response.getStatus(), e);
-      }
+    Response response = getUri(uri);
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      data = makeSensorData(xmlData);
+      // Add it to the cache if we're using one.
       if (this.isCacheEnabled) {
-        try {
-          this.uriCache.cache(ref.getHref(), data);
-        }
-        catch (UriCacheException e) {
-          throw new SensorBaseClientException("Unable to use UriCache ", e);
-        }
+        this.uriCache.put(uri, data);
       }
-      return data;
     }
-    else {
-      return (SensorData) sd;
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
     }
+    return data;
   }
+
 
   /**
    * Creates the passed SensorData on the server.
@@ -879,22 +896,6 @@ public class SensorBaseClient {
     return index;
   }
   
-//  /**
-//   * Returns the index of all Projects from this server associated with this user.
-//   * This includes the projects that this user owns, that this user is a member of,
-//   * and that this user has been invited to participate in as a member (but has not
-//   * yet accepted or declined.)
-//   * 
-//   * @param email The user email.
-//   * @return The ProjectIndex instance.
-//   * @throws SensorBaseClientException If the server does not return the Index or returns an index
-//   *         that cannot be marshalled into Java ProjectIndex instance.
-//   * @deprecated use getProjectIndex(String) instead.
-//   */
-//  public synchronized ProjectIndex getUserProjectIndex(String email) throws
-//  SensorBaseClientException {
-//    return getProjectIndex(email);
-//  }
 
   /**
    * Returns the Project from this server.
@@ -1605,59 +1606,36 @@ public class SensorBaseClient {
         String.valueOf(milliseconds));
   }
 
+
   /**
-   * Enables caching of the data by using UriCache.
-   * 
-   * @throws Exception if unable to create cache files.
+   * Don't use this method.  To be deleted. 
+   * @throws UriCacheException If problems.
+   * @throws IOException If problems.
    */
-  public synchronized void enableCaching() throws Exception {
-    
+  public synchronized void enableCaching() throws UriCacheException, IOException {
     //throw new Exception("This method no longer supported.");
     //this.uriCache = UriCacheManager.getCache(null, this.sensorBaseHost, this.userEmail);
     //this.isCacheEnabled = true;
   }
-
+  
   /**
-   * Enables caching for this client.  It is the callers responsibility to ensure that cacheName
-   * is unique and that there will be no concurrent access to the backing disk store for this 
-   * cache. 
-   * @param cacheName The name of the cache. 
-   * @param cacheProperties The properties to be associated with this cache. 
-   * @throws SensorBaseClientException If problems occur instantiating the cache.
+   * Enables caching in this client.  
+   * @param cacheName The name of the cache.
+   * @param subDir The subdirectory in which the cache backend store is saved.
+   * @param maxLife The default expiration time for objects.
+   * @param capacity The maximum number of instances to be held in-memory.
    */
-  public synchronized void enableCaching(String cacheName, UriCacheProperties cacheProperties) 
-  throws SensorBaseClientException {
-    try {
-      this.uriCache = new UriCache(cacheName, cacheProperties);
-      this.isCacheEnabled = true;
-    }
-    catch (UriCacheException e) {
-      throw new SensorBaseClientException("Error instantiating UriCache.", e);
-    }
+  public synchronized void enableCaching(String cacheName, String subDir, Long maxLife, 
+      Long capacity) {
+    this.uriCache = new NewUriCache(cacheName, subDir, maxLife, capacity);
+    this.isCacheEnabled = true;
+  }
+ 
+  /**
+   * Delete all entries from this cache. 
+   */
+  public synchronized void clearCache() {
+    this.uriCache.clear();
   }
 
-  /**
-   * Prints cache statistics.
-   */
-  public synchronized void printCacheStatistics() {
-    Map<String, String> statistics = this.uriCache.getStatistics();
-    StringBuffer sb = new StringBuffer(1000);
-    sb.append("Cache name: " + this.uriCache.getName() + cr);
-    sb.append("Cache hits: " + statistics.get("Hit Count") + cr);
-    System.out.println(sb.toString());
-  }
-
-  /**
-   * Tears down associated UriCache instance if it was setup.
-   * 
-   * @throws Throwable in the error case.
-   */
-  @Override
-  protected void finalize() throws Throwable {
-    if (null != this.uriCache) {
-      System.out.println("UriCache shutdown");
-      this.uriCache.shutdown();
-    }
-    super.finalize();
-  }
 }

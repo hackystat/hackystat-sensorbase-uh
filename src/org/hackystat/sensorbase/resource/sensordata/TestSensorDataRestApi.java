@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataRef;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDatas;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.hackystat.utilities.tstamp.Tstamp;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -33,11 +35,10 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
   
   /**
    * Test that GET host/sensorbase/sensordata returns an index containing all Sensor Data.
-   * Probably want to @ignore this method on real distributions, since the returned dataset could
-   * be extremely large. 
+   * We now @Ignore this method since it slows down testing so much.
    * @throws Exception If problems occur.
    */
-  @Test public void getSensorDataIndex() throws Exception {
+  @Test @Ignore public void getSensorDataIndex() throws Exception {
     // Create an admin client and check authentication.
     SensorBaseClient client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);
     client.authenticate();
@@ -76,6 +77,45 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
   }
   
   /**
+   * Tests that caching works.
+   * @throws Exception If problems occur.
+   */
+  @Test public void testCaching() throws Exception {
+    String testCacheUser = "TestCacheUser@hackystat.org";
+    SensorBaseClient.registerUser(getHostName(), testCacheUser);
+    SensorBaseClient client = new SensorBaseClient(getHostName(), testCacheUser, testCacheUser);
+    client.authenticate();
+    // First, let's generate 100 instances on the server.
+    for (int i = 0; i < 50; i++) {
+      client.putSensorData(makeSensorData(Tstamp.makeTimestamp(), testCacheUser));
+    }
+    // Now get the references to them.
+    SensorDataIndex index = client.getSensorDataIndex(testCacheUser);
+    // Record how long it takes us to retrieve all 100 instances without caching.
+    long start = new Date().getTime();
+    for (SensorDataRef ref : index.getSensorDataRef()) {
+      client.getSensorData(ref);
+    }
+    long elapsedTimeNoCache = new Date().getTime() - start;
+    // Now enable caching, and retrieve all 100 again to fill the cache.
+    client.enableCaching("TestCaching", "TestCaching", 100L, 25L);
+    for (SensorDataRef ref : index.getSensorDataRef()) {
+      client.getSensorData(ref);
+    }
+    // Now time how long it takes to get them again using the cache.
+    start = new Date().getTime();
+    for (SensorDataRef ref : index.getSensorDataRef()) {
+      client.getSensorData(ref);
+    }
+    long elapsedTimeCache = new Date().getTime() - start;
+    System.out.println("No cache: " + elapsedTimeNoCache + ", with cache: " + elapsedTimeCache);
+    // Get rid of all of the entries so that the test works next time.
+    client.clearCache();
+    client.deleteSensorData(testCacheUser);
+    assertTrue("Making sure that caching is faster", elapsedTimeNoCache > elapsedTimeCache);
+  }
+  
+  /**
    * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org returns some sensor data. 
    * @throws Exception If problems occur.
    */
@@ -95,27 +135,6 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     assertTrue("Checking for sensor data 2", index.getSensorDataRef().size() > 1);
   }
 
-//  /**
-//   * Test that GET host/sensorbase/sensordata/TestUser@hackystat.org returns some sensor data. 
-//   * @throws Exception If problems occur.
-//   */
-//  @Test public void getUserSensorDataIndexCached() throws Exception {
-//    // Create the TestUser client and check authentication.
-//    SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
-//    client.authenticate();
-//    client.enableCaching();
-//    // Retrieve the TestUser User resource and test a couple of fields.
-//    SensorDataIndex index = client.getSensorDataIndex(user);
-//    assertNotNull("Checking user getLastMod()", index.getLastMod());
-//    // Make sure that we can iterate through the data and dereference all hrefs. 
-//    for (SensorDataRef ref : index.getSensorDataRef()) {
-//      client.getSensorData(ref);
-//      // also make sure the Tool value isn't null.
-//      assertNotNull("Checking tool value", ref.getTool());
-//    }
-//    assertTrue("Checking for sensor data 2", index.getSensorDataRef().size() > 1);
-//    client.printCacheStatistics();
-//  }
   
   
   /**
