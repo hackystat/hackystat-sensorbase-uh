@@ -10,6 +10,7 @@ import org.hackystat.sensorbase.resource.projects.ProjectsResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectInvitationResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectSensorDataResource;
+import org.hackystat.sensorbase.resource.projects.UserProjectSnapshotResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectSummaryResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectsResource;
 import org.hackystat.sensorbase.resource.registration.RegistrationResource;
@@ -177,6 +178,13 @@ public class Server extends Application {
     authRouter.attach(
         "/projects/{user}/{projectname}/summary?startTime={startTime}&endTime={endTime}", 
         UserProjectSummaryResource.class);
+    authRouter.attach(
+        "/projects/{user}/{projectname}/snapshot?startTime={startTime}&endTime={endTime}" +
+        "&sdt={sdt}&tool={tool}", 
+        UserProjectSnapshotResource.class);
+    authRouter.attach(
+        "/projects/{user}/{projectname}/snapshot?startTime={startTime}&endTime={endTime}&sdt={sdt}",
+        UserProjectSnapshotResource.class);
     String sensorDataUriPrefix = "/projects/{user}/{projectname}/sensordata";
     authRouter.attach(sensorDataUriPrefix, 
         UserProjectSensorDataResource.class);

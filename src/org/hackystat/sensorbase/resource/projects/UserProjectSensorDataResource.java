@@ -174,7 +174,7 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
         }
       }
       catch (Exception e) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Problems marshalling");
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Problem: " + e.getMessage());
         return null;
       }
     }

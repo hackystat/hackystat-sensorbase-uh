@@ -236,6 +236,24 @@ public class DbManager {
   }
   
   /**
+   * Returns a SensorDataIndex representing the "snapshot" of sensor data in the given time 
+   * interval for the given sdt and tool (if tool is not null).  The "snapshot" is the set of
+   * sensor data with the most recent runtime value during the interval.
+   * @param users The list of users in this project.
+   * @param startTime The startTime
+   * @param endTime The endTime.
+   * @param uriPatterns The uriPatterns for this project.
+   * @param sdt The sensor data type of the sensor data of interest.
+   * @param tool The tool associated with this snapshot, or null if any tool will do.
+   * @return The SensorDataIndex with the latest runtime. 
+   */
+  public String getProjectSensorDataSnapshot(List<User> users, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt, String tool) {
+    return this.dbImpl.getProjectSensorDataSnapshot(users, startTime, endTime, uriPatterns, sdt,
+        tool);
+  }
+  
+  /**
    * Returns the SensorData instance as an XML string, or null.
    * @param user The user.
    * @param timestamp The timestamp associated with this sensor data.

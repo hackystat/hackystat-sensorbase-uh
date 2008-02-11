@@ -105,6 +105,23 @@ public abstract class DbImplementation {
   public abstract String getSensorDataIndexLastMod(User user, XMLGregorianCalendar lastModStartTime,
       XMLGregorianCalendar lastModEndTime);
   
+
+  /**
+   * Returns an XML SensorDataIndex to sensor data for the given time interval and sdt with
+   * the most recent runtime value.  This constitutes the "snapshot" of the data with the given
+   * sdt. If the tool parameter is null, then the last runtime snapshot is returned without regard
+   * to the tool.
+   * @param users The list of users whose sensor data will be checked.
+   * @param startTime The start time.
+   * @param endTime The end time. 
+   * @param uriPatterns The uripatterns that must match the resource string. 
+   * @param sdt The sensor data type of interest.
+   * @param tool The tool of interest, or null if any tool is OK.
+   * @return A string containing the XML representation of the SensorDataIndex for this snapshot.
+   */
+  public abstract String getProjectSensorDataSnapshot(List<User> users, XMLGregorianCalendar 
+      startTime, XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt, String tool);
+  
   /**
    * Returns the SensorData instance as XML string, or null if not found.
    * @param user The user.

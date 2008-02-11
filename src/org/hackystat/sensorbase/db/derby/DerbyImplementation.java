@@ -74,14 +74,19 @@ public class DerbyImplementation extends DbImplementation {
 
   /** Required by PMD since this string occurs multiple times in this file. */
   private static final String sdtEquals = " sdt = '";
+  private static final String toolEquals = " tool = '";
   
   /** Required by PMD as above. */
   private static final String quoteAndClause = "' AND ";
   private static final String andClause = " AND ";
   private static final String selectPrefix = "SELECT XmlSensorDataRef FROM SensorData WHERE "; 
+  private static final String selectSnapshot = 
+    "SELECT XmlSensorDataRef, Runtime, Tool FROM SensorData WHERE "; 
   private static final String orderByTstamp = " ORDER BY tstamp";
+  private static final String orderByRuntime = " ORDER BY runtime DESC";
   private static final String derbyError = "Derby: Error ";
   private static final String indexSuffix = "Index>";
+  private static final String xml = "Xml";
 
   /**
    * Instantiates the Derby implementation.  Throws a Runtime exception if the Derby
@@ -389,6 +394,39 @@ public class DerbyImplementation extends DbImplementation {
     }
     //System.out.println(statement);
     return getIndex("SensorData", statement);
+  }
+  
+  /** {@inheritDoc} */
+  @Override
+  public String getProjectSensorDataSnapshot(List<User> users, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt, String tool) {
+    String statement;
+    if (tool == null) { // Retrieve sensor data with latest runtime regardless of tool.
+      statement =
+        selectSnapshot
+        + constructOwnerClause(users)
+        + andClause 
+        + sdtEquals + sdt + quoteAndClause 
+        + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND " //NOPMD
+        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))" //NOPMD
+        + constructLikeClauses(uriPatterns)
+        + orderByRuntime;
+    }
+    else { // Retrieve sensor data with the latest runtime for the specified tool.
+      statement = 
+        selectSnapshot
+        + constructOwnerClause(users)
+        + andClause  
+        + sdtEquals + sdt + quoteAndClause 
+        + toolEquals + tool + quoteAndClause 
+        + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND " //NOPMD
+        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))" //NOPMD
+        + constructLikeClauses(uriPatterns)
+        + orderByRuntime;
+    }
+    //Generate a SensorDataIndex string that contains only entries with the latest runtime.
+    //System.out.println(statement);
+    return getSnapshotIndex(statement);
   }
   
   /** {@inheritDoc} */
@@ -1056,9 +1094,70 @@ public class DerbyImplementation extends DbImplementation {
       conn = DriverManager.getConnection(connectionURL);
       s = conn.prepareStatement(statement);
       rs = s.executeQuery();
-      String resourceRefColumnName = "Xml" + resourceName + "Ref";
+      String resourceRefColumnName = xml + resourceName + "Ref";
       while (rs.next()) {
         builder.append(rs.getString(resourceRefColumnName));
+      }
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in getIndex()" + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    builder.append("</").append(resourceName).append(indexSuffix);
+    //System.out.println(builder.toString());
+    return builder.toString();
+  }
+  
+  /**
+   * Returns a string containing the Index of all of the SensorData whose runtime field matches
+   * the first runtime in the result set.  Since the passed statement will retrieve sensor
+   * data in the given time period ordered in descending order by runtime, this should result
+   * in an index containing only  
+   * @param statement The SQL Statement to be used to retrieve the resource references.
+   * @return The aggregate Index XML string. 
+   */
+  private String getSnapshotIndex(String statement) {
+    String resourceName = "SensorData";
+    StringBuilder builder = new StringBuilder(512);
+    builder.append("<").append(resourceName).append(indexSuffix);
+    // Retrieve all the SensorData
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    String firstRunTime = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      String resourceRefColumnName = xml + resourceName + "Ref";
+      boolean finished = false;
+      // Add all entries with the first retrieved nruntime value to the index.
+      while (rs.next() && !finished) {
+        String runtime = rs.getString("Runtime");
+        // Should never be null, but just in case. 
+        if (runtime != null) {
+          // Initial firstRunTime to the first retrieved non-null runtime value.
+          if (firstRunTime == null) {
+            firstRunTime = runtime;
+          }
+          // Now add every entry whose runtime equals the first retrieved run time.
+          if (runtime.equals(firstRunTime)) {
+            builder.append(rs.getString(resourceRefColumnName));
+          }
+          else {
+            // As soon as we find a runtime not equal to firstRunTime, we can stop.
+            finished = true;
+          }
+        }
       }
     }
     catch (SQLException e) {
@@ -1102,7 +1201,7 @@ public class DerbyImplementation extends DbImplementation {
       rs = s.executeQuery();
       int currIndex = 0;
       int totalInstances = 0;
-      String resourceRefColumnName = "Xml" + resourceName + "Ref";
+      String resourceRefColumnName = xml + resourceName + "Ref";
       while (rs.next()) {
         if ((currIndex >= startIndex) && (totalInstances < maxInstances)) {
           builder.append(rs.getString(resourceRefColumnName));
@@ -1146,7 +1245,7 @@ public class DerbyImplementation extends DbImplementation {
       server.getLogger().fine(executeQueryMsg + statement);
       s = conn.prepareStatement(statement);
       rs = s.executeQuery();
-      String resourceXmlColumnName = "Xml" + resourceName;
+      String resourceXmlColumnName = xml + resourceName;
       while (rs.next()) { // the select statement must guarantee only one row is returned.
         builder.append(rs.getString(resourceXmlColumnName));
       }

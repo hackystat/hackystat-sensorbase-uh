@@ -1022,6 +1022,8 @@ public class SensorBaseClient {
     }
     return index;
   }
+  
+ 
 
   /**
    * Returns a SensorDataIndex representing the SensorData for the Project during the time interval.
@@ -1109,6 +1111,70 @@ public class SensorBaseClient {
     Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName
         + "/sensordata?startTime=" + startTime + andEndTime + endTime + "&startIndex="
         + startIndex + "&maxInstances=" + maxInstances, null);
+    SensorDataIndex index;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      index = makeSensorDataIndex(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return index;
+  }
+  
+  /**
+   * Returns a SensorDataIndex containing a snapshot of the sensor data for the given project and
+   * sdt during the specified time interval.  A "snapshot" is the set of sensor data with the most
+   * recent runtime value during that time interval.
+   * @param owner The owner of the project.
+   * @param projectName The project name.
+   * @param startTime The start time.
+   * @param endTime The end time.
+   * @param sdt The sdt of interest for the sensor data.
+   * @return The SensorDataIndex containing the "snapshot".
+   * @throws SensorBaseClientException If problems occur.
+   */
+  public synchronized SensorDataIndex getProjectSensorDataSnapshot(String owner, String projectName,
+      XMLGregorianCalendar startTime, XMLGregorianCalendar endTime, String sdt) 
+  throws SensorBaseClientException {
+    Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName
+        + "/snapshot?startTime=" + startTime + andEndTime + endTime + "&sdt=" + sdt, null);
+    SensorDataIndex index;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      index = makeSensorDataIndex(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return index;
+  }
+  
+  /**
+   * Returns a SensorDataIndex containing a snapshot of the sensor data for the given project, sdt
+   * and tool during the specified time interval.  A "snapshot" is the set of sensor data with the 
+   * most recent runtime value during that time interval.
+   * @param owner The owner of the project.
+   * @param projectName The project name.
+   * @param startTime The start time.
+   * @param endTime The end time.
+   * @param sdt The sdt of interest for the sensor data.
+   * @param tool The tool of interest for the sensor data. 
+   * @return The SensorDataIndex containing the "snapshot".
+   * @throws SensorBaseClientException If problems occur.
+   */
+  public synchronized SensorDataIndex getProjectSensorDataSnapshot(String owner, String projectName,
+      XMLGregorianCalendar startTime, XMLGregorianCalendar endTime, String sdt, String tool) 
+  throws SensorBaseClientException {
+    Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName
+        + "/snapshot?startTime=" + startTime + andEndTime + endTime + "&sdt=" + sdt +
+        "&tool=" + tool, null);
     SensorDataIndex index;
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());

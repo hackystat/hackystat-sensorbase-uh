@@ -12,6 +12,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectSummary;
 import org.hackystat.sensorbase.resource.projects.jaxb.SensorDataSummary;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
+import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDataIndex;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
 import org.hackystat.utilities.tstamp.Tstamp;
@@ -125,6 +126,65 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     assertEquals("Checking summary tool", "Subversion", dataSummary.getTool());
     assertEquals("Checking summary type", "TestSdt", dataSummary.getSensorDataType());
     assertEquals("Checking summary instances", 1, dataSummary.getNumInstances().intValue());
+  }
+  
+  /**
+   * Tests the snapshot API.
+   * @throws Exception If problems occur.
+   */
+  @Test
+  public void getTestUserProjectSnapshot() throws Exception {
+    // Create the TestUser client and check authentication.
+    String snapshotUser = "TestProjectSnapshot@hackystat.org";
+    SensorBaseClient.registerUser(getHostName(), snapshotUser);
+    SensorBaseClient client = new SensorBaseClient(getHostName(), snapshotUser, snapshotUser);
+    client.authenticate();
+    // The time interval we'll work in. These will also be our runtimes.
+    XMLGregorianCalendar startTime = Tstamp.makeTimestamp(nineAm);
+    XMLGregorianCalendar endTime = Tstamp.makeTimestamp("2007-04-30T09:30:00.000");
+
+    XMLGregorianCalendar tstamp1 = Tstamp.incrementMinutes(startTime, 1);
+    XMLGregorianCalendar tstamp2 = Tstamp.incrementMinutes(startTime, 2);
+    XMLGregorianCalendar tstamp3 = Tstamp.incrementMinutes(startTime, 3);
+    String sdt = "TestSdt";
+    String tool1 = "Tool1";
+    String tool2 = "Tool2";
+    client.putSensorData(makeSensorData(tstamp1, tstamp1, snapshotUser, sdt, tool1));
+    client.putSensorData(makeSensorData(tstamp2, tstamp1, snapshotUser, sdt, tool1));
+    client.putSensorData(makeSensorData(tstamp3, tstamp3, snapshotUser, sdt, tool2));
+
+    // We should get the last sensor data item.
+    SensorDataIndex snap1 = 
+      client.getProjectSensorDataSnapshot(snapshotUser, defaultProject, startTime, endTime, sdt);
+    assertEquals("Checking snap1 size", 1, snap1.getSensorDataRef().size()); 
+    assertEquals("Checking snap1 tstamp", tstamp3, snap1.getSensorDataRef().get(0).getTimestamp());
+    
+    // Now check that we get the other two when we specify the tool.
+    SensorDataIndex snap2 = 
+      client.getProjectSensorDataSnapshot(snapshotUser, defaultProject, startTime, endTime, sdt, 
+          tool1);
+    assertEquals("Checking snap2 size", 2, snap2.getSensorDataRef().size()); 
+  }
+  
+  /**
+   * Creates a sample SensorData instance for use in testing snapshots. 
+   * @param tstamp The timestamp.
+   * @param runtime The runtime
+   * @param user The user.
+   * @param sdt The sensor data type.
+   * @param tool The tool.
+   * @return The new SensorData instance. 
+   */
+  private SensorData makeSensorData(XMLGregorianCalendar tstamp, XMLGregorianCalendar runtime,
+      String user, String sdt, String tool) {
+    SensorData data = new SensorData();
+    data.setTool(tool);
+    data.setOwner(user);
+    data.setSensorDataType(sdt);
+    data.setTimestamp(tstamp);
+    data.setResource("file://foo/bar/baz.txt");
+    data.setRuntime(runtime);
+    return data;
   }
   
   /**

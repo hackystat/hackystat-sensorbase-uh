@@ -596,6 +596,26 @@ public class ProjectManager {
   }
   
   /**
+   * Returns a string containing a SensorDataIndex representing the "snapshot" of the sensor data
+   * for the given project in the given interval for the given sdt.  Tool is optional and can be 
+   * null.
+   * @param project The project.
+   * @param startTime The start time.
+   * @param endTime The end time.
+   * @param sdt The sensor data type of interest. 
+   * @param tool The tool of interest, or null if any tool is acceptable.
+   * @return The SensorDataIndex containing the snapshot of sensor data. 
+   * @throws Exception If problems occur.
+   */
+  public synchronized String getProjectSensorDataSnapshot(
+      Project project, XMLGregorianCalendar startTime, XMLGregorianCalendar endTime, String sdt,
+      String tool)  throws Exception {
+    List<String> patterns = project.getUriPatterns().getUriPattern();
+    List<User> users = getProjectUsers(project);
+    return dbManager.getProjectSensorDataSnapshot(users, startTime, endTime, patterns, sdt, tool);
+  }
+  
+  /**
    * Creates and returns the list of User instances associated with project.
    * The users are the owner plus all members.
    * If the owner email or member emails cannot be resolved to User instances, they are silently
