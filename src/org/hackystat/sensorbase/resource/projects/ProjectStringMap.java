@@ -11,9 +11,9 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 
 /**
  * Helper class to support Project to String mappings.
- * We need this I don't know how to define JAXB Project instances with a custom equals() and
- * hashCode() method such that equal Project instances are those with the same 
- * name and owner. 
+ * We need this because I don't know how to define JAXB Project instances 
+ * with a custom equals() and hashCode() method such that equal Project instances are 
+ * those with the same name and owner. 
  * 
  * @author Philip Johnson
  */

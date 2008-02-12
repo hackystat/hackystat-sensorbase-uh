@@ -111,21 +111,21 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
         "startTime (or endTime) is not supplied and/or is not a timestamp");
         return null;
       }
-      // We have a legal start and end time. Make sure startTime is not greater than endTime.
+      // We have a start and end time. Make sure startTime is not greater than endTime.
       if (Tstamp.greaterThan(startTimeXml, endTimeXml)) {
         getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
         "startTime cannot be greater than endTime.");
         return null;
       }
       // Make sure that startTime is not less than project.startTime.
-      if (Tstamp.lessThan(startTimeXml, project.getStartTime())) {
+      if (!ProjectUtils.isValidStartTime(project, startTimeXml)) {
         getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-        "startTime cannot be less than the project's start time.");
+        startTimeXml + " cannot be less than the project's start time: " + project.getStartTime());
         return null;
       }
       // And that endTime is not past the project endTime (if there is a project endTime).
       if ((project.getEndTime() != null) && 
-          (Tstamp.greaterThan(endTimeXml, project.getEndTime()))) {
+          (!ProjectUtils.isValidEndTime(project, endTimeXml))) {
         getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
         "endTime cannot be greater than the project's end time.");
         return null;
