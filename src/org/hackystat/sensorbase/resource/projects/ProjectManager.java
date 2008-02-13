@@ -646,29 +646,19 @@ public class ProjectManager {
    * This method chooses the greater of startString and the Project startTime, and the lesser of
    * endString and the Project endTime. 
    * Assumes that User and Project are valid.
-   * @param owner The User who owns this Project. 
-   * @param projectName the Project name.
-   * @param startString The startTime as a string. 
-   * @param endString The endTime as a string.
+   * @param project the Project.
+   * @param startTime The startTimeXml.
+   * @param endTime The endTime.
    * @return The XML String providing a ProjectSummary of this project
    * starting at startTime and ending at endTime. 
    * @throws Exception if startString or endString are not XMLGregorianCalendars.
    */  
-  public synchronized String getProjectSummaryString(User owner, 
-      String projectName, String startString, String endString) throws Exception {
-    Project project = this.getProject(owner, projectName);
-    XMLGregorianCalendar startTime = Tstamp.makeTimestamp(startString);
-    XMLGregorianCalendar endTime = Tstamp.makeTimestamp(endString);
-    // make startTime the greater of startTime and the Project startTime. 
-    startTime = (Tstamp.greaterThan(startTime, project.getStartTime())) ?
-        startTime : project.getStartTime();
-    // make endTime the lesser of endTime and the Project endTime.
-    endTime = (Tstamp.lessThan(endTime, project.getEndTime())) ? 
-        endTime : project.getEndTime();
+  public synchronized String getProjectSummaryString(Project project, 
+      XMLGregorianCalendar startTime, XMLGregorianCalendar endTime) throws Exception {
     List<String> patterns = project.getUriPatterns().getUriPattern();
     List<User> users = getProjectUsers(project);
-    String href = this.server.getHostName() + "projects/" + owner.getEmail() + "/" +
-    projectName + "/summary?startTime=" + startString + "&endTime=" + endString;
+    String href = this.server.getHostName() + "projects/" + project.getOwner() + "/" +
+    project.getName() + "/summary?startTime=" + startTime + "&endTime=" + endTime;
     ProjectSummary summary = dbManager.getProjectSummary(users, startTime, endTime, patterns, href);
     return makeProjectSummaryString(summary);
   }

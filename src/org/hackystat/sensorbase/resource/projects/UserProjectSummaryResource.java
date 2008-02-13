@@ -1,6 +1,9 @@
 package org.hackystat.sensorbase.resource.projects;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.hackystat.utilities.tstamp.Tstamp;
+import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
@@ -77,25 +80,46 @@ public class UserProjectSummaryResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
     }
-    // If startTime or endTime is not an XMLGregorianCalendar, then return error.
-    if (!Tstamp.isTimestamp(this.startTime)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad startTime");
-      return null;
+    XMLGregorianCalendar startTimeXml = null;
+    XMLGregorianCalendar endTimeXml = null;
+    try {
+      startTimeXml = Tstamp.makeTimestamp(this.startTime);
+      endTimeXml = Tstamp.makeTimestamp(this.endTime);
     }
-    if (!Tstamp.isTimestamp(this.endTime)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad endTime");
+    catch (Exception e) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+      "startTime (or endTime) is not supplied and/or is not a timestamp");
       return null;
     }
     // If end time is greater than start time, return an error.
-    if (Tstamp.greaterThan(this.startTime, this.endTime)) {
+    if (Tstamp.greaterThan(startTimeXml, endTimeXml)) {
         getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Start time after end time.");
         return null;
+    }
+    // The project must be defined.
+    Project project = super.projectManager.getProject(this.user, this.projectName);
+    if (project == null) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown project");
+      return null;
+    }
+    // Make sure that startTime is not less than project.startTime.
+    if (!ProjectUtils.isValidStartTime(project, startTimeXml)) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+      startTimeXml + " cannot be less than the project's start time: " + project.getStartTime());
+      return null;
+    }
+    // And that endTime is not past the project endTime (if there is a project endTime).
+    if ((project.getEndTime() != null) && 
+        (!ProjectUtils.isValidEndTime(project, endTimeXml))) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+      "endTime cannot be greater than the project's end time.");
+      return null;
     }
     // It's all good, so return the ProjectSummary representation.
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       try {
-        String xmlData = super.projectManager.getProjectSummaryString(this.user, this.projectName,
-            this.startTime, this.endTime);
+        String xmlData = super.projectManager.getProjectSummaryString(project, startTimeXml, 
+            endTimeXml);
         return super.getStringRepresentation(xmlData);
       }
       catch (Exception e) {

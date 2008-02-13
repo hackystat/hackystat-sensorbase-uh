@@ -112,16 +112,16 @@ public class UserProjectSnapshotResource extends SensorBaseResource {
       return null;
     }
     // Make sure that startTime is not less than project.startTime.
-    if (Tstamp.lessThan(startTimeXml, project.getStartTime())) {
+    if (!ProjectUtils.isValidStartTime(project, startTimeXml)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-          "startTime cannot be less than the project's start time.");
+      startTimeXml + " cannot be less than the project's start time: " + project.getStartTime());
       return null;
     }
     // And that endTime is not past the project endTime (if there is a project endTime).
     if ((project.getEndTime() != null) && 
-        (Tstamp.greaterThan(endTimeXml, project.getEndTime()))) {
+        (!ProjectUtils.isValidEndTime(project, endTimeXml))) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-          "endTime cannot be greater than the project's end time.");
+      "endTime cannot be greater than the project's end time.");
       return null;
     }
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
