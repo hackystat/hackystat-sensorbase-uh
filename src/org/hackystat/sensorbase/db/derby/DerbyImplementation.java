@@ -211,6 +211,8 @@ public class DerbyImplementation extends DbImplementation {
       s = conn.createStatement();
       s.execute(createSensorDataTableStatement);
       s.execute(indexSensorDataTableStatement);
+      s.execute(indexSensorDataTstampStatement);
+      s.execute(indexSensorDataRuntimeStatement);
       s.execute(createSensorDataTypeTableStatement);
       s.execute(indexSensorDataTypeTableStatement);
       s.execute(createUserTableStatement);
@@ -260,6 +262,12 @@ public class DerbyImplementation extends DbImplementation {
   /** The statement that sets up an index for the SensorData table. */
   private static final String indexSensorDataTableStatement = 
     "CREATE UNIQUE INDEX SensorDataIndex ON SensorData(Owner, Tstamp)";
+  
+  private static final String indexSensorDataTstampStatement = 
+    "CREATE INDEX TstampIndex ON SensorData(Tstamp asc)";
+
+  private static final String indexSensorDataRuntimeStatement = 
+    "CREATE INDEX RuntimeIndex ON SensorData(Runtime desc)";
 
 
   /** {@inheritDoc} */
