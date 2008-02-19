@@ -127,7 +127,7 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
       if ((project.getEndTime() != null) && 
           (!ProjectUtils.isValidEndTime(project, endTimeXml))) {
         getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-        "endTime cannot be greater than the project's end time.");
+        endTimeXml + " cannot be greater than the project's end time: " + project.getEndTime());
         return null;
       }
     }

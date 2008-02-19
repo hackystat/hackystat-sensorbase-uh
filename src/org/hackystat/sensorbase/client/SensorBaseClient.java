@@ -1688,10 +1688,10 @@ public class SensorBaseClient {
    * Enables caching in this client.  
    * @param cacheName The name of the cache.
    * @param subDir The subdirectory in which the cache backend store is saved.
-   * @param maxLife The default expiration time for objects.
+   * @param maxLife The default expiration time for objects, in days.
    * @param capacity The maximum number of instances to be held in-memory.
    */
-  public synchronized void enableCaching(String cacheName, String subDir, Long maxLife, 
+  public synchronized void enableCaching(String cacheName, String subDir, Double maxLife, 
       Long capacity) {
     this.uriCache = new NewUriCache(cacheName, subDir, maxLife, capacity);
     this.isCacheEnabled = true;

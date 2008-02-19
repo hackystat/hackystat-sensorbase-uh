@@ -98,7 +98,7 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     }
     long elapsedTimeNoCache = new Date().getTime() - start;
     // Now enable caching, and retrieve all 100 again to fill the cache.
-    client.enableCaching("TestCaching", "TestCaching", 100L, 25L);
+    client.enableCaching("TestCaching", "TestCaching", 1D, 25L);
     for (SensorDataRef ref : index.getSensorDataRef()) {
       client.getSensorData(ref);
     }

@@ -22,7 +22,7 @@ public class ProjectUtils {
    * @return True if date is after the day before the project start date.
    */
   public static boolean isValidStartTime(Project project, XMLGregorianCalendar date) {
-    XMLGregorianCalendar lenientStart = Tstamp.incrementDays(project.getStartTime(), -1);
+    XMLGregorianCalendar lenientStart = Tstamp.incrementDays(project.getStartTime(), -2);
     return Tstamp.lessThan(lenientStart, date);
   }
   
@@ -34,7 +34,7 @@ public class ProjectUtils {
    * @return True if date is less than to equal to the project start date. 
    */
   public static boolean isValidEndTime(Project project, XMLGregorianCalendar date) {
-    XMLGregorianCalendar lenientEnd = Tstamp.incrementDays(project.getEndTime(), 1);
+    XMLGregorianCalendar lenientEnd = Tstamp.incrementDays(project.getEndTime(), 2);
     return Tstamp.lessThan(date, lenientEnd); 
   }
 
