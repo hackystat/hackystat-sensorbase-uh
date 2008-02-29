@@ -154,7 +154,7 @@ public class SensorBaseClient {
    * Attempts to provide a timeout value for this SensorBaseClient.  
    * @param milliseconds The number of milliseconds to wait before timing out. 
    */
-  public synchronized final void setTimeout(int milliseconds) {
+  public final synchronized void setTimeout(int milliseconds) {
     setClientTimeout(this.client, milliseconds);
   }
   
