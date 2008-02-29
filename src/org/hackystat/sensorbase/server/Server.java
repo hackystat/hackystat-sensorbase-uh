@@ -89,7 +89,7 @@ public class Server extends Application {
    */
   public static Server newInstance(ServerProperties serverProperties) throws Exception {
     Server server = new Server();
-    server.logger = HackystatLogger.getLogger("org.hackystat.sensorbase");
+    server.logger = HackystatLogger.getLogger("org.hackystat.sensorbase", "sensorbase");
     server.serverProperties = serverProperties;
     server.hostName = "http://" +
                       server.serverProperties.get(HOSTNAME_KEY) + 

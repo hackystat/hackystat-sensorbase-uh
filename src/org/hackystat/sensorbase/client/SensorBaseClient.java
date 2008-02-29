@@ -103,6 +103,9 @@ public class SensorBaseClient {
   
   /** Timestamp of last time we tried to contact a server and failed, since this is expensive. */
   private static Map<String, Long> lastHostNotAvailable = new HashMap<String, Long>();
+  
+  /** The System property key used to retrieve the default timeout value in milliseconds. */
+  public static final String SENSORBASECLIENT_TIMEOUT_KEY = "sensorbaseclient.timeout";
 
   // JAXBContexts are thread safe, so we can share them across all instances and threads.
   // https://jaxb.dev.java.net/guide/Performance_and_thread_safety.html
@@ -144,14 +147,34 @@ public class SensorBaseClient {
           + email + "', password='" + password + "'");
     }
     this.client = new Client(Protocol.HTTP);
+    setTimeout(getDefaultTimeout());
   }
   
   /**
    * Attempts to provide a timeout value for this SensorBaseClient.  
    * @param milliseconds The number of milliseconds to wait before timing out. 
    */
-  public synchronized void setTimeout(int milliseconds) {
+  public synchronized final void setTimeout(int milliseconds) {
     setClientTimeout(this.client, milliseconds);
+  }
+  
+  /**
+   * Returns the default timeout in milliseconds. 
+   * The default timeout is set to 2000 ms, but clients can change this by creating a 
+   * System property called SensorBaseClient.TIMEOUT_KEY and set it to a String indicating
+   * the number of milliseconds.  
+   * @return The default timeout.
+   */
+  private static int getDefaultTimeout() {
+    String systemTimeout = System.getProperty(SENSORBASECLIENT_TIMEOUT_KEY, "2000");
+    int timeout = 2000;
+    try {
+      timeout = Integer.parseInt(systemTimeout);
+    }
+    catch (Exception e) {
+      timeout = 2000;
+    }
+    return timeout;
   }
 
   /**
@@ -1333,7 +1356,7 @@ public class SensorBaseClient {
       request.setResourceRef(registerUri);
       request.setMethod(Method.GET);
       Client client = new Client(Protocol.HTTP);
-      setClientTimeout(client, 2000);
+      setClientTimeout(client, getDefaultTimeout());
       Response response = client.handle(request);
       String pingText = response.getEntity().getText();
       boolean isAvailable = (response.getStatus().isSuccess() && "SensorBase".equals(pingText)); 
@@ -1665,7 +1688,6 @@ public class SensorBaseClient {
    */
   private static void setClientTimeout(Client client, int milliseconds) {
     client.getContext().getParameters().add("connectTimeout", String.valueOf(milliseconds));
-    client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
     // For the Apache Commons client.
     client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
     client.getContext().getParameters().add("connectionManagerTimeout", 
