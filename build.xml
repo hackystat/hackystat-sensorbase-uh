@@ -4,7 +4,7 @@
   </description>
 
   <!-- Always make environment variables available with the "env." prefix. -->
-  <property environment="env"/>
+  <property environment="env" />
 
   <!-- Make sure we're running a Java 5 or better. -->
   <condition property="java.5.available">
@@ -13,41 +13,41 @@
       <contains string="${java.version}" substring="1.6" />
     </or>
   </condition>
-  <fail message="This package requires Java 5 or 6." unless="java.5.available"/>
+  <fail message="This package requires Java 5 or 6." unless="java.5.available" />
 
-   <!-- Make sure we're running Ant 1.7 . -->
-   <condition property="ant.1.7.available">
-     <contains string="${ant.version}" substring="1.7" />
-   </condition>
-   <fail message="This package requires Ant 1.7." unless="ant.1.7.available"/>
+  <!-- Make sure we're running Ant 1.7 . -->
+  <condition property="ant.1.7.available">
+    <contains string="${ant.version}" substring="1.7" />
+  </condition>
+  <fail message="This package requires Ant 1.7." unless="ant.1.7.available" />
 
   <!-- Make sure that a compatible version of JUnit is installed. -->
   <!-- You can override the version. For example: 'ant -Djunit.version=4.1 -f junit.build.xml' -->
-  <property name="junit.version" value="4.4"/>
-  <property name="junit.jar" location="${env.JUNIT_HOME}/junit-${junit.version}.jar"/>
-  <available file="${junit.jar}" type="file" property="junit.available"/>
-  <fail message="This package requires JUNIT_HOME to be defined and ${junit.jar} available" unless="junit.available"/>
+  <property name="junit.version" value="4.4" />
+  <property name="junit.jar" location="${env.JUNIT_HOME}/junit-${junit.version}.jar" />
+  <available file="${junit.jar}" type="file" property="junit.available" />
+  <fail message="This package requires JUNIT_HOME to be defined and ${junit.jar} available" unless="junit.available" />
 
   <!-- Make sure that Restlet is installed . -->
-  <available file="${env.RESTLET_HOME}/lib/org.restlet.jar" type="file" property="restlet.available"/>
-  <fail message="This package requires the Restlet Framework to be downloaded and RESTLET_HOME defined" unless="restlet.available"/>
+  <available file="${env.RESTLET_HOME}/lib/org.restlet.jar" type="file" property="restlet.available" />
+  <fail message="This package requires the Restlet Framework to be downloaded and RESTLET_HOME defined" unless="restlet.available" />
 
   <!-- Make sure that JavaMail is installed . -->
-  <available file="${env.JAVAMAIL_HOME}/mail.jar" type="file" property="javamail.available"/>
-  <fail message="This package requires JavaMail 1.4 to be downloaded and JAVAMAIL_HOME defined" unless="javamail.available"/>
+  <available file="${env.JAVAMAIL_HOME}/mail.jar" type="file" property="javamail.available" />
+  <fail message="This package requires JavaMail 1.4 to be downloaded and JAVAMAIL_HOME defined" unless="javamail.available" />
 
   <!-- Make sure that the JAXB library is available (by default in Java 6, through manual installation in Java 5. -->
-  <available classname="javax.xml.bind.JAXBContext" property="jaxb.available"/>
-  <fail message="This package requires JAXB to be installed" unless="jaxb.available"/>
+  <available classname="javax.xml.bind.JAXBContext" property="jaxb.available" />
+  <fail message="This package requires JAXB to be installed" unless="jaxb.available" />
 
   <!-- Make sure that Derby is available . -->
   <!-- Needed even under Java 6 so that a Java 5-compatible dist can be created. -->
-  <available file="${env.DERBY_HOME}/lib/derby.jar" type="file" property="derby.available"/>
-  <fail message="This package requires Derby to be installed and DERBY_HOME defined" unless="derby.available"/>
+  <available file="${env.DERBY_HOME}/lib/derby.jar" type="file" property="derby.available" />
+  <fail message="This package requires Derby to be installed and DERBY_HOME defined" unless="derby.available" />
 
   <!-- Make sure that Hackystat Utilities are is available . -->
-  <available file="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar" type="file" property="hackystat.utilities.available"/>
-  <fail message="This package requires the Hackystat Utilities to be installed and HACKYSTAT_UTILITIES_HOME defined" unless="hackystat.utilities.available"/>
+  <available file="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar" type="file" property="hackystat.utilities.available" />
+  <fail message="This package requires the Hackystat Utilities to be installed and HACKYSTAT_UTILITIES_HOME defined" unless="hackystat.utilities.available" />
 
   <!-- Basic properties for this system. -->
   <property name="system.name" value="hackystat-sensorbase-uh" />
@@ -59,13 +59,14 @@
   <property name="version" value="${majorVersionNumber}.${minorVersionNumber}.${DAYSTAMP}" />
 
   <!-- Hackystat sensor definitions and configuration. -->
-   <import file="hackystat.build.xml"/>
-   <property name="hackystat.verbose.mode" value="false" />
-   <property name="hackystat.enable" value="true" />
-   <!-- define hackystat.enabled if hackystat.enable is true, so we can use it in an 'if' clause -->
-   <condition property="hackystat.enabled">
-     <istrue value="${hackystat.enable}"/>
-   </condition>
+  <import file="hackystat.build.xml" />
+  <property name="hackystat.verbose.mode" value="false" />
+  <property name="hackystat.enable" value="true" />
+  <!-- define hackystat.enabled if hackystat.enable is true, so we can use it in an 'if' clause -->
+  <condition property="hackystat.enabled">
+    <istrue value="${hackystat.enable}" />
+  </condition>
+  
   <!-- Basic directory structure. -->
   <property name="src.dir" location="${basedir}/src" />
   <property name="lib.dir" location="${basedir}/lib" />
@@ -73,52 +74,52 @@
 
   <!-- The compile classpath is useful to many tools. -->
   <path id="compile.classpath">
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/hackystatlogger.lib.jar"/>
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar"/>
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/tstamp.lib.jar"/>
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/uricache.lib.jar"/>
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/time.lib.jar"/>
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/hackystatuserhome.lib.jar"/>
-    <fileset file="${env.JUNIT_HOME}/junit-${junit.version}.jar"/>
-    <fileset file="${env.RESTLET_HOME}/lib/org.restlet.jar"/>
-    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar"/>
-    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar"/>
-    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar"/>
-    <fileset file="${env.RESTLET_HOME}/lib/org.simpleframework_3.1/org.simpleframework.jar"/>
-    <fileset file="${env.JAVAMAIL_HOME}/mail.jar"/>
-    <fileset file="${env.DERBY_HOME}/lib/derby.jar"/>
-    <fileset file="${env.FINDBUGS_HOME}/lib/annotations.jar"/>
+    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/hackystatlogger.lib.jar" />
+    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar" />
+    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/tstamp.lib.jar" />
+    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/uricache.lib.jar" />
+    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/time.lib.jar" />
+    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/hackystatuserhome.lib.jar" />
+    <fileset file="${env.JUNIT_HOME}/junit-${junit.version}.jar" />
+    <fileset file="${env.RESTLET_HOME}/lib/org.restlet.jar" />
+    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" />
+    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar" />
+    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar" />
+    <fileset file="${env.RESTLET_HOME}/lib/org.simpleframework_3.1/org.simpleframework.jar" />
+    <fileset file="${env.JAVAMAIL_HOME}/mail.jar" />
+    <fileset file="${env.DERBY_HOME}/lib/derby.jar" />
+    <fileset file="${env.FINDBUGS_HOME}/lib/annotations.jar" />
   </path>
 
   <target name="compile" description="Compiles the code.">
     <!-- Now compile the code into build/classes -->
-    <mkdir dir="${build.dir}/classes"/>
+    <mkdir dir="${build.dir}/classes" />
     <javac srcdir="${src.dir}" destdir="${build.dir}/classes" source="1.5" target="1.5" debug="on" includeAntRuntime="no">
       <classpath refid="compile.classpath" />
-      <compilerarg value="-Xlint:all"/>
-      <compilerarg value="-Werror"/>
+      <compilerarg value="-Xlint:all" />
+      <compilerarg value="-Werror" />
     </javac>
   </target>
 
   <target name="clean" description="Delete build/ directory and top-level sensorbase jar files.">
     <delete>
-      <fileset dir="${basedir}" includes="sensorbase*.jar"/>
+      <fileset dir="${basedir}" includes="sensorbase*.jar" />
     </delete>
-    <delete dir="${build.dir}"/>
+    <delete dir="${build.dir}" />
   </target>
 
   <target name="convertLineEndings" description="Makes line endings compatible with host platform.">
-    <fixcrlf srcdir="${basedir}" includes="*.build.xml"/>
+    <fixcrlf srcdir="${basedir}" includes="*.build.xml" />
   </target>
 
- <target name="run" depends="compile" description="Compiles the sensorbase and starts it up.">
-  <java classname="org.hackystat.sensorbase.server.Server" fork="yes">
-    <classpath>
-      <pathelement location="${build.dir}/classes" />
-      <path refid="compile.classpath"/>
-    </classpath>
-  </java>
- </target>
+  <target name="run" depends="compile" description="Compiles the sensorbase and starts it up.">
+    <java classname="org.hackystat.sensorbase.server.Server" fork="yes">
+      <classpath>
+        <pathelement location="${build.dir}/classes" />
+        <path refid="compile.classpath" />
+      </classpath>
+    </java>
+  </target>
 
 </project>
 

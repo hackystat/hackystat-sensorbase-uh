@@ -21,7 +21,7 @@
 
     <mkdir dir="${checkstyle.dir}" />
     <checkstyle config="${basedir}/lib/checkstyle/hackystat.checkstyle.xml" failOnViolation="${checkstyle.failOnViolation}">
-      <fileset dir="${src.dir}" includes="**/*.java" excludes="**/jaxb/**" />
+      <fileset dir="${src.dir}" includes="**/*.java" excludes="**/jaxb/**"/>
       <formatter type="plain" />
       <formatter type="xml" tofile="${checkstyle.dir}/checkstyle.xml" />
       <classpath>
@@ -31,9 +31,16 @@
     </checkstyle>
   </target>
 
+  <target name="checkstyle.report" depends="checkstyle.tool" description="Generates an HTML report for Checkstyle.">
+    <xslt in="${checkstyle.dir}/checkstyle.xml" out="${checkstyle.dir}/index.html" style="${env.CHECKSTYLE_HOME}/contrib/checkstyle-noframes.xsl">
+      <param name="title" expression="Checkstyle Report" />
+      <param name="module" expression="${system.name}" />
+    </xslt>
+  </target>
+
   <target name="checkstyle.sensor" description="Send hackystat data about this Checkstyle invocation." if="hackystat.enabled">
-    <fileset id="checkstyle.output.fileset" dir="${checkstyle.dir}" includes="checkstyle.xml" />
-    <hackystat.checkstyle checkstyle.output.fileset="checkstyle.output.fileset" verbose="${hackystat.verbose.mode}" />
+    <fileset id="checkstyle.datafiles" dir="${checkstyle.dir}" includes="checkstyle.xml" />
+    <hackystat.checkstyle checkstyle.datafiles.fileset="checkstyle.datafiles" verbose="${hackystat.verbose.mode}" />
   </target>
 
 </project>

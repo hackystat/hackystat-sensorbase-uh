@@ -134,8 +134,10 @@ public class UserProjectResource extends SensorBaseResource {
       newProject = super.projectManager.makeProject(entityString);
     }
     catch (Exception e) {
-      server.getLogger().warning("Bad Project in PUT: " + StackTrace.toString(e));
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Project: " + entityString);
+      String msg = "Illegal Project definition. Not all required fields are supplied and/or have" +
+      " correct values: ";
+      server.getLogger().warning(msg + StackTrace.toString(e));
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg + entityString);
       return;
     }
     // Error if the URI ProjectName is not the same as the XML Project name.
