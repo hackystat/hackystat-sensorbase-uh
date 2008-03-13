@@ -134,6 +134,7 @@ public class Server extends Application {
     server.logger.warning("Host: " + server.hostName);
     HackystatLogger.setLoggingLevel(server.logger, server.serverProperties.get(LOGGING_LEVEL_KEY));
     server.logger.info(server.serverProperties.echoProperties());
+    server.logger.info("Maximum Java heap size (bytes): " + Runtime.getRuntime().maxMemory());
     server.logger.warning("SensorBase (Version " + getVersion() + ") now running.");
     server.component.start();
     return server;
