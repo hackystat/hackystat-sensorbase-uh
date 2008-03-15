@@ -21,6 +21,7 @@
   <import file="sclc.build.xml"/>
   <import file="dist.build.xml"/>
   <import file="jar.build.xml"/>
+  <import file="javancss.build.xml"/>
   
       
   <target name="hudson.basic" 
@@ -30,8 +31,17 @@
   </target>
   
   <target name="hudson.daily" 
-     depends="clean, compile, checkstyle.tool, junit.tool, findbugs.tool, pmd.tool, emma.tool, jar" 
+     depends="clean, compile, checkstyle.tool, junit.tool, findbugs.tool, pmd.tool, jar" 
      description="Builds and runs all QA stuff in preparation for sending sensor data.">
   </target>
+
+  <target name="hudson.daily.junit"  
+    depends="junit.tool, junit.sensor"  description="JUnit plus sensor."/>
+  
+  <target name="hudson.daily.javancss"  
+    depends="javancss.tool, javancss.sensor"  description="JavaNCSS plus sensor."/>
+  
+  <target name="hudson.daily.emma"  
+     depends="emma.tool, emma.report, emma.sensor"  description="Emma plus sensor."/>
   
 </project>
