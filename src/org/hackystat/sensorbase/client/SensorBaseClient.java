@@ -1328,19 +1328,19 @@ public class SensorBaseClient {
 
   /**
    * Returns true if the passed host is a SensorBase host.
-   * The timeout is set at 2 seconds. 
+   * The timeout is set at the default timeout value. 
    * Since checking isHost() when the host is not available is expensive, we cache the timestamp
    * whenever we find the host to be unavailable and if there is another call to isHost() within
-   * two minutes, we will immediately return false.  This makes startup of clients like 
+   * two seconds, we will immediately return false.  This makes startup of clients like 
    * SensorShell go much faster, since they call isHost() several times during startup. 
    * 
    * @param host The URL of a sensorbase host, such as "http://localhost:9876/sensorbase".
    * @return True if this URL responds as a SensorBase host.
    */
   public static boolean isHost(String host) {
-    // We return false immediately if we failed to contact the host within the last two minutes. 
+    // We return false immediately if we failed to contact the host within the last two seconds. 
     long currTime = (new Date()).getTime();
-    if ((currTime - getLastHostNotAvailable(host)) < 120 * 1000) {
+    if ((currTime - getLastHostNotAvailable(host)) < 2 * 1000) {
       return false;
     }
 
