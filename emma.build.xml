@@ -62,8 +62,9 @@
         <html outfile="${emma.dir}/coverage.html" depth="method" columns="name,class,method,block,line" />
       </report>
     </emma>
-    <!-- Now delete the instrumented .class files. -->
+    <!-- Now delete the instrumented .class files, and re-jar them -->
     <delete dir="${build.dir}/classes" />
+    <ant antfile="jar.build.xml"/> 
   </target>
 
   <target name="emma.report" unless="emma.disabled" description="Generates XML and HTML reports.">
