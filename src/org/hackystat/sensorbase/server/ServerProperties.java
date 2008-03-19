@@ -1,5 +1,6 @@
 package org.hackystat.sensorbase.server;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
@@ -129,6 +130,7 @@ public class ServerProperties {
    * <li> HOSTNAME_KEY
    * <li> DB_DIR_KEY
    * <li> PORT_KEY
+   * <li> XML_DIR_KEY (if HACKYSTAT_SENSORBASE_HOME is in System properties).
    * <ul>
    * Also sets TEST_INSTALL_KEY to true.
    */
@@ -139,6 +141,17 @@ public class ServerProperties {
     properties.setProperty(DB_DIR_KEY, properties.getProperty(TEST_DB_DIR_KEY));
     properties.setProperty(PORT_KEY, properties.getProperty(TEST_PORT_KEY));
     properties.setProperty(TEST_INSTALL_KEY, "true");
+    // Change the XML dir location if HACKYSTAT_SENSORBASE_HOME exists. 
+    String sensorbaseHome = System.getProperty("HACKYSTAT_SENSORBASE_HOME");
+    if (sensorbaseHome != null) {
+      File file = new File(sensorbaseHome, "xml");
+      if (file.exists()) {
+        properties.setProperty(XML_DIR_KEY, file.getAbsolutePath());
+      }
+      else {
+        System.out.println("Bad HACKYSTAT_SENSORBASE_HOME: " + sensorbaseHome);
+      }
+    }
     trimProperties(properties);
     // update the system properties object to reflect these new values. 
     Properties systemProperties = System.getProperties();
