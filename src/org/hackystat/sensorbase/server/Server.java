@@ -13,6 +13,7 @@ import org.hackystat.sensorbase.resource.projects.UserProjectSensorDataResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectSnapshotResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectSummaryResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectsResource;
+import org.hackystat.sensorbase.resource.registration.HomePageResource;
 import org.hackystat.sensorbase.resource.registration.RegistrationResource;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataResource;
@@ -199,6 +200,7 @@ public class Server extends Application {
     authRouter.attach("/projects/{user}/{projectname}/invitation/{rsvp}", 
         UserProjectInvitationResource.class);
     // Here's the Guard that we will place in front of authRouter.
+    authRouter.attach("", HomePageResource.class);
     Guard guard = new Authenticator(getContext());
     guard.setNext(authRouter);
     
