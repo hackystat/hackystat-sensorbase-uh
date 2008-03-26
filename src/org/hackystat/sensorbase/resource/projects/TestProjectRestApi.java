@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import org.hackystat.sensorbase.client.SensorBaseClient;
+import org.hackystat.sensorbase.client.SensorBaseClientException;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
@@ -297,6 +298,58 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     // the server.
     SensorBaseClient client = new SensorBaseClient(getHostName(), testUser, testUser);
     client.authenticate();
+    client.putProject(project);
+
+    // Check that we can now retrieve it.
+    Project project2 = client.getProject(owner, projectName);
+    assertEquals("Testing for GET TestProject1", projectName, project2.getName());
+
+    // Test that DELETE gets rid of this Project.
+    client.deleteProject(owner, projectName);
+  }
+  
+  /**
+   * Test that PUT of incomplete project definitions causes errors. 
+   * 
+   * @throws Exception If problems occur.
+   */
+  @Test
+  public void putBadProjects() throws Exception {
+    // Create the TestUser client, check authentication.
+    SensorBaseClient client = new SensorBaseClient(getHostName(), testUser, testUser);
+    client.authenticate();
+    
+    // First, create a sample Project with no fields.
+    Project project = new Project();
+    String owner = testUser;
+    project.setOwner(owner);
+    // See if we get the appropriate error
+    try {
+      client.putProject(project);
+    }
+    catch (SensorBaseClientException e) {
+      assertTrue("Test bad project name", e.getMessage().startsWith("400: Project name"));
+    }
+    // Fix the project name, try again.    
+    String projectName = "TestProject1";
+    project.setName(projectName);
+    try {
+      client.putProject(project);
+    }
+    catch (SensorBaseClientException e) {
+      assertTrue("Test bad start", e.getMessage().startsWith("400: Project start"));
+    }
+    XMLGregorianCalendar tstamp = Tstamp.makeTimestamp();
+    project.setStartTime(tstamp);
+    
+    try {
+      client.putProject(project);
+    }
+    catch (SensorBaseClientException e) {
+      assertTrue("Test bad end", e.getMessage().startsWith("400: Project end"));
+    }
+    project.setEndTime(tstamp);
+    // Now this should succeed.
     client.putProject(project);
 
     // Check that we can now retrieve it.

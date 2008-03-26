@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
+import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
@@ -103,6 +104,7 @@ public class UserProjectResource extends SensorBaseResource {
    * <ul>
    * <li> The XML must be marshallable into a Project instance using the Project XmlSchema.
    * <li> The User must exist.
+   * <li> The project representation must include a name, owner, start time, and end time.
    * <li> The Project name in the URI string must match the Project name in the XML.
    * <li> The authenticated user must be the uriUser or the admin.
    * <li> The project cannot be the Default project.   
@@ -110,6 +112,7 @@ public class UserProjectResource extends SensorBaseResource {
    * <li> All Members and Invitees must be defined Users.
    * <li> No Invitee can be a Member.
    * <li> The project owner cannot be a Member or Invitee.
+   * <li> If no UriPatterns are supplied, then the '*' UriPattern is provided by default.
    * </ul>
    * @param entity The XML representation of the new Project.
    */
@@ -138,6 +141,25 @@ public class UserProjectResource extends SensorBaseResource {
       " correct values: ";
       server.getLogger().warning(msg + StackTrace.toString(e));
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg + entityString);
+      return;
+    }
+    // Error if the Project name, owner, start date, or end date is not supplied.
+    if ((newProject.getName() == null) || (newProject.getName().trim().equals(""))) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Project name must be supplied.");
+      return;
+    }
+    if ((newProject.getOwner() == null) || (newProject.getOwner().trim().equals(""))) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Project owner must be supplied.");
+      return;
+    }
+    if (newProject.getStartTime() == null) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+          "Project start time must be supplied.");
+      return;
+    }
+    if (newProject.getEndTime() == null) {
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
+          "Project end time must be supplied.");
       return;
     }
     // Error if the URI ProjectName is not the same as the XML Project name.
@@ -208,8 +230,16 @@ public class UserProjectResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return;
     }
+    
+    // Make sure there are UriPatterns. If not, provide a default of "*".
+    if (newProject.getUriPatterns() == null) {
+      newProject.setUriPatterns(new UriPatterns());
+    }
+    if (newProject.getUriPatterns().getUriPattern().isEmpty()) {
+      newProject.getUriPatterns().getUriPattern().add("*");
+    }
 
-    // otherwise we add it to the Manager and return success.
+    // if we're still here, add it to the Manager and return success.
     super.projectManager.putProject(newProject);      
     getResponse().setStatus(Status.SUCCESS_CREATED);
   }

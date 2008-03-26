@@ -79,15 +79,15 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="Description" minOccurs="1" maxOccurs="1"/>
-        <xs:element ref="StartTime" minOccurs="1" maxOccurs="1"/>
-        <xs:element ref="EndTime" minOccurs="1" maxOccurs="1"/>
-        <xs:element ref="Owner" minOccurs="1" maxOccurs="1"/>
+        <xs:element ref="StartTime" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="EndTime" minOccurs="0" maxOccurs="1"/>
+        <xs:element ref="Owner" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="Members" minOccurs="1" maxOccurs="1"/>
         <xs:element ref="Invitations" minOccurs="0" maxOccurs="1"/>
         <xs:element ref="UriPatterns" minOccurs="1" maxOccurs="1"/>
         <xs:element ref="Properties" minOccurs="1" maxOccurs="1"/>
       </xs:sequence>
-      <xs:attribute ref="Name" use="required"/>
+      <xs:attribute ref="Name"/>
       <xs:attribute ref="LastMod"/>
     </xs:complexType>
   </xs:element>
