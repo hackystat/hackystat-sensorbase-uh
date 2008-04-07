@@ -919,7 +919,7 @@ public class DerbyImplementation extends DbImplementation {
   /** {@inheritDoc} */
   @Override
   public String getProjectIndex() {
-    return getIndex("Project", "SELECT XmlProjectRef FROM Project");
+    return getIndex("Project", "SELECT XmlProjectRef FROM Project ORDER BY ProjectName");
   }
   
   /** {@inheritDoc} */
