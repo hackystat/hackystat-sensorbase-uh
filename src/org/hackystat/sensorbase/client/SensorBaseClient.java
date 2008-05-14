@@ -161,7 +161,7 @@ public class SensorBaseClient {
   /**
    * Returns the default timeout in milliseconds. 
    * The default timeout is set to 2000 ms, but clients can change this by creating a 
-   * System property called SensorBaseClient.TIMEOUT_KEY and set it to a String indicating
+   * System property called sensorbaseclient.timeout and set it to a String indicating
    * the number of milliseconds.  
    * @return The default timeout.
    */
