@@ -75,6 +75,21 @@ public abstract class DbImplementation {
       XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt);
   
   /**
+   * Returns an XML SensorDataIndex representing the SensorData for the given user between
+   * start and end time whose resource string matches at least one of the UriPatterns.
+   * @param users The list of users whose SensorData will be returned.
+   * @param startTime The earliest Sensor Data to be returned.
+   * @param endTime The latest SensorData to be returned.
+   * @param uriPatterns At least one UriPattern must match the SensorData resource field.
+   * @param sdt The SDT of interest. Should not be null.
+   * @param tool The tool of interest. Should not be null.
+   * @return An XML String containing a SensorDataIndex of matching SensorData. 
+   */
+  public abstract String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt, String tool);
+
+  
+  /**
    * Returns the XML SensorDataIndex for all sensor data matching these users, start/end time, and 
    * whose resource string matches at least one in the list of UriPatterns. 
    * Client must guarantee that startTime and endTime are within Project dates, and that 

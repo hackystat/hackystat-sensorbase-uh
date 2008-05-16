@@ -28,6 +28,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
 
   private String testUser = "TestUser@hackystat.org";
   private String testProject = "TestProject";
+  private String testSdt = "TestSdt";
   private String defaultProject = "Default";
   private static final String nineAm = "2007-04-30T09:00:00.000";
 
@@ -125,7 +126,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
         summary.getSensorDataSummaries().getNumInstances().intValue());
     SensorDataSummary dataSummary = summary.getSensorDataSummaries().getSensorDataSummary().get(0);
     assertEquals("Checking summary tool", "Subversion", dataSummary.getTool());
-    assertEquals("Checking summary type", "TestSdt", dataSummary.getSensorDataType());
+    assertEquals("Checking summary type", testSdt, dataSummary.getSensorDataType());
     assertEquals("Checking summary instances", 1, dataSummary.getNumInstances().intValue());
   }
   
@@ -147,7 +148,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     XMLGregorianCalendar tstamp1 = Tstamp.incrementMinutes(startTime, 1);
     XMLGregorianCalendar tstamp2 = Tstamp.incrementMinutes(startTime, 2);
     XMLGregorianCalendar tstamp3 = Tstamp.incrementMinutes(startTime, 3);
-    String sdt = "TestSdt";
+    String sdt = testSdt;
     String tool1 = "Tool1";
     String tool2 = "Tool2";
     client.putSensorData(makeSensorData(tstamp1, tstamp1, snapshotUser, sdt, tool1));
@@ -228,8 +229,16 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     assertEquals("Checking our test data has 2 entries", 2, index.getSensorDataRef().size());
     
     // Now test the SDT param call to make sure we get only the SDT of interest.
-    index = client.getProjectSensorData(testUser, testProject, startTime, endTime, "TestSdt");
+    index = client.getProjectSensorData(testUser, testProject, startTime, endTime, testSdt);
     assertEquals("Checking our test data has 1 entries", 1, index.getSensorDataRef().size());
+    
+    // Now test to see that the tool param works correctly. 
+    index = client.getProjectSensorData(testUser, testProject, startTime, endTime, testSdt, 
+    "Subversion");
+    assertEquals("Checking our data has 1 entries", 1, index.getSensorDataRef().size());
+    index = client.getProjectSensorData(testUser, testProject, startTime, endTime, testSdt, 
+    "CVS");
+    assertEquals("Checking our data has no entries", 0, index.getSensorDataRef().size());
   }
   
   

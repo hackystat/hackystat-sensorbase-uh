@@ -1111,6 +1111,40 @@ public class SensorBaseClient {
   }
   
   /**
+   * Returns a SensorDataIndex representing the SensorData with the given SDT for the Project 
+   * during the time interval.
+   * 
+   * @param owner The project owner's email.
+   * @param projectName The project name.
+   * @param startTime The start time.
+   * @param endTime The end time.
+   * @param sdt The SensorDataType.
+   * @param tool The tool that generated this sensor data of the given type.
+   * @return A SensorDataIndex.
+   * @throws SensorBaseClientException If the server does not return success or returns something
+   *         that cannot be marshalled into Java SensorDataIndex instance.
+   */
+  public synchronized SensorDataIndex getProjectSensorData(String owner, String projectName,
+      XMLGregorianCalendar startTime, XMLGregorianCalendar endTime, String sdt, String tool)
+      throws SensorBaseClientException {
+    Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName
+        + "/sensordata?sdt=" + sdt + "&startTime=" + startTime + andEndTime + endTime +
+        "&tool=" + tool, null);
+    SensorDataIndex index;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      index = makeSensorDataIndex(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return index;
+  }
+  
+  /**
    * Returns a SensorDataIndex representing the SensorData with the startIndex and 
    * maxInstances for the Project during the time interval.
    * The startIndex must be non-negative, and is zero-based.  The maxInstances must be non-negative.

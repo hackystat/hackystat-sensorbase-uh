@@ -238,12 +238,30 @@ public class SensorDataManager {
    * @param uriPatterns A list of UriPatterns. 
    * @param sdt The sensordatatype of interest, or null if sensordata from all SDTs should be
    * retrieved.
+   * @param tool The tool of interest. 
+   * @return The XML SensorDataIndex string corresponding to the matching sensor data. 
+   */
+  public String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt, String tool) {
+    return this.dbManager.getSensorDataIndex(users, startTime, endTime, uriPatterns, sdt, tool);
+  }  
+  
+  /**
+   * Returns the XML SensorDataIndex for all sensor data matching these users, start/end time, and 
+   * whose resource string matches at least one in the list of UriPatterns. 
+   * @param users The users. 
+   * @param startTime The start time. 
+   * @param endTime The end time. 
+   * @param uriPatterns A list of UriPatterns. 
+   * @param sdt The sensordatatype of interest, or null if sensordata from all SDTs should be
+   * retrieved.
    * @return The XML SensorDataIndex string corresponding to the matching sensor data. 
    */
   public String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt) {
     return this.dbManager.getSensorDataIndex(users, startTime, endTime, uriPatterns, sdt);
   }  
+  
   /**
    * Returns the XML SensorDataIndex for all sensor data for the given user that arrived
    * at the server between the given timestamps.  This method uses the LastMod timestamp

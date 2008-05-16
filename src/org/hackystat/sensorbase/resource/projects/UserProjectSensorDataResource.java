@@ -38,6 +38,8 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
   private String startIndex;
   /** An optional query parameter. */
   private String maxInstances;
+  /** An optional tool parameter. */
+  private String tool;
 
   
   /**
@@ -54,14 +56,15 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
     this.sdt = (String) request.getAttributes().get("sdt");
     this.startIndex = (String) request.getAttributes().get("startIndex");
     this.maxInstances = (String) request.getAttributes().get("maxInstances");
+    this.tool = (String) request.getAttributes().get("tool");
     this.user = super.userManager.getUser(super.uriUser);
   }
   
   /**
    * Returns a SensorDataIndex of all SensorData associated with this Project.  This
    * includes all SensorData from all Members in this project over the 
-   * (optional) specified time period  for the (optional) SDT that match at least
-   * one of the UriPatterns in the project definition.
+   * (optional) specified time period  for the (optional) SDT and (optional) tool that match 
+   * at least one of the UriPatterns in the project definition.
    * 
    * Returns an error condition if:
    * <ul>
@@ -159,8 +162,15 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
           String data = super.projectManager.getProjectSensorDataIndex(this.user, project);
           return SensorBaseResource.getStringRepresentation(data);
         }
-        else if (startIndex == null) {
-          // Return the sensor data starting at startTime and ending with endTime.
+        if (tool != null) {
+          // Return the tool's sensor data starting at startTime and ending with endTime.
+          String data = super.projectManager.getProjectSensorDataIndex(this.user, project,
+              startTimeXml, endTimeXml, this.sdt, this.tool);
+          return SensorBaseResource.getStringRepresentation(data);
+          
+        }
+        if (startIndex == null) {
+          // Return all sensor data starting at startTime and ending with endTime.
           String data = super.projectManager.getProjectSensorDataIndex(this.user, project,
               startTimeXml, endTimeXml, this.sdt);
           return SensorBaseResource.getStringRepresentation(data);

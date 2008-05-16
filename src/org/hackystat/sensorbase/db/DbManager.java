@@ -161,6 +161,22 @@ public class DbManager {
   }
   
   /**
+   * Returns the XML SensorDataIndex for all sensor data matching this user, start/end time, and 
+   * whose resource string matches at least one in the list of UriPatterns. 
+   * @param users The list of users. 
+   * @param startTime The start time. 
+   * @param endTime The end time. 
+   * @param uriPatterns A list of UriPatterns. 
+   * @param sdt The SensorDataType of interest, or null if all data of all SDTs should be retrieved.
+   * @param tool The tool of interest.
+   * @return The XML SensorDataIndex string corresponding to the matching sensor data. 
+   */
+  public String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt, String tool) {
+    return this.dbImpl.getSensorDataIndex(users, startTime, endTime, uriPatterns, sdt, tool);
+  }
+  
+  /**
    * Returns the XML SensorDataIndex for all sensor data matching these users, start/end time, and 
    * whose resource string matches at least one in the list of UriPatterns. 
    * Client must guarantee that startTime and endTime are within Project dates, and that 

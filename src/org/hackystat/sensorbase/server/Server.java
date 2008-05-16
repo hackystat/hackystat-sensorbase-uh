@@ -162,43 +162,75 @@ public class Server extends Application {
     // First, create a Router that will have a Guard placed in front of it so that this Router's
     // requests will require authentication.
     Router authRouter = new Router(getContext());
-    authRouter.attach("/sensordatatypes", SensorDataTypesResource.class);
-    authRouter.attach("/sensordatatypes/{sensordatatypename}", SensorDataTypeResource.class);
-    authRouter.attach("/users", UsersResource.class);
-    authRouter.attach("/users/{user}", UserResource.class);
-    authRouter.attach("/sensordata", SensorDataResource.class);
-    authRouter.attach("/sensordata/{user}", UserSensorDataResource.class);
-    authRouter.attach("/sensordata/{user}?sdt={sensordatatype}", UserSensorDataResource.class);
+    
+    // SENSORDATATYPES 
+    authRouter.attach("/sensordatatypes", 
+        SensorDataTypesResource.class);
+    authRouter.attach("/sensordatatypes/{sensordatatypename}", 
+        SensorDataTypeResource.class);
+    
+    // USERS
+    authRouter.attach("/users", 
+        UsersResource.class);
+    authRouter.attach("/users/{user}", 
+        UserResource.class);
+    
+    // SENSORDATA 
+    authRouter.attach("/sensordata", 
+        SensorDataResource.class);
+    authRouter.attach("/sensordata/{user}", 
+        UserSensorDataResource.class);
+    authRouter.attach("/sensordata/{user}?sdt={sensordatatype}", 
+        UserSensorDataResource.class);
     authRouter.attach(
         "/sensordata/{user}?lastModStartTime={lastModStartTime}&lastModEndTime={lastModEndTime}", 
         UserSensorDataResource.class);
     authRouter.attach("/sensordata/{user}/{timestamp}", 
         UserSensorDataResource.class);
-    authRouter.attach("/projects", ProjectsResource.class);
-    authRouter.attach("/projects/{user}", UserProjectsResource.class);
-    authRouter.attach("/projects/{user}/{projectname}", UserProjectResource.class);
-    authRouter.attach(
-        "/projects/{user}/{projectname}/summary?startTime={startTime}&endTime={endTime}", 
+    
+    // PROJECTS
+    authRouter.attach("/projects", 
+        ProjectsResource.class);
+    authRouter.attach("/projects/{user}", 
+        UserProjectsResource.class);
+    String projectUri = "/projects/{user}/{projectname}";
+    authRouter.attach(projectUri,
+        UserProjectResource.class);
+    
+    // PROJECTS SNAPSHOT
+    authRouter.attach(projectUri + "/snapshot" + 
+        "?startTime={startTime}&endTime={endTime}&sdt={sdt}&tool={tool}", 
+        UserProjectSnapshotResource.class);
+    authRouter.attach(projectUri + "/snapshot" + 
+        "?startTime={startTime}&endTime={endTime}&sdt={sdt}",
+        UserProjectSnapshotResource.class);
+    
+    // PROJECTS SUMMARY 
+    authRouter.attach(projectUri + "/summary" +  
+        "?startTime={startTime}&endTime={endTime}", 
         UserProjectSummaryResource.class);
-    authRouter.attach(
-        "/projects/{user}/{projectname}/snapshot?startTime={startTime}&endTime={endTime}" +
-        "&sdt={sdt}&tool={tool}", 
-        UserProjectSnapshotResource.class);
-    authRouter.attach(
-        "/projects/{user}/{projectname}/snapshot?startTime={startTime}&endTime={endTime}&sdt={sdt}",
-        UserProjectSnapshotResource.class);
-    String sensorDataUriPrefix = "/projects/{user}/{projectname}/sensordata";
-    authRouter.attach(sensorDataUriPrefix, 
+    
+    // PROJECTS SENSORDATA
+    String projectSensorDataUri = projectUri + "/sensordata";
+    authRouter.attach(projectSensorDataUri, 
         UserProjectSensorDataResource.class);
-    authRouter.attach(sensorDataUriPrefix + 
-       "?startTime={startTime}&endTime={endTime}" + 
-       "&startIndex={startIndex}&maxInstances={maxInstances}", UserProjectSensorDataResource.class);
-    authRouter.attach(sensorDataUriPrefix + 
-        "?startTime={startTime}&endTime={endTime}", UserProjectSensorDataResource.class);
-    authRouter.attach(sensorDataUriPrefix + 
-       "?sdt={sdt}&startTime={startTime}&endTime={endTime}",  UserProjectSensorDataResource.class);
-    authRouter.attach("/projects/{user}/{projectname}/invitation/{rsvp}", 
+    authRouter.attach(projectSensorDataUri +
+     "?startTime={startTime}&endTime={endTime}&startIndex={startIndex}&maxInstances={maxInstances}",
+       UserProjectSensorDataResource.class);
+    authRouter.attach(projectSensorDataUri +  
+        "?startTime={startTime}&endTime={endTime}", 
+        UserProjectSensorDataResource.class);
+    authRouter.attach(projectSensorDataUri +  
+        "?sdt={sdt}&startTime={startTime}&endTime={endTime}&tool={tool}",  
+        UserProjectSensorDataResource.class);
+    authRouter.attach(projectSensorDataUri +  
+        "?sdt={sdt}&startTime={startTime}&endTime={endTime}",  
+        UserProjectSensorDataResource.class);
+    
+    // PROJECTS INVITATION 
+    authRouter.attach(projectUri + "/invitation/{rsvp}", 
         UserProjectInvitationResource.class);
+    
     // Here's the Guard that we will place in front of authRouter.
     authRouter.attach("", HomePageResource.class);
     Guard guard = new Authenticator(getContext());

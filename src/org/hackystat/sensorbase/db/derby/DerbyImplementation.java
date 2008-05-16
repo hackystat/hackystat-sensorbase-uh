@@ -405,6 +405,24 @@ public class DerbyImplementation extends DbImplementation {
   
   /** {@inheritDoc} */
   @Override
+  public String getSensorDataIndex(List<User> users, XMLGregorianCalendar startTime, 
+      XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt, String tool) {
+    String statement =
+        selectPrefix
+        + constructOwnerClause(users)
+        + andClause  
+        + sdtEquals + sdt + quoteAndClause 
+        + toolEquals + tool + quoteAndClause 
+        + " (Tstamp BETWEEN TIMESTAMP('" + Tstamp.makeTimestamp(startTime) + "') AND " //NOPMD
+        + " TIMESTAMP('" + Tstamp.makeTimestamp(endTime) + "'))" //NOPMD
+        + constructLikeClauses(uriPatterns)
+        + orderByTstamp;
+    //System.out.println(statement);
+    return getIndex("SensorData", statement);
+  }
+  
+  /** {@inheritDoc} */
+  @Override
   public String getProjectSensorDataSnapshot(List<User> users, XMLGregorianCalendar startTime, 
       XMLGregorianCalendar endTime, List<String> uriPatterns, String sdt, String tool) {
     String statement;
