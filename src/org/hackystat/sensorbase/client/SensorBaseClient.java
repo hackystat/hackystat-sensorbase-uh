@@ -1721,9 +1721,12 @@ public class SensorBaseClient {
    * @param milliseconds The timeout value. 
    */
   private static void setClientTimeout(Client client, int milliseconds) {
+    client.getContext().getParameters().removeAll("connectTimeout");
     client.getContext().getParameters().add("connectTimeout", String.valueOf(milliseconds));
     // For the Apache Commons client.
+    client.getContext().getParameters().removeAll("readTimeout");
     client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
+    client.getContext().getParameters().removeAll("connectionManagerTimeout");
     client.getContext().getParameters().add("connectionManagerTimeout", 
         String.valueOf(milliseconds));
   }
