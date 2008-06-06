@@ -1,6 +1,5 @@
 package org.hackystat.sensorbase.client;
 
-import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Date;
@@ -38,7 +37,6 @@ import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
 import org.hackystat.utilities.tstamp.Tstamp;
 import org.hackystat.utilities.uricache.NewUriCache;
-import org.hackystat.utilities.uricache.UriCacheException;
 import org.restlet.Client;
 import org.restlet.data.ChallengeResponse;
 import org.restlet.data.ChallengeScheme;
@@ -1729,18 +1727,6 @@ public class SensorBaseClient {
     client.getContext().getParameters().removeAll("connectionManagerTimeout");
     client.getContext().getParameters().add("connectionManagerTimeout", 
         String.valueOf(milliseconds));
-  }
-
-
-  /**
-   * Don't use this method.  To be deleted. 
-   * @throws UriCacheException If problems.
-   * @throws IOException If problems.
-   */
-  public synchronized void enableCaching() throws UriCacheException, IOException {
-    //throw new Exception("This method no longer supported.");
-    //this.uriCache = UriCacheManager.getCache(null, this.sensorBaseHost, this.userEmail);
-    //this.isCacheEnabled = true;
   }
   
   /**
