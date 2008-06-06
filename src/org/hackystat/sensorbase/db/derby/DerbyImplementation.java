@@ -3,6 +3,7 @@ package org.hackystat.sensorbase.db.derby;
 import static org.hackystat.sensorbase.server.ServerProperties.DB_DIR_KEY;
 
 import java.math.BigInteger;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -13,9 +14,11 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -227,10 +230,10 @@ public class DerbyImplementation extends DbImplementation {
   }
   
   // ********************   Start  Sensor Data specific stuff here *****************  //
-  
+
   /** The SQL string for creating the SensorData table. */
   private static final String createSensorDataTableStatement = 
-    "create table SensorData  "
+    "create table SensorData " 
     + "("
     + " Owner VARCHAR(64) NOT NULL, "
     + " Tstamp TIMESTAMP NOT NULL, "
@@ -1318,40 +1321,124 @@ public class DerbyImplementation extends DbImplementation {
     }
   }
 
-//  TO BE ADDED TO A GENERAL 'MAINTENANCE' API 
-//  /**
-//   * A utility procedure that reclaims disk space after large deletes. 
-//   */
-//  private void compressTables() {
-//    this.logger.fine("Starting to compress tables.");
-//    Connection conn = null;
-//    CallableStatement cs = null;
-//    try {
-//      conn = DriverManager.getConnection(connectionURL);
-//      cs = conn.prepareCall("CALL SYSCS_UTIL.SYSCS_COMPRESS_TABLE(?, ?, ?)");
-//      cs.setString(1, "APP");
-//      cs.setString(2, "SENSORDATA");
-//      cs.setShort(3, (short) 1);
-//      cs.execute();
-//      cs.setString(2, "SENSORDATATYPE");
-//      cs.execute();
-//      cs.setString(2, "HACKYUSER");
-//      cs.execute();
-//      cs.setString(2, "PROJECT");
-//      cs.execute();
-//    }
-//    catch (SQLException e) {
-//      this.logger.info("Derby: Error in compressTables()" + StackTrace.toString(e));
-//    }
-//    finally {
-//      try {
-//        cs.close();
-//        conn.close();
-//      }
-//      catch (SQLException e) {
-//        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
-//      }
-//    }
-//    this.logger.fine("Finished compressing tables.");
-//  }
+  
+  /** {@inheritDoc} */
+  @Override
+  public boolean compressTables() {
+    boolean success = false;
+    this.logger.fine("Starting to compress tables.");
+    Connection conn = null;
+    CallableStatement cs = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      cs = conn.prepareCall("CALL SYSCS_UTIL.SYSCS_COMPRESS_TABLE(?, ?, ?)");
+      cs.setString(1, "APP");
+      cs.setString(2, "SENSORDATA");
+      cs.setShort(3, (short) 1);
+      cs.execute();
+      cs.setString(2, "SENSORDATATYPE");
+      cs.execute();
+      cs.setString(2, "HACKYUSER");
+      cs.execute();
+      cs.setString(2, "PROJECT");
+      cs.execute();
+      success = true;
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in compressTables()" + StackTrace.toString(e));
+      success = false;
+    }
+    finally {
+      try {
+        cs.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+        success = false;
+      }
+    }
+    this.logger.fine("Finished compressing tables.");
+    return success;
+  }
+  
+  /** {@inheritDoc} */
+  @Override
+  public boolean indexTables() {
+    this.logger.fine("Starting to index tables.");
+    boolean success = false;
+    Connection conn = null;
+    Statement s = null;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.createStatement();
+      s.execute(indexSensorDataTableStatement);
+      s.execute(indexSensorDataTstampStatement);
+      s.execute(indexSensorDataRuntimeStatement);
+      s.execute(indexSensorDataTypeTableStatement);
+      s.execute(indexUserTableStatement);
+      s.execute(indexProjectTableStatement);
+      s.close();
+      success = true;
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in indexTables()" + StackTrace.toString(e));
+      success = false;
+    }
+    finally {
+      try {
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+        success = false;
+      }
+    }
+    this.logger.fine("Finished indexing tables.");
+    return success;
+  }
+  
+  /** {@inheritDoc} */
+  @Override
+  public int getRowCount(String table) {
+    int numRows = -1;
+    Connection conn = null;
+    PreparedStatement s = null;
+    ResultSet rs = null;
+    String statement = "Select COUNT(1) from " + table;
+    try {
+      conn = DriverManager.getConnection(connectionURL);
+      s = conn.prepareStatement(statement);
+      rs = s.executeQuery();
+      rs.next();
+      numRows = rs.getInt(1);
+    }
+    catch (SQLException e) {
+      this.logger.info("Derby: Error in getRowCount: " + StackTrace.toString(e));
+    }
+    finally {
+      try {
+        rs.close();
+        s.close();
+        conn.close();
+      }
+      catch (SQLException e) {
+        this.logger.warning(errorClosingMsg + StackTrace.toString(e));
+      }
+    }
+    return numRows;
+  }
+  
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getTableNames() {
+    Set<String> tableNames = new HashSet<String>();
+    tableNames.add("SensorData");
+    tableNames.add("SensorDataType");
+    tableNames.add("HackyUser");
+    tableNames.add("Project");
+    return tableNames;
+  }
+  
 }

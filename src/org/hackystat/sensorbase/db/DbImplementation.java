@@ -1,6 +1,7 @@
 package org.hackystat.sensorbase.db;
 
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -339,5 +340,37 @@ public abstract class DbImplementation {
   protected ProjectManager getProjectManager() {
     return (ProjectManager)server.getContext().getAttributes().get("ProjectManager");
   }
+  
+  /**
+   * Databases like Derby require an explicit compress command for releasing disk space 
+   * after a large number of rows have been deleted.  This operation invokes the compress
+   * command on all tables in the database.  If a database implementation does not support
+   * explicit compression, then this command should do nothing but return true.   
+   * @return True if the compress command succeeded or if the database does not support
+   * compression. 
+   */
+  public abstract boolean compressTables();
+  
+  /**
+   * The most appropriate set of indexes for the database has been evolving over time as we 
+   * develop new queries.  This command sets up the appropriate set of indexes.  It should be
+   * able to be called repeatedly without error. 
+   * @return True if the index commands succeeded. 
+   */
+  public abstract boolean indexTables(); 
+  
+  /**
+   * Returns the current number of rows in the specified table.  
+   * @param table The table whose rows are to be counted. 
+   * @return The number of rows in the table, or -1 if the table does not exist or an error occurs. 
+   */
+  public abstract int getRowCount(String table); 
+  
+  /**
+   * Returns a set containing the names of all tables in this database.  Used by clients to 
+   * invoke getRowCount with a legal table name. 
+   * @return A set of table names.
+   */
+  public abstract Set<String> getTableNames(); 
   
 }

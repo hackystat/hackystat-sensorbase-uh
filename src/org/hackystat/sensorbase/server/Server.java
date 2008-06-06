@@ -1,9 +1,12 @@
 package org.hackystat.sensorbase.server;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.sensorbase.mailer.Mailer;
+import org.hackystat.sensorbase.resource.db.CompressResource;
+import org.hackystat.sensorbase.resource.db.IndexResource;
 import org.hackystat.sensorbase.resource.ping.PingResource;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.projects.ProjectsResource;
@@ -120,7 +123,8 @@ public class Server extends Application {
     // - UserManager must be initialized before ProjectManager, since ProjectManager needs
     //   to know about the Users. 
     Map<String, Object> attributes = server.getContext().getAttributes();
-    attributes.put("DbManager", new DbManager(server));
+    DbManager dbManager = new DbManager(server);  // we need this later in this method.
+    attributes.put("DbManager", dbManager);
     attributes.put("SdtManager", new SdtManager(server));
     attributes.put("UserManager", new UserManager(server));
     attributes.put("ProjectManager", new ProjectManager(server));
@@ -136,9 +140,25 @@ public class Server extends Application {
     HackystatLogger.setLoggingLevel(server.logger, server.serverProperties.get(LOGGING_LEVEL_KEY));
     server.logger.info(server.serverProperties.echoProperties());
     server.logger.info("Maximum Java heap size (bytes): " + Runtime.getRuntime().maxMemory());
+    server.logger.info("Table counts: " + getTableCounts(dbManager));
     server.logger.warning("SensorBase (Version " + getVersion() + ") now running.");
     server.component.start();
     return server;
+  }
+  
+  /**
+   * Returns a string with the counts of rows in the various tables. 
+   * @param dbManager The dbManager. 
+   * @return A string with info on row counts. 
+   */
+  private static String getTableCounts (DbManager dbManager) {
+    Set<String> tableNames = dbManager.getTableNames();
+    StringBuffer buff = new StringBuffer();
+    for (String tableName : tableNames) {
+      int tableRows = dbManager.getRowCount(tableName);
+      buff.append(tableName).append(':').append(tableRows).append(' ');
+    }
+    return buff.toString();
   }
 
  
@@ -230,6 +250,10 @@ public class Server extends Application {
     // PROJECTS INVITATION 
     authRouter.attach(projectUri + "/invitation/{rsvp}", 
         UserProjectInvitationResource.class);
+    
+    // DB Commands
+    authRouter.attach("/db/compress", CompressResource.class);
+    authRouter.attach("/db/index", IndexResource.class);
     
     // Here's the Guard that we will place in front of authRouter.
     authRouter.attach("", HomePageResource.class);

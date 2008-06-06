@@ -22,9 +22,6 @@ public class SensorBaseRestApiHelper {
   /** The SensorBase server used in these tests. */
   protected static Server server;
 
-  /** The Client instance used in these tests. */
-  //private static Client client;
-  
   /** Make a Manager available to this test class. */
   protected static SensorDataManager sensorDataManager; 
 

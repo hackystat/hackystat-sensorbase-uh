@@ -2,6 +2,8 @@ package org.hackystat.sensorbase.db;
 
 import java.lang.reflect.Constructor;
 import java.util.List;
+import java.util.Set;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectSummary;
@@ -358,6 +360,46 @@ public class DbManager {
    */
   public void deleteProject(User user, String projectName) {
     this.dbImpl.deleteProject(user, projectName);
+  }
+  
+  /**
+   * Databases like Derby require an explicit compress command for releasing disk space 
+   * after a large number of rows have been deleted.  This operation invokes the compress
+   * command on all tables in the database.  If a database implementation does not support
+   * explicit compression, then this command should do nothing but return true.   
+   * @return True if the compress command succeeded or if the database does not support
+   * compression. 
+   */
+  public boolean compressTables() {
+    return this.dbImpl.compressTables();
+  }
+  
+  /**
+   * The most appropriate set of indexes for the database has been evolving over time as we 
+   * develop new queries.  This command sets up the appropriate set of indexes.  It should be
+   * able to be called repeatedly without error. 
+   * @return True if the index commands succeeded. 
+   */
+  public boolean indexTables() {
+    return this.dbImpl.indexTables();
+  }
+  
+  /**
+   * Returns the current number of rows in the specified table.  
+   * @param table The table whose rows are to be counted. 
+   * @return The number of rows in the table, or -1 if the table does not exist or an error occurs. 
+   */
+  public int getRowCount(String table) {
+    return this.dbImpl.getRowCount(table);
+  }
+  
+  /**
+   * Returns a set containing the names of all tables in this database.  Used by clients to 
+   * invoke getRowCount with a legal table name. 
+   * @return A set of table names.
+   */
+  public Set<String> getTableNames() {
+    return this.dbImpl.getTableNames();
   }
   
 }

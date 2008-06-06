@@ -1748,5 +1748,49 @@ public class SensorBaseClient {
   public synchronized void clearCache() {
     this.uriCache.clear();
   }
+  
+  /**
+   * Compresses the server database tables.  
+   * You must be the admin user in order for this command to succeed.
+   * @throws SensorBaseClientException If problems occur posting this data.
+   */
+  public synchronized void compressTables() throws SensorBaseClientException {
+    try {
+      Response response = makeRequest(Method.PUT, "db/compress", null);
+      if (!response.getStatus().isSuccess()) {
+        throw new SensorBaseClientException(response.getStatus());
+      }
+    }
+    // Allow SensorBaseClientExceptions to be thrown out of this method.
+    catch (SensorBaseClientException f) {
+      throw f;
+    }
+    // All other exceptions are caught and rethrown.
+    catch (Exception e) {
+      throw new SensorBaseClientException("Error in db command.", e);
+    }
+  }
+  
+  /**
+   * Indexes the server database tables.  
+   * You must be the admin user in order for this command to succeed.
+   * @throws SensorBaseClientException If problems occur posting this data.
+   */
+  public synchronized void indexTables() throws SensorBaseClientException {
+    try {
+      Response response = makeRequest(Method.PUT, "db/index", null);
+      if (!response.getStatus().isSuccess()) {
+        throw new SensorBaseClientException(response.getStatus());
+      }
+    }
+    // Allow SensorBaseClientExceptions to be thrown out of this method.
+    catch (SensorBaseClientException f) {
+      throw f;
+    }
+    // All other exceptions are caught and rethrown.
+    catch (Exception e) {
+      throw new SensorBaseClientException("Error in db command", e);
+    }
+  }
 
 }
