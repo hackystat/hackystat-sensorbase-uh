@@ -215,6 +215,7 @@ public class DerbyImplementation extends DbImplementation {
       s.execute(indexSensorDataTableStatement);
       s.execute(indexSensorDataTstampStatement);
       s.execute(indexSensorDataRuntimeStatement);
+      s.execute(indexSensorDataToolStatement);
       s.execute(createSensorDataTypeTableStatement);
       s.execute(indexSensorDataTypeTableStatement);
       s.execute(createUserTableStatement);
@@ -270,6 +271,9 @@ public class DerbyImplementation extends DbImplementation {
 
   private static final String indexSensorDataRuntimeStatement = 
     "CREATE INDEX RuntimeIndex ON SensorData(Runtime desc)";
+  
+  private static final String indexSensorDataToolStatement = 
+    "CREATE INDEX ToolIndex ON SensorData(Tool asc)";
 
 
   /** {@inheritDoc} */
@@ -675,7 +679,7 @@ public class DerbyImplementation extends DbImplementation {
       "SELECT XmlSensorData FROM SensorData WHERE "
       + ownerEquals + user.getEmail() + quoteAndClause 
       + " Tstamp='" + Tstamp.makeTimestamp(timestamp) + "'";
-    return getResource("SensorData", statement);
+    return getResource("SensorData", statement); 
   }
 
   // ********************   Start SensorDataType specific stuff here *****************  //
@@ -1375,6 +1379,7 @@ public class DerbyImplementation extends DbImplementation {
       s.execute(indexSensorDataTableStatement);
       s.execute(indexSensorDataTstampStatement);
       s.execute(indexSensorDataRuntimeStatement);
+      s.execute(indexSensorDataToolStatement);
       s.execute(indexSensorDataTypeTableStatement);
       s.execute(indexUserTableStatement);
       s.execute(indexProjectTableStatement);
