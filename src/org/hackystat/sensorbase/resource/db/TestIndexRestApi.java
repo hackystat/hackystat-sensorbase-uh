@@ -20,6 +20,7 @@ public class TestIndexRestApi extends SensorBaseRestApiHelper {
   public void testIndex() throws Exception { //NOPMD
     SensorBaseClient client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);
     client.authenticate();
+    client.setTimeout(200000);
     client.indexTables();
   }
 }

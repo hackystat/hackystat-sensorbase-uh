@@ -7,6 +7,7 @@ import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.sensorbase.mailer.Mailer;
 import org.hackystat.sensorbase.resource.db.CompressResource;
 import org.hackystat.sensorbase.resource.db.IndexResource;
+import org.hackystat.sensorbase.resource.db.RowCountResource;
 import org.hackystat.sensorbase.resource.ping.PingResource;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.projects.ProjectsResource;
@@ -252,8 +253,9 @@ public class Server extends Application {
         UserProjectInvitationResource.class);
     
     // DB Commands
-    authRouter.attach("/db/compress", CompressResource.class);
-    authRouter.attach("/db/index", IndexResource.class);
+    authRouter.attach("/db/table/compress", CompressResource.class);
+    authRouter.attach("/db/table/index", IndexResource.class);
+    authRouter.attach("/db/table/{table}/rowcount", RowCountResource.class);
     
     // Here's the Guard that we will place in front of authRouter.
     authRouter.attach("", HomePageResource.class);

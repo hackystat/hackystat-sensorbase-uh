@@ -20,6 +20,7 @@ public class TestCompressRestApi extends SensorBaseRestApiHelper {
   public void testCompress() throws Exception { //NOPMD
     SensorBaseClient client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);
     client.authenticate();
+    client.setTimeout(200000);
     client.compressTables();
   }
 }

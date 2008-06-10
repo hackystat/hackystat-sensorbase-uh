@@ -1756,7 +1756,7 @@ public class SensorBaseClient {
    */
   public synchronized void compressTables() throws SensorBaseClientException {
     try {
-      Response response = makeRequest(Method.PUT, "db/compress", null);
+      Response response = makeRequest(Method.PUT, "db/table/compress", null);
       if (!response.getStatus().isSuccess()) {
         throw new SensorBaseClientException(response.getStatus());
       }
@@ -1778,7 +1778,7 @@ public class SensorBaseClient {
    */
   public synchronized void indexTables() throws SensorBaseClientException {
     try {
-      Response response = makeRequest(Method.PUT, "db/index", null);
+      Response response = makeRequest(Method.PUT, "db/table/index", null);
       if (!response.getStatus().isSuccess()) {
         throw new SensorBaseClientException(response.getStatus());
       }
@@ -1790,6 +1790,33 @@ public class SensorBaseClient {
     // All other exceptions are caught and rethrown.
     catch (Exception e) {
       throw new SensorBaseClientException("Error in db command", e);
+    }
+  }
+  
+  /**
+   * Gets the rowcount for the specified table.
+   * You must be the admin user in order for this command to succeed.
+   * @param table The name of the table whose rowcount is to be retrieved.
+   * @return The number of rows in that table. 
+   * @throws SensorBaseClientException If problems occur posting this data.
+   * This can happen if the user is not the admin user, or if the table name is invalid.
+   */
+  public synchronized int rowCount(String table) throws SensorBaseClientException {
+    try {
+      Response response = makeRequest(Method.GET, "db/table/" + table + "/rowcount", null);
+      if (!response.getStatus().isSuccess()) {
+        throw new SensorBaseClientException(response.getStatus());
+      }
+      String rowCountString = response.getEntity().getText();
+      return Integer.valueOf(rowCountString).intValue();
+    }
+    // Allow SensorBaseClientExceptions to be thrown out of this method.
+    catch (SensorBaseClientException f) {
+      throw f;
+    }
+    // All other exceptions are caught and rethrown.
+    catch (Exception e) {
+      throw new SensorBaseClientException("Error in rowcount command", e);
     }
   }
 
