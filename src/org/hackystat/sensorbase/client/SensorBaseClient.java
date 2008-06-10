@@ -94,7 +94,7 @@ public class SensorBaseClient {
   private boolean isTraceEnabled = false;
 
   /** An associated UriCache to improve responsiveness. */
-  private NewUriCache uriCache;
+  private NewUriCache uriCache = null;
   
   /** Indicates whether or not cache is enabled. */
   private boolean isCacheEnabled = false;
@@ -709,9 +709,11 @@ public class SensorBaseClient {
   }
 
   /**
-   * Returns the SensorData for this user from this server given the passed uriString.
+   * Returns the SensorData for this user from this server given the passed uriString suffix.
    * 
-   * @param uriString A URL that should return a SensorData instance in XML format.
+   * @param uriString A string that when prefixed with the sensorbase host should return 
+   * a SensorData instance in XML format.  A string such as "http://localhost:9876/sensorbase"
+   * will be prefixed to the uriString. 
    * @return The SensorData instance.
    * @throws SensorBaseClientException If the server does not return the success code or returns a
    *         String that cannot be marshalled into Java SensorData instance.
@@ -1730,7 +1732,8 @@ public class SensorBaseClient {
   }
   
   /**
-   * Enables caching in this client.  
+   * Enables caching in this client.
+   * If caching has already been enabled, then does nothing.  
    * @param cacheName The name of the cache.
    * @param subDir The subdirectory in which the cache backend store is saved.
    * @param maxLife The default expiration time for objects, in days.
@@ -1738,16 +1741,23 @@ public class SensorBaseClient {
    */
   public synchronized void enableCaching(String cacheName, String subDir, Double maxLife, 
       Long capacity) {
-    this.uriCache = new NewUriCache(cacheName, subDir, maxLife, capacity);
-    this.isCacheEnabled = true;
+    if (!this.isCacheEnabled) {
+      this.uriCache = new NewUriCache(cacheName, subDir, maxLife, capacity);
+      this.isCacheEnabled = true;
+    }
   }
  
   /**
    * Delete all entries from this cache. 
+   * If the cache is not enabled, then does nothing.
    */
   public synchronized void clearCache() {
-    this.uriCache.clear();
+    if (this.isCacheEnabled) {
+      this.uriCache.clear();
+    }
   }
+  
+  
   
   /**
    * Compresses the server database tables.  
