@@ -231,15 +231,7 @@ public class UserManager {
     }
   }
   
-//  /**
-//   * Returns true if the passed user is defined. 
-//   * @param email An email address
-//   * @return True if a User with that email address is known to this Manager.
-//   */
-//  public synchronized boolean hasUser(String email) {
-//    return (email != null) && (email2user.containsKey(email));
-//  }
-//  
+
   /**
    * Ensures that the passed User is no longer present in this Manager. 
    * @param email The email address of the User to remove if currently present.

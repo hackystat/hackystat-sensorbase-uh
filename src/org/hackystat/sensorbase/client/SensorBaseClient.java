@@ -416,6 +416,16 @@ public class SensorBaseClient {
     }
     return index;
   }
+  
+  /**
+   * Returns the User instance associated with this SensorBaseClient instance.
+   * Requires a HTTP call to the SensorBase.
+   * @return The User instance for the user associated with this SensorBaseClient.
+   * @throws SensorBaseClientException If problems occur.
+   */
+  public synchronized User getUser() throws SensorBaseClientException {
+    return getUser(this.userEmail);
+  }
 
   /**
    * Returns the named User from this server.
