@@ -142,6 +142,7 @@ public class Server extends Application {
     server.logger.info(server.serverProperties.echoProperties());
     server.logger.info("Maximum Java heap size (bytes): " + Runtime.getRuntime().maxMemory());
     server.logger.info("Table counts: " + getTableCounts(dbManager));
+    server.logger.info("Refreshed db indexes: " + ((dbManager.indexTables()) ? "OK" : "Not OK"));
     server.logger.warning("SensorBase (Version " + getVersion() + ") now running.");
     server.component.start();
     return server;
@@ -161,7 +162,7 @@ public class Server extends Application {
     }
     return buff.toString();
   }
-
+  
  
   /**
    * Starts up the SensorBase web service using the properties specified in sensor.properties.  
