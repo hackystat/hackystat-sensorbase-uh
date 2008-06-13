@@ -36,7 +36,7 @@ import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
 import org.hackystat.utilities.tstamp.Tstamp;
-import org.hackystat.utilities.uricache.NewUriCache;
+import org.hackystat.utilities.uricache.UriCache;
 import org.restlet.Client;
 import org.restlet.data.ChallengeResponse;
 import org.restlet.data.ChallengeScheme;
@@ -94,7 +94,7 @@ public class SensorBaseClient {
   private boolean isTraceEnabled = false;
 
   /** An associated UriCache to improve responsiveness. */
-  private NewUriCache uriCache = null;
+  private UriCache uriCache = null;
   
   /** Indicates whether or not cache is enabled. */
   private boolean isCacheEnabled = false;
@@ -1752,7 +1752,7 @@ public class SensorBaseClient {
   public synchronized void enableCaching(String cacheName, String subDir, Double maxLife, 
       Long capacity) {
     if (!this.isCacheEnabled) {
-      this.uriCache = new NewUriCache(cacheName, subDir, maxLife, capacity);
+      this.uriCache = new UriCache(cacheName, subDir, maxLife, capacity);
       this.isCacheEnabled = true;
     }
   }
