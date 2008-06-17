@@ -145,6 +145,8 @@ public class TestSensorDataRestApi extends SensorBaseRestApiHelper {
     // Create the TestUser client and check authentication.
     SensorBaseClient client = new SensorBaseClient(getHostName(), user, user);
     client.authenticate();
+    //client.enableHttpTracing(true);
+    //client.setTimeout(50000);
     // Retrieve the TestUser User resource and test a couple of fields.
     SensorDataIndex index = client.getSensorDataIndex(user, "TestSdt");
     // Make sure that we can iterate through the data and dereference all hrefs. 

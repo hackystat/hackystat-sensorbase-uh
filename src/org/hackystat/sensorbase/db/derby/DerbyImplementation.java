@@ -212,16 +212,12 @@ public class DerbyImplementation extends DbImplementation {
       conn = DriverManager.getConnection(connectionURL);
       s = conn.createStatement();
       s.execute(createSensorDataTableStatement);
-      s.execute(indexSensorDataTableStatement);
       s.execute(indexSensorDataTstampStatement);
       s.execute(indexSensorDataRuntimeStatement);
       s.execute(indexSensorDataToolStatement);
       s.execute(createSensorDataTypeTableStatement);
-      s.execute(indexSensorDataTypeTableStatement);
       s.execute(createUserTableStatement);
-      s.execute(indexUserTableStatement);
       s.execute(createProjectTableStatement);
-      s.execute(indexProjectTableStatement);
       s.close();
     }
     finally {
@@ -262,18 +258,20 @@ public class DerbyImplementation extends DbImplementation {
     + " LastMod = '" + new Timestamp(new Date().getTime()).toString() + "' " //NOPMD (dup string)
     + " WHERE 1=3"; //NOPMD (duplicate string)
   
-  /** The statement that sets up an index for the SensorData table. */
-  private static final String indexSensorDataTableStatement = 
-    "CREATE UNIQUE INDEX SensorDataIndex ON SensorData(Owner, Tstamp)";
-  
   private static final String indexSensorDataTstampStatement = 
     "CREATE INDEX TstampIndex ON SensorData(Tstamp asc)";
+  private static final String dropIndexSensorDataTstampStatement = 
+    "DROP INDEX TstampIndex";
 
   private static final String indexSensorDataRuntimeStatement = 
     "CREATE INDEX RuntimeIndex ON SensorData(Runtime desc)";
+  private static final String dropIndexSensorDataRuntimeStatement = 
+    "DROP INDEX RuntimeIndex";
   
   private static final String indexSensorDataToolStatement = 
     "CREATE INDEX ToolIndex ON SensorData(Tool asc)";
+  private static final String dropIndexSensorDataToolStatement = 
+    "DROP INDEX ToolIndex";
 
 
   /** {@inheritDoc} */
@@ -703,10 +701,6 @@ public class DerbyImplementation extends DbImplementation {
     + " XmlSensorDataTypeRef = 'testXmlRef', "
     + " LastMod = '" + new Timestamp(new Date().getTime()).toString() + "' "
     + " WHERE 1=3";
-  
-  /** Generates an index on the Name column for this table. */
-  private static final String indexSensorDataTypeTableStatement = 
-    "CREATE UNIQUE INDEX SensorDataTypeIndex ON SensorDataType(Name)";
 
   /** {@inheritDoc} */
   @Override
@@ -804,10 +798,6 @@ public class DerbyImplementation extends DbImplementation {
     + " XmlUserRef = 'testXmlRef', "
     + " LastMod = '" + new Timestamp(new Date().getTime()).toString() + "' "
     + " WHERE 1=3";
-  
-  /** Generates an index on the Name column for this table. */
-  private static final String indexUserTableStatement = 
-    "CREATE UNIQUE INDEX UserIndex ON HackyUser(Email)";
 
   /** {@inheritDoc} */
   @Override
@@ -917,9 +907,10 @@ public class DerbyImplementation extends DbImplementation {
     + " LastMod = '" + new Timestamp(new Date().getTime()).toString() + "' "
     + " WHERE 1=3";
   
-  /** Generates an index on the Owner/ProjectName columns for this table. */
-  private static final String indexProjectTableStatement = 
-    "CREATE UNIQUE INDEX ProjectIndex ON Project(Owner, ProjectName)";
+  private static final String indexProjectNameStatement = 
+    "CREATE INDEX ProjectNameIndex ON Project(ProjectName asc)";
+  private static final String dropIndexProjectNameStatement = 
+    "DROP INDEX ProjectNameIndex";
 
   /** {@inheritDoc} */
   @Override
@@ -1376,13 +1367,42 @@ public class DerbyImplementation extends DbImplementation {
     try {
       conn = DriverManager.getConnection(connectionURL);
       s = conn.createStatement();
-      s.execute(indexSensorDataTableStatement);
+      
+      // Note: If the db is being set up for the first time, it is not an error for the drop index
+      // statement to fail. Thus, we simply log the occurrence. 
+      
+      try {
+        s.execute(dropIndexSensorDataTstampStatement);
+      }
+      catch (Exception e) {
+        this.logger.info("Failed to drop SensorData(Tstamp) index.");
+      }
       s.execute(indexSensorDataTstampStatement);
+
+      try {
+        s.execute(dropIndexSensorDataRuntimeStatement);
+      }
+      catch (Exception e) {
+        this.logger.info("Failed to drop SensorData(Runtime) index.");        
+      }
       s.execute(indexSensorDataRuntimeStatement);
+      
+      try {
+        s.execute(dropIndexSensorDataToolStatement);
+      }
+      catch (Exception e) {
+        this.logger.info("Failed to drop SensorData(Tool) index.");                
+      }
       s.execute(indexSensorDataToolStatement);
-      s.execute(indexSensorDataTypeTableStatement);
-      s.execute(indexUserTableStatement);
-      s.execute(indexProjectTableStatement);
+      
+      try {
+        s.execute(dropIndexProjectNameStatement);
+      }
+      catch (Exception e) {
+        this.logger.info("Failed to drop Project(ProjectName) index.");                
+      }
+      s.execute(indexProjectNameStatement);
+
       s.close();
       success = true;
     }

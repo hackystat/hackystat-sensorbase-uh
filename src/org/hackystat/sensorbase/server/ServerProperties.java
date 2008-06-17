@@ -48,8 +48,14 @@ public class ServerProperties {
   public static final String TEST_ADMIN_PASSWORD_KEY =   "sensorbase.test.admin.password";  
   /** The test hostname. */
   public static final String TEST_HOSTNAME_KEY =   "sensorbase.test.hostname";  
+  /** Whether to compress on startup. */
+  public static final String COMPRESS_ON_STARTUP_KEY =   "sensorbase.db.startup.compress";  
+  /** Whether to re-index on startup. */
+  public static final String REINDEX_ON_STARTUP_KEY =   "sensorbase.db.startup.reindex";  
   /** Where we store the properties. */
   private Properties properties; 
+  
+  private static String FALSE = "false";
   
   /**
    * Creates a new ServerProperties instance. 
@@ -85,17 +91,19 @@ public class ServerProperties {
     properties.setProperty(DB_IMPL_KEY, "org.hackystat.sensorbase.db.derby.DerbyImplementation");
     properties.setProperty(HOSTNAME_KEY, "localhost");
     properties.setProperty(LOGGING_LEVEL_KEY, "INFO");
-    properties.setProperty(RESTLET_LOGGING_KEY, "false");
+    properties.setProperty(RESTLET_LOGGING_KEY, FALSE);
     properties.setProperty(SMTP_HOST_KEY, "mail.hawaii.edu");
     properties.setProperty(PORT_KEY, "9876");
     properties.setProperty(XML_DIR_KEY, userDir + "/xml");
     properties.setProperty(TEST_DOMAIN_KEY, "hackystat.org");
-    properties.setProperty(TEST_INSTALL_KEY, "false");
+    properties.setProperty(TEST_INSTALL_KEY, FALSE);
     properties.setProperty(TEST_ADMIN_EMAIL_KEY, defaultAdmin);
     properties.setProperty(TEST_ADMIN_PASSWORD_KEY, defaultAdmin);
     properties.setProperty(TEST_DB_DIR_KEY, sensorBaseHome + "/testdb");
     properties.setProperty(TEST_PORT_KEY, "9976");
     properties.setProperty(TEST_HOSTNAME_KEY, "localhost");
+    properties.setProperty(COMPRESS_ON_STARTUP_KEY, FALSE);
+    properties.setProperty(REINDEX_ON_STARTUP_KEY, FALSE);
 
     FileInputStream stream = null;
     try {
@@ -179,7 +187,10 @@ public class ServerProperties {
       pad + LOGGING_LEVEL_KEY + eq + get(LOGGING_LEVEL_KEY) + cr +
       pad + RESTLET_LOGGING_KEY + eq + get(RESTLET_LOGGING_KEY) + cr +
       pad + SMTP_HOST_KEY     + eq + get(SMTP_HOST_KEY) + cr +
-      pad + TEST_INSTALL_KEY  + eq + get(TEST_INSTALL_KEY);
+      pad + TEST_INSTALL_KEY  + eq + get(TEST_INSTALL_KEY) + cr +
+      pad + COMPRESS_ON_STARTUP_KEY  + eq + get(COMPRESS_ON_STARTUP_KEY) + cr +
+      pad + REINDEX_ON_STARTUP_KEY  + eq + get(REINDEX_ON_STARTUP_KEY)
+      ;
   }
   
   /**
@@ -210,5 +221,22 @@ public class ServerProperties {
    */
   public String getFullHost() {
     return "http://" + get(HOSTNAME_KEY) + ":" + get(PORT_KEY) + "/" + get(CONTEXT_ROOT_KEY) + "/";
+  }
+  
+  /**
+   * True if the sensorbase.properties file indicates that the user wishes to compress the db
+   * on startup. 
+   * @return True if compress on startup.
+   */
+  public boolean compressOnStartup () {
+    return this.properties.getProperty(COMPRESS_ON_STARTUP_KEY).equalsIgnoreCase("true");
+  }
+  
+  /**
+   * True if the sensorbase.properties file indicates the user wants to reindex on startup. 
+   * @return True if reindex on startup. 
+   */
+  public boolean reindexOnStartup () {
+    return this.properties.getProperty(REINDEX_ON_STARTUP_KEY).equalsIgnoreCase("true");
   }
 }

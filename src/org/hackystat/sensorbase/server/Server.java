@@ -142,7 +142,14 @@ public class Server extends Application {
     server.logger.info(server.serverProperties.echoProperties());
     server.logger.info("Maximum Java heap size (bytes): " + Runtime.getRuntime().maxMemory());
     server.logger.info("Table counts: " + getTableCounts(dbManager));
-    server.logger.info("Refreshed db indexes: " + ((dbManager.indexTables()) ? "OK" : "Not OK"));
+    if (server.serverProperties.compressOnStartup()) {
+      server.logger.info("Compressing database...");
+      dbManager.compressTables();
+    }
+    if (server.serverProperties.reindexOnStartup()) {
+      server.logger.info("Reindexing database...");
+      server.logger.info("Reindexing database " + ((dbManager.indexTables()) ? "OK" : "not OK"));
+    }
     server.logger.warning("SensorBase (Version " + getVersion() + ") now running.");
     server.component.start();
     return server;
