@@ -70,7 +70,6 @@ public class DbManager {
       server.getLogger().warning(msg + "\n" + StackTrace.toString(e));
       throw new IllegalArgumentException(e);
     }
-    //this.dbImpl = new DerbyImplementation(this.server);
     this.dbImpl.initialize();
   }
   

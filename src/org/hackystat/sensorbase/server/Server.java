@@ -108,7 +108,14 @@ public class Server extends Application {
     server.component.getServers().add(Protocol.HTTP, port);
     server.component.getDefaultHost()
       .attach("/" + server.serverProperties.get(CONTEXT_ROOT_KEY), server);
-     
+
+    // Set up logging.
+    RestletLoggerUtil.useFileHandler("sensorbase");
+    HackystatLogger.setLoggingLevel(server.logger, server.serverProperties.get(LOGGING_LEVEL_KEY));
+    server.logger.warning("Starting sensorbase.");
+    server.logger.warning("Host: " + server.hostName);
+    server.logger.info(server.serverProperties.echoProperties());
+
     try {
       Mailer.getInstance();
     }
@@ -133,25 +140,12 @@ public class Server extends Application {
     attributes.put("SensorBaseServer", server);
     attributes.put("ServerProperties", server.serverProperties);
     
-    // Move Restlet Logging into a file. 
-    RestletLoggerUtil.useFileHandler("sensorbase");
-    
     // Now let's open for business. 
-    server.logger.warning("Host: " + server.hostName);
-    HackystatLogger.setLoggingLevel(server.logger, server.serverProperties.get(LOGGING_LEVEL_KEY));
-    server.logger.info(server.serverProperties.echoProperties());
-    server.logger.info("Maximum Java heap size (bytes): " + Runtime.getRuntime().maxMemory());
+    server.logger.info("Maximum Java heap size (MB): " + 
+        (Runtime.getRuntime().maxMemory() / 1000000.0));
     server.logger.info("Table counts: " + getTableCounts(dbManager));
-    if (server.serverProperties.compressOnStartup()) {
-      server.logger.info("Compressing database...");
-      dbManager.compressTables();
-    }
-    if (server.serverProperties.reindexOnStartup()) {
-      server.logger.info("Reindexing database...");
-      server.logger.info("Reindexing database " + ((dbManager.indexTables()) ? "OK" : "not OK"));
-    }
-    server.logger.warning("SensorBase (Version " + getVersion() + ") now running.");
     server.component.start();
+    server.logger.warning("SensorBase (Version " + getVersion() + ") now running.");
     return server;
   }
   

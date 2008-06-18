@@ -148,6 +148,15 @@ public class DerbyImplementation extends DbImplementation {
         this.logger.info("Derby: creating DB in: " + System.getProperty(derbySystemKey));
         createTables();
       }
+      
+      if (server.getServerProperties().compressOnStartup()) {
+        this.logger.info("Derby: compressing database...");
+        compressTables();
+      }
+      if (server.getServerProperties().reindexOnStartup()) {
+        this.logger.info("Derby: reindexing database...");
+        this.logger.info("Derby: reindexing database " + ((indexTables()) ? "OK" : "not OK"));
+      }
     }
     catch (Exception e) {
       String msg = "Derby: Exception during DerbyImplementation initialization:";
@@ -1465,5 +1474,4 @@ public class DerbyImplementation extends DbImplementation {
     tableNames.add("Project");
     return tableNames;
   }
-  
 }

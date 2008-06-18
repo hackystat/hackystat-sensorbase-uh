@@ -341,6 +341,7 @@ public abstract class DbImplementation {
     return (ProjectManager)server.getContext().getAttributes().get("ProjectManager");
   }
   
+  
   /**
    * Databases like Derby require an explicit compress command for releasing disk space 
    * after a large number of rows have been deleted.  This operation invokes the compress
