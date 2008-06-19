@@ -47,7 +47,7 @@ public class UserProjectResource extends SensorBaseResource {
    * <li> The uriUser must be defined as a User.
    * <li> The Project must be defined for this User.
    * <li> The authenticated user must be the admin, or uriUser, or a member of the project, or 
-   * invited to be in the Project.
+   * invited to be in the Project, or a spectator.
    * </ul>
    * 
    * @param variant The representational variant requested, or null if conditions are violated.
@@ -70,7 +70,8 @@ public class UserProjectResource extends SensorBaseResource {
     // The authorized user must be an admin, or the project owner, or a member, or invitee.
     if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser) &&
         !super.projectManager.isMember(this.user, this.projectName, this.authUser) &&
-        !super.projectManager.isInvited(this.user, this.projectName, this.authUser)) {
+        !super.projectManager.isInvited(this.user, this.projectName, this.authUser) &&
+        !super.projectManager.isSpectator(this.user, this.projectName, this.authUser)) {
       String msg = "User " + this.authUser + "is not authorized to view this Project.";
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
@@ -109,9 +110,10 @@ public class UserProjectResource extends SensorBaseResource {
    * <li> The authenticated user must be the uriUser or the admin.
    * <li> The project cannot be the Default project.   
    * <li> All members in the new project representation must have been members previously.
-   * <li> All Members and Invitees must be defined Users.
-   * <li> No Invitee can be a Member.
-   * <li> The project owner cannot be a Member or Invitee.
+   * <li> All Members, Invitees, and Spectators must be defined Users.
+   * <li> The project owner cannot be a Member or Invitee or Spectator.
+   * <li> No Invitee can be a Member or Spectator.
+   * <li> No Spectator can be a Member or Invitee.
    * <li> If no UriPatterns are supplied, then the '*' UriPattern is provided by default.
    * </ul>
    * @param entity The XML representation of the new Project.
@@ -169,7 +171,7 @@ public class UserProjectResource extends SensorBaseResource {
     }
     // Error if the project is the Default project.
     if (this.projectName.equals(ProjectManager.DEFAULT_PROJECT_NAME)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Cannot PUT the Default project");
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Cannot modify the Default project");
       return;
     }
     // Error if the uriUser is not the Admin or the Project Owner
@@ -195,8 +197,12 @@ public class UserProjectResource extends SensorBaseResource {
     // Get a (possibly empty) list of the invitees.
     List<String> newInvitees = ((newProject.getInvitations() == null) ? 
         new ArrayList<String>() : newProject.getInvitations().getInvitation());
+    
+    // Get a (possibly empty) list of spectators.
+    List<String> newSpectators = ((newProject.getSpectators() == null) ? 
+        new ArrayList<String>() : newProject.getSpectators().getSpectator());
 
-    // Make sure all newMembers and newInvitees are defined Users.
+    // Make sure all newMembers, newInvitees, and newSpecators are defined Users.
     for (String member : newMembers) {
       if (!super.userManager.isUser(member)) {
         String msg = "Member is not a registered user: " + member;
@@ -211,6 +217,14 @@ public class UserProjectResource extends SensorBaseResource {
         return;
       }
     }
+    for (String spectator : newSpectators) {
+      if (!super.userManager.isUser(spectator)) {
+        String msg = "Spectator is not a registered user: " + spectator;
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+        return;
+      }
+    }
+    
     // No invitee can be a (new) member.
     for (String invitee : newInvitees) {
       if (newMembers.contains(invitee)) {
@@ -229,6 +243,28 @@ public class UserProjectResource extends SensorBaseResource {
       String msg = "Project owner cannot also be an invited member: " + this.uriUser;
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return;
+    }
+    // Spectator cannot be a project owner.
+    if (newSpectators.contains(this.uriUser)) {
+      String msg = "Project owner cannot also be a specator: " + this.uriUser;
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      return;
+    }
+    // No spectator can be a (new) member.
+    for (String spectator : newSpectators) {
+      if (newMembers.contains(spectator)) {
+        String msg = "Spectator cannot also be a member: " + spectator;
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+        return;
+      }
+    }
+    // No spectator can be an invitee.
+    for (String spectator : newSpectators) {
+      if (newInvitees.contains(spectator)) {
+        String msg = "Spectator cannot also be an invitee: " + spectator;
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+        return;
+      }
     }
     
     // Make sure there are UriPatterns. If not, provide a default of "*".

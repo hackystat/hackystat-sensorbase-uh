@@ -35,6 +35,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectSummary;
 import org.hackystat.sensorbase.resource.projects.jaxb.Projects;
 import org.hackystat.sensorbase.resource.projects.jaxb.Properties;
+import org.hackystat.sensorbase.resource.projects.jaxb.Spectators;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensordata.SensorDataManager;
 import org.hackystat.sensorbase.resource.users.UserManager;
@@ -297,13 +298,17 @@ public class ProjectManager {
   }  
   
   /**
-   * Ensures that project has default values for Invitations, Members, Properties, and UriPatterns.
+   * Ensures that project has default values for Invitations, Members, Properties, 
+   * Spectators, and UriPatterns.
    * @param project The project to check.
    * @return The project representation with initialized fields as needed.
    */
   private Project provideDefaults(Project project) {
     if (project.getInvitations() == null) {
       project.setInvitations(new Invitations());
+    }
+    if (project.getSpectators() == null) {
+      project.setSpectators(new Spectators());
     }
     if (project.getMembers() == null) {
       project.setMembers(new Members());
@@ -412,6 +417,37 @@ public class ProjectManager {
     List<String> invitees = project.getInvitations().getInvitation();
     for (String currInvitee : invitees) {
       if (currInvitee.equals(invitee)) {
+        return true;
+      }
+    }
+    // Got here, which means that we never found the invitee.
+    return false;
+  }
+  
+  /**
+   * Returns true if member is a spectator of the project owned by owner. 
+   * @param owner The owner of projectName.
+   * @param projectName The name of the project owned by owner.
+   * @param spectator The user whose spectator status is being checked.
+   * @return True if spectator is a spectator. 
+   */
+  public synchronized boolean isSpectator(User owner, String projectName, String spectator) {
+    // Return false if owner, project, member are invalid.
+    if ((owner == null) || (spectator == null) || (projectName == null) ||
+        !this.owner2name2project.containsKey(owner) ||
+        !this.owner2name2project.get(owner).containsKey(projectName)) {
+      return false;
+    }
+    // Now we can get the project.
+    Project project = this.owner2name2project.get(owner).get(projectName);
+    // Return false if the <Spectators> field is null.
+    if (!project.isSetSpectators()) {
+      return false;
+    }
+    // Look for the member in the list.
+    List<String> spectators = project.getSpectators().getSpectator();
+    for (String currSpectator : spectators) {
+      if (currSpectator.equals(spectator)) {
         return true;
       }
     }

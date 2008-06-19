@@ -69,7 +69,8 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
    * Returns an error condition if:
    * <ul>
    * <li> The user does not exist.
-   * <li> The authenticated user is not the uriUser or the Admin or a member of the project.
+   * <li> The authenticated user is not the uriUser or the Admin or a member of the project or
+   * a spectator of the project.
    * <li> The Project Resource named by the User and Project does not exist.
    * <li> startTime or endTime is not an XMLGregorianCalendar string.
    * <li> One or the other but not both of startTime and endTime is provided.
@@ -92,10 +93,11 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown project");
       return null;
     }
-    // The authorized user must be an admin, or the project owner, or a member, or invitee.
+    // The authorized user must be the admin, or project owner, member, invitee, or spectator.
     if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser) &&
         !super.projectManager.isMember(this.user, this.projectName, this.authUser) &&
-        !super.projectManager.isInvited(this.user, this.projectName, this.authUser)) {
+        !super.projectManager.isInvited(this.user, this.projectName, this.authUser) &&
+        !super.projectManager.isSpectator(this.user, this.projectName, this.authUser)) {
       String msg = "User " + this.authUser + "is not authorized to obtain data from this Project.";
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
