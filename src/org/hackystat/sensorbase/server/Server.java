@@ -12,6 +12,7 @@ import org.hackystat.sensorbase.resource.ping.PingResource;
 import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.projects.ProjectsResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectInvitationResource;
+import org.hackystat.sensorbase.resource.projects.UserProjectRenameResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectSensorDataResource;
 import org.hackystat.sensorbase.resource.projects.UserProjectSnapshotResource;
@@ -253,6 +254,10 @@ public class Server extends Application {
     // PROJECTS INVITATION 
     authRouter.attach(projectUri + "/invitation/{rsvp}", 
         UserProjectInvitationResource.class);
+    
+    // PROJECTS RENAME
+    authRouter.attach(projectUri + "/rename/{newprojectname}", 
+        UserProjectRenameResource.class);
     
     // DB Commands
     authRouter.attach("/db/table/compress", CompressResource.class);

@@ -1003,6 +1003,24 @@ public class SensorBaseClient {
     }
   }
   
+  /**
+   * Renames the project.
+   * 
+   * @param owner The owner of the project to be renamed.
+   * @param projectName The current name of the project.
+   * @param newProjectName The new name of the project. 
+   * @throws SensorBaseClientException If the server returns an error from this acceptance, for
+   * example if the new project name is not unique. 
+   */
+  public synchronized void renameProject(String owner, String projectName, String newProjectName) 
+  throws SensorBaseClientException {
+    Response response = makeRequest(Method.POST, 
+        projectsUri + owner + "/" + projectName + "/rename/" + newProjectName, null); 
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+  }
+  
   
 
   /**

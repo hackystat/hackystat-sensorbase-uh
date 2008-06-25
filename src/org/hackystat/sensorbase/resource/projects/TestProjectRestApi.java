@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.resource.projects;
 
 import static org.hackystat.sensorbase.server.ServerProperties.TEST_DOMAIN_KEY;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -283,7 +284,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   }
 
   /**
-   * Test that PUT and DELETE of host/projects/{user}/{project} works.
+   * Test that PUT, rename, and DELETE of host/projects/{user}/{project} works.
    * 
    * @throws Exception If problems occur.
    */
@@ -312,9 +313,31 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     // Check that we can now retrieve it.
     Project project2 = client.getProject(owner, projectName);
     assertEquals("Testing for GET TestProject1", projectName, project2.getName());
+    
+    // Check that we can now rename it. 
+    String newProjectName = "NewTestProjectName";
+    client.renameProject(owner, projectName, newProjectName);
+    ProjectIndex index = client.getProjectIndex(testUser);
+    assertTrue("Checking renamed project is in index", hasProjectName(index, newProjectName));
+    assertFalse("Checking old project name is not in index", hasProjectName(index, projectName));
 
     // Test that DELETE gets rid of this Project.
-    client.deleteProject(owner, projectName);
+    client.deleteProject(owner, newProjectName);
+  }
+
+  /**
+   * Returns true if the passed projectName is in the ProjectIndex.
+   * @param index The ProjectIndex. 
+   * @param projectName The projectname of interest. 
+   * @return True if the projectName is in the index. 
+   */
+  private boolean hasProjectName(ProjectIndex index, String projectName) {
+    for (ProjectRef ref : index.getProjectRef()) {
+      if (ref.getName().equals(projectName)) {
+        return true;
+      }
+    }
+    return false;
   }
   
   /**

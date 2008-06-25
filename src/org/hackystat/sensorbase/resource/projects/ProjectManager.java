@@ -348,6 +348,28 @@ public class ProjectManager {
   }
   
   /**
+   * Renames the project.
+   * @param owner The owner of the project to be renamed. 
+   * @param projectName The project to be renamed.
+   * @param newProjectName The new project name. 
+   * @throws Exception If projectName could not be found, or if newProjectName names an 
+   * existing project. 
+   */
+  public synchronized void renameProject(User owner, String projectName, String newProjectName)
+  throws Exception {
+    if (hasProject(owner, newProjectName)) {
+      throw new Exception("Project " + newProjectName + " is already defined.");
+    }
+    Project project = getProject(owner, projectName);
+    if (project == null) {
+      throw new Exception("Project " + projectName + " not found.");
+    }
+    project.setName(newProjectName);
+    deleteProject(owner, projectName);
+    putProject(project);
+  }
+  
+  /**
    * Returns true if the passed Project name is defined for this User (who must be the owner).
    * @param  owner The project owner (can be null). 
    * @param  projectName A project name (can be null).
