@@ -13,9 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 
 /**
@@ -28,8 +31,9 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element ref="{}Spectator" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element ref="{}ProjectSummary" maxOccurs="unbounded"/>
  *       &lt;/sequence>
+ *       &lt;attribute ref="{}LastMod"/>
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -39,52 +43,83 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "spectator"
+    "projectSummary"
 })
-@XmlRootElement(name = "Spectators")
-public class Spectators
+@XmlRootElement(name = "MultiDayProjectSummary")
+public class MultiDayProjectSummary
     implements Serializable
 {
 
     private final static long serialVersionUID = 12343L;
-    @XmlElement(name = "Spectator")
-    protected List<String> spectator;
+    @XmlElement(name = "ProjectSummary", required = true)
+    protected List<ProjectSummary> projectSummary;
+    @XmlAttribute(name = "LastMod")
+    @XmlSchemaType(name = "dateTime")
+    protected XMLGregorianCalendar lastMod;
 
     /**
-     * Gets the value of the spectator property.
+     * Gets the value of the projectSummary property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the spectator property.
+     * This is why there is not a <CODE>set</CODE> method for the projectSummary property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getSpectator().add(newItem);
+     *    getProjectSummary().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link String }
+     * {@link ProjectSummary }
      * 
      * 
      */
-    public List<String> getSpectator() {
-        if (spectator == null) {
-            spectator = new ArrayList<String>();
+    public List<ProjectSummary> getProjectSummary() {
+        if (projectSummary == null) {
+            projectSummary = new ArrayList<ProjectSummary>();
         }
-        return this.spectator;
+        return this.projectSummary;
     }
 
-    public boolean isSetSpectator() {
-        return ((this.spectator!= null)&&(!this.spectator.isEmpty()));
+    public boolean isSetProjectSummary() {
+        return ((this.projectSummary!= null)&&(!this.projectSummary.isEmpty()));
     }
 
-    public void unsetSpectator() {
-        this.spectator = null;
+    public void unsetProjectSummary() {
+        this.projectSummary = null;
+    }
+
+    /**
+     * Gets the value of the lastMod property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link XMLGregorianCalendar }
+     *     
+     */
+    public XMLGregorianCalendar getLastMod() {
+        return lastMod;
+    }
+
+    /**
+     * Sets the value of the lastMod property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link XMLGregorianCalendar }
+     *     
+     */
+    public void setLastMod(XMLGregorianCalendar value) {
+        this.lastMod = value;
+    }
+
+    public boolean isSetLastMod() {
+        return (this.lastMod!= null);
     }
 
 }

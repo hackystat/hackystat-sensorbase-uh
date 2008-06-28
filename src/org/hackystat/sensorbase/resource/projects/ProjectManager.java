@@ -29,6 +29,7 @@ import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.utilities.tstamp.Tstamp;
 import org.hackystat.sensorbase.resource.projects.jaxb.Invitations;
 import org.hackystat.sensorbase.resource.projects.jaxb.Members;
+import org.hackystat.sensorbase.resource.projects.jaxb.MultiDayProjectSummary;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
@@ -743,6 +744,30 @@ public class ProjectManager {
     return makeProjectSummaryString(summary);
   }
   
+  /**
+   * Returns a MultiDayProjectSummary instance for the given project, startTime, and number of days.
+   * @param project The Project.
+   * @param startTime The startTime. 
+   * @param numDays The number of days. 
+   * @return The MultiDayProjectSummary instance for the given set of days. 
+   * @throws Exception If problems occur. 
+   */
+  public synchronized String getMultiDayProjectSummaryString(Project project, 
+      XMLGregorianCalendar startTime, Integer numDays) throws Exception {
+    List<String> patterns = project.getUriPatterns().getUriPattern();
+    List<User> users = getProjectUsers(project);
+    MultiDayProjectSummary multiSummary = new MultiDayProjectSummary();
+    for (int i = 0; i < numDays; i++) {
+      XMLGregorianCalendar start = Tstamp.incrementDays(startTime, i);
+      XMLGregorianCalendar end = Tstamp.incrementDays(startTime, i + 1);
+      String href = this.server.getHostName() + "projects/" + project.getOwner() + "/" +
+      project.getName() + "/summary?startTime=" + start + "&endTime=" + end;
+      ProjectSummary summary = dbManager.getProjectSummary(users, start, end, patterns, href);
+      multiSummary.getProjectSummary().add(summary);
+    }
+    return makeMultiDayProjectSummaryString(multiSummary);
+  }
+  
   
   /**
    * Creates and stores the "Default" project for the specified user. 
@@ -891,6 +916,31 @@ public class ProjectManager {
     return xmlString;
   }
   
+  /**
+   * Returns the passed MultiDayProjectSummary as a String encoding of its XML representation. 
+   * @param summary The MultiDayProjectSummary instance. 
+   * @return The XML String representation of it.
+   * @throws Exception If problems occur during translation. 
+   */
+  public final synchronized String makeMultiDayProjectSummaryString (MultiDayProjectSummary summary)
+  throws Exception {
+    Marshaller marshaller = jaxbContext.createMarshaller(); 
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    dbf.setNamespaceAware(true);
+    DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+    Document doc = documentBuilder.newDocument();
+    marshaller.marshal(summary, doc);
+    DOMSource domSource = new DOMSource(doc);
+    StringWriter writer = new StringWriter();
+    StreamResult result = new StreamResult(writer);
+    TransformerFactory tf = TransformerFactory.newInstance();
+    Transformer transformer = tf.newTransformer();
+    transformer.transform(domSource, result);
+    String xmlString = writer.toString();
+    // Now remove the processing instruction.  This approach seems like a total hack.
+    xmlString = xmlString.substring(xmlString.indexOf('>') + 1);
+    return xmlString;
+  }
   /**
    * Returns a ProjectRef instance constructed from a Project instance.
    * @param project The Project instance. 

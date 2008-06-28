@@ -141,12 +141,21 @@
     </xs:complexType>
   </xs:element>
   
+   <xs:element name="MultiDayProjectSummary">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ProjectSummary" minOccurs="1" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute ref="LastMod"/>
+    </xs:complexType>
+  </xs:element> 
+  
   <xs:element name="SensorDataSummaries">
     <xs:complexType>
       <xs:sequence>
         <xs:element ref="SensorDataSummary" minOccurs="0" maxOccurs="unbounded"/>
       </xs:sequence>
-    <xs:attribute ref="NumInstances" use="required"/>
+      <xs:attribute ref="NumInstances" use="required"/>
     </xs:complexType>
   </xs:element>
   

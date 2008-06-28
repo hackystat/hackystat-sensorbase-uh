@@ -3,6 +3,7 @@ package org.hackystat.sensorbase.client;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.hackystat.sensorbase.resource.projects.jaxb.Invitations;
+import org.hackystat.sensorbase.resource.projects.jaxb.MultiDayProjectSummary;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
@@ -1305,6 +1307,54 @@ public class SensorBaseClient {
   }
 
   /**
+   * Returns a MultiDayProjectSummary for the specified interval of days. 
+   * @param owner The project owner. 
+   * @param projectName The project name. 
+   * @param startTime The start day. 
+   * @param numDays The number of days, each one getting a ProjectSummary instance. 
+   * @return The MulitDayProjectSummary instance. 
+   * @throws SensorBaseClientException If problems occur. 
+   */
+  public synchronized MultiDayProjectSummary getMultiDayProjectSummary(String owner, 
+      String projectName, XMLGregorianCalendar startTime, int numDays) 
+  throws  SensorBaseClientException {
+    Response response = makeRequest(Method.GET, projectsUri + owner + "/" + projectName 
+        + "/summary?startTime=" + startTime + "&numDays=" + numDays, null);
+    
+    MultiDayProjectSummary summary;
+    if (!response.getStatus().isSuccess()) {
+      throw new SensorBaseClientException(response.getStatus());
+    }
+    try {
+      String xmlData = response.getEntity().getText();
+      summary = makeMultiDayProjectSummary(xmlData);
+    }
+    catch (Exception e) {
+      throw new SensorBaseClientException(response.getStatus(), e);
+    }
+    return summary;
+  }
+  
+  /**
+   * Returns a MultiDayProjectSummary for the specified project, year, and month (zero based).
+   * @param owner The project owner. 
+   * @param projectName The project name. 
+   * @param year The year. 
+   * @param month The month (zero based). 
+   * @return A MultiDayProjectSummary for the specified month. 
+   * @throws SensorBaseClientException If problems occur. 
+   */
+  public synchronized MultiDayProjectSummary getMonthProjectSummary (String owner, 
+      String projectName, int year, int month) throws SensorBaseClientException {
+    XMLGregorianCalendar startDay = Tstamp.makeTimestamp();
+    startDay.setDay(1);
+    startDay.setMonth(month);
+    startDay.setYear(year);
+    int numDays = startDay.toGregorianCalendar().getActualMaximum(GregorianCalendar.DAY_OF_MONTH);
+    return getMultiDayProjectSummary(owner, projectName, startDay, numDays);
+  }
+
+  /**
    * Creates the passed Project on the server.
    * 
    * @param project The project to create.
@@ -1626,6 +1676,18 @@ public class SensorBaseClient {
   private ProjectSummary makeProjectSummary(String xmlString) throws Exception {
     Unmarshaller unmarshaller = projectJAXB.createUnmarshaller();
     return (ProjectSummary) unmarshaller.unmarshal(new StringReader(xmlString));
+  }
+  
+  /**
+   * Takes an XML Document representing a MultiDayProjectSummary and converts it to an instance.
+   * 
+   * @param xmlString The XML string representing a MultiDayProjectSummary.
+   * @return The corresponding MultiDayProjectSummary instance.
+   * @throws Exception If problems occur during unmarshalling.
+   */
+  private MultiDayProjectSummary makeMultiDayProjectSummary(String xmlString) throws Exception {
+    Unmarshaller unmarshaller = projectJAXB.createUnmarshaller();
+    return (MultiDayProjectSummary) unmarshaller.unmarshal(new StringReader(xmlString));
   }
 
   /**

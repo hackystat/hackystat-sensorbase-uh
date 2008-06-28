@@ -233,6 +233,9 @@ public class Server extends Application {
     authRouter.attach(projectUri + "/summary" +  
         "?startTime={startTime}&endTime={endTime}", 
         UserProjectSummaryResource.class);
+    authRouter.attach(projectUri + "/summary" +  
+        "?startTime={startTime}&numDays={numDays}", 
+        UserProjectSummaryResource.class);
     
     // PROJECTS SENSORDATA
     String projectSensorDataUri = projectUri + "/sensordata";

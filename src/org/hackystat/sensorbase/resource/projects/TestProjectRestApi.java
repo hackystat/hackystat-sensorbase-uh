@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import javax.xml.datatype.XMLGregorianCalendar;
 import org.hackystat.sensorbase.client.SensorBaseClient;
 import org.hackystat.sensorbase.client.SensorBaseClientException;
+import org.hackystat.sensorbase.resource.projects.jaxb.MultiDayProjectSummary;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
 import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
@@ -129,6 +130,10 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
     assertEquals("Checking summary tool", "Subversion", dataSummary.getTool());
     assertEquals("Checking summary type", testSdt, dataSummary.getSensorDataType());
     assertEquals("Checking summary instances", 1, dataSummary.getNumInstances().intValue());
+    // Now try for multiple days.
+    MultiDayProjectSummary multiSummary = client.getMultiDayProjectSummary(testUser, testProject, 
+        startTime, 3);
+    assertEquals("Checking MultiDayProjectSummary", 3, multiSummary.getProjectSummary().size());
   }
   
   /**

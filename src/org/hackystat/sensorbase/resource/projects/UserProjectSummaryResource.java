@@ -7,7 +7,6 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.restlet.Context;
-import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
 import org.restlet.data.Status;
@@ -17,6 +16,8 @@ import org.restlet.resource.Variant;
 /**
  * The resource for processing GET host/project/{email}/{projectname}/summary.
  * Returns a representation of the ProjectSummary resource associated with this project.
+ * The user can either specify a start and end time, which returns a ProjectSummary, or 
+ * a start time and number of days, which will return a MultDayProjectSummary. 
  * 
  * @author Philip Johnson
  */
@@ -30,6 +31,9 @@ public class UserProjectSummaryResource extends SensorBaseResource {
   private String startTime;
   /** To be retrieved from the URL. */
   private String endTime;
+  /** To be retrieved from the URL. */
+  private String numDays;
+  
   
   /**
    * Provides the following representational variants: TEXT_XML.
@@ -42,6 +46,7 @@ public class UserProjectSummaryResource extends SensorBaseResource {
     this.projectName = (String) request.getAttributes().get("projectname");
     this.startTime = (String) request.getAttributes().get("startTime");
     this.endTime = (String) request.getAttributes().get("endTime");
+    this.numDays = (String) request.getAttributes().get("numDays");
     this.user = super.userManager.getUser(uriUser);
   }
   
@@ -72,9 +77,10 @@ public class UserProjectSummaryResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
     }    
-    // The authorized user must be an admin, or the project owner, or a member, or invitee.
+    // The authorized user must be an admin, or the project owner, or member, invitee, spectator. 
     if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser) &&
         !super.projectManager.isMember(this.user, this.projectName, this.authUser) &&
+        !super.projectManager.isSpectator(this.user, this.projectName, this.authUser) &&
         !super.projectManager.isInvited(this.user, this.projectName, this.authUser)) {
       String msg = "User " + this.authUser + "is not authorized to view this Project.";
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
@@ -82,19 +88,21 @@ public class UserProjectSummaryResource extends SensorBaseResource {
     }
     XMLGregorianCalendar startTimeXml = null;
     XMLGregorianCalendar endTimeXml = null;
+    Integer numDays = null;
+    // Parse this.startTime, this.endTime, and this.numDays
     try {
       startTimeXml = Tstamp.makeTimestamp(this.startTime);
-      endTimeXml = Tstamp.makeTimestamp(this.endTime);
+      if (this.endTime != null) {
+        endTimeXml = Tstamp.makeTimestamp(this.endTime);
+      }
+      if (this.numDays != null) {
+        numDays = Integer.valueOf(this.numDays);
+      }
     }
     catch (Exception e) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-      "startTime (or endTime) is not supplied and/or is not a timestamp");
+      "startTime (or endTime) is not a timestamp");
       return null;
-    }
-    // If end time is greater than start time, return an error.
-    if (Tstamp.greaterThan(startTimeXml, endTimeXml)) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Start time after end time.");
-        return null;
     }
     // The project must be defined.
     Project project = super.projectManager.getProject(this.user, this.projectName);
@@ -108,6 +116,34 @@ public class UserProjectSummaryResource extends SensorBaseResource {
       startTimeXml + " cannot be less than the project's start time: " + project.getStartTime());
       return null;
     }
+    try {
+      String result = ((this.numDays == null) ? 
+          getProjectSummaryString(project, startTimeXml, endTimeXml) :
+            super.projectManager.getMultiDayProjectSummaryString(project, startTimeXml, numDays));
+      return super.getStringRepresentation(result);
+    }
+    catch (Exception e) {
+      String msg = "Couldn't marshall project summary for" + this.projectName + " into XML.";
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, msg);
+      return null;
+    }
+  }
+  
+  /**
+   * Returns the ProjectSummary string after doing additional argument validation.
+   * @param project The project. 
+   * @param startTimeXml The start time. 
+   * @param endTimeXml The end time. 
+   * @return The ProjectSummary as a string. 
+   * @throws Exception If problems occur. 
+   */
+  private String getProjectSummaryString(Project project, XMLGregorianCalendar startTimeXml, 
+      XMLGregorianCalendar endTimeXml) throws Exception {
+    // If start time is greater than end time, return an error.
+    if (Tstamp.greaterThan(startTimeXml, endTimeXml)) {
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Start time after end time.");
+        return null;
+    }
     // And that endTime is not past the project endTime (if there is a project endTime).
     if ((project.getEndTime() != null) && 
         (!ProjectUtils.isValidEndTime(project, endTimeXml))) {
@@ -115,19 +151,7 @@ public class UserProjectSummaryResource extends SensorBaseResource {
       "endTime cannot be greater than the project's end time.");
       return null;
     }
-    // It's all good, so return the ProjectSummary representation.
-    if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      try {
-        String xmlData = super.projectManager.getProjectSummaryString(project, startTimeXml, 
-            endTimeXml);
-        return super.getStringRepresentation(xmlData);
-      }
-      catch (Exception e) {
-        String msg = "Couldn't marshall project summary for" + this.projectName + " into XML.";
-        getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, msg);
-        return null;
-      }
-    }
-    return null;
+    return super.projectManager.getProjectSummaryString(project, startTimeXml, endTimeXml);
   }
+  
 }
