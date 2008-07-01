@@ -160,6 +160,11 @@ public class ServerProperties {
         System.out.println("Bad HACKYSTAT_SENSORBASE_HOME: " + sensorbaseHome);
       }
     }
+    // Change the db implementation class if DB_IMPL_KEY is in system properties. 
+    String dbImpl = System.getProperty(DB_IMPL_KEY);
+    if (dbImpl != null) {
+      properties.setProperty(DB_IMPL_KEY, dbImpl);
+    }
     trimProperties(properties);
     // update the system properties object to reflect these new values. 
     Properties systemProperties = System.getProperties();
