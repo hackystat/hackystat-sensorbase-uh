@@ -140,14 +140,14 @@ public class UserSensorDataResource extends SensorBaseResource {
           getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Timestamp " + timestamp);
           return null;
         }
+        String xmlData = super.sensorDataManager.getSensorData(this.user, tstamp);
         // Now, see if we actually have the SensorData.
-        if (!super.sensorDataManager.hasSensorData(user, tstamp)) { //NOPMD
+        if (xmlData == null) { //NOPMD (deeply nested if-then-else)
           getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND, "Unknown Sensor Data");
           return null;
         }
         // We have the SensorData, so retrieve its xml string representation and return it.
         try {
-          String xmlData = super.sensorDataManager.getSensorData(this.user, tstamp);
           return getStringRepresentation(xmlData);
         }
         catch (Exception e) {

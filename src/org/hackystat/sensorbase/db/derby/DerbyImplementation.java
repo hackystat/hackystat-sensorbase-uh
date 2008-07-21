@@ -1261,7 +1261,7 @@ public class DerbyImplementation extends DbImplementation {
   }
   
   /**
-   * Returns a string containing the Resource as XML.
+   * Returns a string containing the Resource as XML, or null if not found.
    * @param resourceName The name of the resource, such as "User".
    * @param statement The select statement used to retrieve the resultset containing a single
    * row with that resource.
@@ -1272,6 +1272,7 @@ public class DerbyImplementation extends DbImplementation {
     Connection conn = null;
     PreparedStatement s = null;
     ResultSet rs = null;
+    boolean hasData = false;
     try {
       conn = DriverManager.getConnection(connectionURL);
       server.getLogger().fine(executeQueryMsg + statement);
@@ -1279,6 +1280,7 @@ public class DerbyImplementation extends DbImplementation {
       rs = s.executeQuery();
       String resourceXmlColumnName = xml + resourceName;
       while (rs.next()) { // the select statement must guarantee only one row is returned.
+        hasData = true;
         builder.append(rs.getString(resourceXmlColumnName));
       }
     }
@@ -1295,7 +1297,7 @@ public class DerbyImplementation extends DbImplementation {
         this.logger.warning(errorClosingMsg + StackTrace.toString(e));
       }
     }
-    return builder.toString();
+    return (hasData) ? builder.toString() : null;
   }
   
   /**
