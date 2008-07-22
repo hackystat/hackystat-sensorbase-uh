@@ -297,6 +297,8 @@ public class SensorDataManager {
   
   /**
    * Returns true if the passed [user, timestamp] has sensor data defined for it.
+   * Generally, you will want to use getSensorData(user, timestamp) and check for the 
+   * return value == null to avoid a redundant DB call. 
    * @param user The user.
    * @param timestamp The timestamp
    * @return True if there is any sensor data for this [user, timestamp].
