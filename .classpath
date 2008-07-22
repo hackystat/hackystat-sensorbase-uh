@@ -16,5 +16,6 @@
 	<classpathentry kind="var" path="HACKYSTAT_UTILITIES_HOME/time.lib.jar"/>
 	<classpathentry kind="var" path="HACKYSTAT_UTILITIES_HOME/hackystatuserhome.lib.jar"/>
 	<classpathentry kind="var" path="HACKYSTAT_UTILITIES_HOME/hackystatlogger.lib.jar"/>
+	<classpathentry kind="var" path="HACKYSTAT_UTILITIES_HOME/validate.email.lib.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

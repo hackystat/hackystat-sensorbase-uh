@@ -6,6 +6,7 @@ import static org.hackystat.sensorbase.server.ServerProperties.HOSTNAME_KEY;
 import org.hackystat.sensorbase.mailer.Mailer;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
+import org.hackystat.utilities.email.ValidateEmailSyntax;
 import org.restlet.Context;
 import org.restlet.data.Form;
 import org.restlet.data.MediaType;
@@ -81,6 +82,13 @@ public class RegistrationResource extends SensorBaseResource {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Missing email parameter");
       return;
     }
+    if (!ValidateEmailSyntax.isValid(email)) {
+      server.getLogger().warning("Invalid registration request: email appears to be invalid."); 
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Invalid email address.");
+      return;
+    }
+    
+    
     User user = super.userManager.registerUser(email);
     super.projectManager.addDefaultProject(user);
     // Now send the email to the (non-test) user and the hackystat admin.
