@@ -80,7 +80,7 @@
     <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/uricache.lib.jar" />
     <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/time.lib.jar" />
     <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/hackystatuserhome.lib.jar" />
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/validate-email.lib.jar" />
+    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/validate.email.lib.jar" />
     <fileset file="${env.JUNIT_HOME}/junit-${junit.version}.jar" />
     <fileset file="${env.RESTLET_HOME}/lib/org.restlet.jar" />
     <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" />
