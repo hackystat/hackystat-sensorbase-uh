@@ -276,7 +276,7 @@ public class ProjectManager {
    * this user.
    * Uses the in-memory cache of ProjectRef strings.  
    * @param user The user whose associated Projects are to be retrieved. All projects for
-   * which this user is an owner, member, or invitee are returned.
+   * which this user is an owner, member, spectator, or invitee are returned.
    * @return The XML string providing an index to all Projects associated with this user.
    */
   public synchronized String getProjectIndex(User user) {
@@ -287,8 +287,10 @@ public class ProjectManager {
       for (Project project : name2project.values()) {
         Members members = project.getMembers();
         Invitations invitations = project.getInvitations();
+        Spectators spectators = project.getSpectators();
         if (project.getOwner().equals(email) ||
             (members != null) && (members.getMember().contains(email)) ||
+            (spectators != null) && (spectators.getSpectator().contains(email)) ||
             (invitations != null) && (invitations.getInvitation().contains(email))) {
           builder.append(this.project2ref.get(project));   
         }

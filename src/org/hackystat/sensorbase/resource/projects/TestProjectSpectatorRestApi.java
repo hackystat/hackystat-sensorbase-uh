@@ -3,11 +3,16 @@ package org.hackystat.sensorbase.resource.projects;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.sensorbase.client.SensorBaseClient;
 import org.hackystat.sensorbase.resource.projects.jaxb.Invitations;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
+import org.hackystat.sensorbase.resource.projects.jaxb.ProjectIndex;
+import org.hackystat.sensorbase.resource.projects.jaxb.ProjectRef;
 import org.hackystat.sensorbase.resource.projects.jaxb.Spectators;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.test.SensorBaseRestApiHelper;
@@ -62,14 +67,24 @@ public class TestProjectSpectatorRestApi extends SensorBaseRestApiHelper {
     // Construct the project representation that is owned by testUser1.
     Project project = makeProject(testProject1);
     project.getSpectators().getSpectator().add(testUser2);
-    // PUT it to the server.
+    // PUT it to the server. Note that client1 corresponds to testUser1.
     client1.putProject(project);
-    // Ensure that testUser2 can retrieve the project.
+    // Ensure that testUser2 can retrieve the project. Client2 corresponds to testUser2.
     project = client2.getProject(testUser1, testProject1);
     // Ensure that testUser2 can retrieve the data
     client2.getProjectSensorData(testUser1, testProject1);
     // Make sure that testUser2 is a spectator.
     assertTrue("Checking spectator 1", project.getSpectators().getSpectator().contains(testUser2));
+    
+    // Make sure that the project shows up in testUser2's projectindex.
+    ProjectIndex index = client2.getProjectIndex(testUser2);
+    // Build a list of the projectNames in this index.
+    List<String> projectNames = new ArrayList<String>();
+    for (ProjectRef ref : index.getProjectRef()) {
+      projectNames.add(ref.getName());
+    }
+    assertTrue("Testing project is in index", projectNames.contains(project.getName()));
+
     // Now delete the Project.
     client1.deleteProject(testUser1, testProject1);
   }
