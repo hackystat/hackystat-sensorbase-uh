@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 /**
  * Provides access to the values stored in the sensorbase.properties file. 
@@ -72,7 +73,8 @@ public class ServerProperties {
   
   /**
    * Reads in the properties in ~/.hackystat/sensorbase.properties if this file exists,
-   * and provides default values for all properties not mentionned in this file.
+   * and provides default values for all properties not mentioned in this file.
+   * Will also add any pre-existing System properties that start with "sensorbase.".
    * @throws Exception if errors occur.
    */
   private void initializeProperties () throws Exception {
@@ -83,7 +85,8 @@ public class ServerProperties {
     String propFile = userHome + "/.hackystat/sensorbase/sensorbase.properties";
     String defaultAdmin = "admin@hackystat.org";
     this.properties = new Properties();
-    // Set defaults for 'standard' operation.
+    addSensorBaseSystemProperties(this.properties);
+    // Set defaults for 'standard' operation. These will override any previously
     properties.setProperty(ADMIN_EMAIL_KEY, defaultAdmin);
     properties.setProperty(ADMIN_PASSWORD_KEY, defaultAdmin);
     properties.setProperty(CONTEXT_ROOT_KEY, "sensorbase");
@@ -131,6 +134,23 @@ public class ServerProperties {
   }
   
   /**
+   * Finds any System properties whose key begins with "sensorbase.", and adds those
+   * key-value pairs to the passed Properties object. 
+   * @param properties The properties instance to be updated with the SensorBase system 
+   * properties. 
+   */
+  private void addSensorBaseSystemProperties(Properties properties) {
+    Properties systemProperties = System.getProperties();
+    for (Map.Entry<Object, Object> entry : systemProperties.entrySet()) {
+      String sysPropName = (String)entry.getKey();
+      if (sysPropName.startsWith("sensorbase.")) {
+        String sysPropValue = (String)entry.getValue();
+        properties.setProperty(sysPropName, sysPropValue);
+      }
+    }
+  }
+  
+  /**
    * Sets the following properties to their "test" equivalents.
    * <ul>
    * <li> ADMIN_EMAIL_KEY
@@ -173,29 +193,26 @@ public class ServerProperties {
   }
 
   /**
-   * Returns a string containing the current properties.
+   * Returns a string containing all current properties in alphabetical order.
    * @return A string with the properties.  
    */
   public String echoProperties() {
     String cr = System.getProperty("line.separator"); 
     String eq = " = ";
     String pad = "                ";
-    return "SensorBase Properties:" + cr +
-      pad + HOSTNAME_KEY      + eq + get(HOSTNAME_KEY) + cr +
-      pad + CONTEXT_ROOT_KEY  + eq + get(CONTEXT_ROOT_KEY) + cr +
-      pad + PORT_KEY          + eq + get(PORT_KEY) + cr +
-      pad + ADMIN_EMAIL_KEY   + eq + get(ADMIN_EMAIL_KEY) + cr +
-      pad + ADMIN_PASSWORD_KEY + eq + get(ADMIN_PASSWORD_KEY) + cr +
-      pad + DB_DIR_KEY        + eq + get(DB_DIR_KEY) + cr +
-      pad + XML_DIR_KEY       + eq + get(XML_DIR_KEY) + cr +
-      pad + DB_IMPL_KEY       + eq + get(DB_IMPL_KEY) + cr +
-      pad + LOGGING_LEVEL_KEY + eq + get(LOGGING_LEVEL_KEY) + cr +
-      pad + RESTLET_LOGGING_KEY + eq + get(RESTLET_LOGGING_KEY) + cr +
-      pad + SMTP_HOST_KEY     + eq + get(SMTP_HOST_KEY) + cr +
-      pad + TEST_INSTALL_KEY  + eq + get(TEST_INSTALL_KEY) + cr +
-      pad + COMPRESS_ON_STARTUP_KEY  + eq + get(COMPRESS_ON_STARTUP_KEY) + cr +
-      pad + REINDEX_ON_STARTUP_KEY  + eq + get(REINDEX_ON_STARTUP_KEY)
-      ;
+    // Adding them to a treemap has the effect of alphabetizing them. 
+    TreeMap<String, String> alphaProps = new TreeMap<String, String>();
+    for (Map.Entry<Object, Object> entry : this.properties.entrySet()) {
+      String propName = (String)entry.getKey();
+      String propValue = (String)entry.getValue();
+      alphaProps.put(propName, propValue);
+    }
+    StringBuffer buff = new StringBuffer(25);
+    buff.append("SensorBase Properties:").append(cr);
+    for (String key : alphaProps.keySet()) {
+      buff.append(pad).append(key).append(eq).append(get(key)).append(cr);
+    }
+    return buff.toString();
   }
   
   /**

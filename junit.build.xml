@@ -21,6 +21,8 @@
         <path refid="compile.classpath" />
       </classpath>
       <sysproperty key="user.dir" value="${basedir}" />
+      <!-- Informal test to see that system properties starting with 'sensorbase.' are found. -->
+      <sysproperty key="sensorbase.sysproperty.test" value="test"/>
       <formatter type="xml" />
       <batchtest todir="${junit.dir}">
         <fileset dir="${src.dir}" includes="**/Test*.java" />
