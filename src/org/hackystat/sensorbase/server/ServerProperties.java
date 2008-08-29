@@ -85,7 +85,6 @@ public class ServerProperties {
     String propFile = userHome + "/.hackystat/sensorbase/sensorbase.properties";
     String defaultAdmin = "admin@hackystat.org";
     this.properties = new Properties();
-    addSensorBaseSystemProperties(this.properties);
     // Set defaults for 'standard' operation. These will override any previously
     properties.setProperty(ADMIN_EMAIL_KEY, defaultAdmin);
     properties.setProperty(ADMIN_PASSWORD_KEY, defaultAdmin);
@@ -122,6 +121,7 @@ public class ServerProperties {
         stream.close();
       }
     }
+    addSensorBaseSystemProperties(this.properties);
     trimProperties(properties);
     
     // Now add to System properties. Since the Mailer class expects to find this stuff on the 
