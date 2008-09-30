@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<ProjectIndex>
- <ProjectRef Name="SensorBase-8.0" Owner="johnson@hawaii.edu" Href="http://hackystat.ics.hawaii.edu/hackystat/projects/SampleUser@hackystat.org/SensorBase-8.0"/>
- <ProjectRef Name="BarbieDoll"     Owner="johnson@hawaii.edu" Href="http://hackystat.ics.hawaii.edu/hackystat/projects/SampleUser@hackystat.org/BarbieDoll"/>
- <ProjectRef Name="Default"        Owner="johnson@hawaii.edu" Href="http://hackystat.ics.hawaii.edu/hackystat/projects/SampleUser@hackystat.org/Default"/>
- <ProjectRef Name="Assignment1"    Owner="johnson@hawaii.edu" Href="http://hackystat.ics.hawaii.edu/hackystat/projects/SampleUser2@hackystat.org/Assignment1"/>
- <ProjectRef Name="Default"        Owner="johnson@hawaii.edu" Href="http://hackystat.ics.hawaii.edu/hackystat/projects/SampleUser2@hackystat.org/Default"/>
-</ProjectIndex>
