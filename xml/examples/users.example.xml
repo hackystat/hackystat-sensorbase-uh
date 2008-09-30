@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<User>
+ <Email>johnson@hawaii.edu</Email>
+ <Password>7dkfhcne3skf</Password>
+ <Role>Admin</Role>
+ <Properties>
+   <Property>
+     <Key>TDD-Group</Key>
+     <Value>True</Value>
+   </Property>
+  </Properties>
+</User>

@@ -1,0 +1,44 @@
+<project name="jaxb" default="jaxb">
+  <description>
+  Supports JAXB binding process (creation of Java classes from the XmlSchema documents.)
+  </description>
+
+  <import file="build.xml" />
+  <property environment="env" />
+  <!-- If the JAXB_TARGET env var is not defined, provide a default definition. -->
+  <property name="env.JAXB_TARGET" value="2.0"/> 
+  
+  <!-- Make sure that the JAXB compiler is available. -->
+  <available file="${env.JAXB_HOME}/lib/jaxb-xjc.jar" property="jaxb.xjc.available" />
+  <fail message="Could not find ${env.JAXB_HOME}/lib/jaxb-xjc.jar" unless="jaxb.xjc.available" />
+
+  <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
+    <classpath> 
+      <fileset dir="${env.JAXB_HOME}/lib" includes="*.jar" />
+    </classpath>
+  </taskdef>
+
+  <target name="jaxb" description="Runs the XJC compiler.">
+    <echo message="Compiling using ${env.JAXB_HOME} for target version ${env.JAXB_TARGET}."/>
+    <xjc schema="${basedir}/xml/schema/sensordatatypes.xsd" extension="true" destdir="src" 
+      target="${env.JAXB_TARGET}"
+      package="org.hackystat.sensorbase.resource.sensordatatypes.jaxb">
+      <produces dir="${src.dir}/org/hackystat/sensorbase/resource/sensordatatypes/jaxb" includes="*" />
+    </xjc>
+    <xjc schema="${basedir}/xml/schema/users.xsd" extension="true" destdir="src" 
+      target="${env.JAXB_TARGET}"
+      package="org.hackystat.sensorbase.resource.users.jaxb">
+      <produces dir="${src.dir}/org/hackystat/sensorbase/resource/users/jaxb" includes="*" />
+    </xjc>
+    <xjc schema="${basedir}/xml/schema/sensordata.xsd" extension="true" destdir="src" 
+      target="${env.JAXB_TARGET}"
+      package="org.hackystat.sensorbase.resource.sensordata.jaxb">
+      <produces dir="${src.dir}/org/hackystat/sensorbase/resource/sensordata/jaxb" includes="*" />
+    </xjc>
+    <xjc schema="${basedir}/xml/schema/projects.xsd" extension="true" destdir="src" 
+      target="${env.JAXB_TARGET}"
+      package="org.hackystat.sensorbase.resource.projects.jaxb" >
+    <produces dir="${src.dir}/org/hackystat/sensorbase/resource/projects/jaxb" includes="*" />
+  </xjc>
+</target>
+</project>

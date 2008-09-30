@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<XmlSchemaIndex>
+  <XmlSchemaRef Name="SensorData" Href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/sensordata.xsd"/>
+  <XmlSchemaRef Name="SensorDataTypes" Href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/sensordatatypes.xsd"/>
+  <XmlSchemaRef Name="Users" Href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/users.xsd"/>
+  <XmlSchemaRef Name="Projects" Href="http://hackystat.ics.hawaii.edu/hackystat/xmlschema/projects.xsd"/>
+</XmlSchemaIndex>

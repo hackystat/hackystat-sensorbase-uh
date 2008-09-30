@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<SensorDataIndex LastMod="2007-04-30T09:00:00.000" >
+ <SensorDataRef Tool="Subversion" Owner="SampleUser@hackystat.org" SensorDataType="Commit" LastMod="2007-04-30T09:00:00.000" Timestamp="2007-04-30T09:00:00.000" Href="http://hackystat.ics.hawaii.edu/sensorbase/sensordata/SampleUser@hackystat.org/Commit/2007-04-30T09:00:00.000"/>
+ <SensorDataRef Tool="Subversion" Owner="SampleUser@hackystat.org" SensorDataType="Commit" LastMod="2007-04-30T09:00:00.000" Timestamp="2007-04-30T09:00:00.010" Href="http://hackystat.ics.hawaii.edu/sensorbase/sensordata/SampleUser@hackystat.org/Commit/2007-04-30T09:00:00.010"/>
+ <SensorDataRef Tool="Subversion" Owner="SampleUser@hackystat.org" SensorDataType="Commit" LastMod="2007-04-30T09:00:00.000" Timestamp="2007-04-30T09:00:00.200" Href="http://hackystat.ics.hawaii.edu/sensorbase/sensordata/SampleUser@hackystat.org/Commit/2007-04-30T09:00:00.200"/>
+</SensorDataIndex>
