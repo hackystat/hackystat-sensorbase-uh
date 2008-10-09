@@ -87,7 +87,8 @@ public class UserProjectSnapshotResource extends SensorBaseResource {
     // The authorized user must be an admin, or the project owner, or a member, or invitee.
     if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser) &&
         !super.projectManager.isMember(this.user, this.projectName, this.authUser) &&
-        !super.projectManager.isInvited(this.user, this.projectName, this.authUser)) {
+        !super.projectManager.isInvited(this.user, this.projectName, this.authUser) &&
+        !super.projectManager.isSpectator(this.user, this.projectName, this.authUser)) {
       String msg = "User " + this.authUser + "is not authorized to obtain data from this Project.";
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
       return null;
