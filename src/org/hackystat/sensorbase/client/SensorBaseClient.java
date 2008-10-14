@@ -73,23 +73,23 @@ public class SensorBaseClient {
   private String sensorBaseHost;
   /** The Restlet Client instance used to communicate with the server. */
   private Client client;
-  /** SDT JAXBContext */
+  /** SDT JAXBContext. */
   private static final JAXBContext sdtJAXB;
-  /** Users JAXBContext */
+  /** Users JAXBContext. */
   private static final JAXBContext userJAXB;
-  /** SDT JAXBContext */
+  /** SDT JAXBContext. */
   private static final JAXBContext sensordataJAXB;
-  /** SDT JAXBContext */
+  /** SDT JAXBContext. */
   private static final JAXBContext projectJAXB;
   /** The http authentication approach. */
   private ChallengeScheme scheme = ChallengeScheme.HTTP_BASIC;
   /** The preferred representation type. */
   private Preference<MediaType> xmlMedia = new Preference<MediaType>(MediaType.TEXT_XML);
-  /** For PMD */
+  /** For PMD. */
   private String sensordataUri = "sensordata/";
-  /** For PMD */
+  /** For PMD. */
   private String projectsUri = "projects/";
-  /** For PMD */
+  /** For PMD. */
   private String andEndTime = "&endTime=";
   
   /** To facilitate debugging of problems using this system. */

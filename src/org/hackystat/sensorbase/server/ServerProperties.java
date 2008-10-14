@@ -159,7 +159,7 @@ public class ServerProperties {
    * <li> DB_DIR_KEY
    * <li> PORT_KEY
    * <li> XML_DIR_KEY (if HACKYSTAT_SENSORBASE_HOME is in System properties).
-   * <ul>
+   * </ul>
    * Also sets TEST_INSTALL_KEY to true.
    */
   public void setTestProperties() {

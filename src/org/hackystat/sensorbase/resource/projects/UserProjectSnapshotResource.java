@@ -29,7 +29,7 @@ public class UserProjectSnapshotResource extends SensorBaseResource {
   private User user;
   /** To be retrieved from the URL. */
   private String projectName;
-  /** An optional query parameter */
+  /** An optional query parameter. */
   private String startTime;
   /** An optional query string parameter. */
   private String endTime;

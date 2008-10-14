@@ -62,7 +62,7 @@ public class ProjectManager {
   /** The DbManager associated with this server. */
   DbManager dbManager;
   
-  /** The UserManager */
+  /** The UserManager. */
   UserManager userManager;
   
   /** The ProjectIndex open tag. */

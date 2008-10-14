@@ -28,7 +28,7 @@ class PasswordGenerator {
   private static final int PASSWORD_LENGTH = 12;
   
   /**
-    * Creates and returns a new randomly generated password
+    * Creates and returns a new randomly generated password.
     *
     * @return  The random string.
     */

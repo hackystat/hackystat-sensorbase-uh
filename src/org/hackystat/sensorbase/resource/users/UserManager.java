@@ -153,7 +153,8 @@ public class UserManager {
       User user = this.email2user.get(adminEmail);
       user.setPassword(adminPassword);
       user.setRole("admin");
-    } else {
+    }
+    else {
       User admin = new User();
       admin.setEmail(adminEmail);
       admin.setPassword(adminPassword);

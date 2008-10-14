@@ -19,7 +19,7 @@ import org.restlet.resource.Representation;
 import org.restlet.resource.Variant;
 
 /**
- * The resource for all URIs that extend sensordata, including;
+ * The resource for all URIs that extend sensordata.  This includes:
  * <ul>
  * <li> host/sensordata/{user}
  * <li> host/sensordata/{user}?sdt={sensordatatype}

@@ -5,7 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 /**
- * Simple test for the Password Generator
+ * Simple test for the Password Generator.
  * @author Philip Johson
  */
 public class TestPasswordGenerator {

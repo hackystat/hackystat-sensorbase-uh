@@ -36,7 +36,7 @@ public abstract class SensorBaseResource extends Resource {
   /** To be retrieved from the URL as the 'email' template parameter, or null. */
   protected String uriUser = null; 
   
-  /** The authenticated user, retrieved from the ChallengeResponse, or null */
+  /** The authenticated user, retrieved from the ChallengeResponse, or null. */
   protected String authUser = null;
   
   /** The ProjectManager. */

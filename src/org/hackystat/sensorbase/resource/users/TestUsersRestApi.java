@@ -108,7 +108,7 @@ public class TestUsersRestApi extends SensorBaseRestApiHelper {
    * @throws Exception If problems occur.
    */
   @Ignore
-  @Test public void registerUsers() throws Exception {
+  @Test public void registerUsers() throws Exception {   //NOPMD (No JUnit assert)
     String testPost = "TestRegisterUser@" + server.getServerProperties().get(TEST_DOMAIN_KEY);
     for (int i = 0; i < 5; i++) {
       SensorBaseClient.registerUser(getHostName(), testPost);

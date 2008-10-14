@@ -81,7 +81,7 @@ public class TestSdtRestApi extends SensorBaseRestApiHelper {
     SensorBaseClient client = new SensorBaseClient(getHostName(), adminEmail, adminPassword);
     client.authenticate();
     client.putSensorDataType(sdt);
-    client.getSensorDataType(sdtName);
+    assertEquals("Testing sdt retrieval", sdtName, client.getSensorDataType(sdtName).getName());
     client.deleteSensorDataType(sdtName);
   }
 }

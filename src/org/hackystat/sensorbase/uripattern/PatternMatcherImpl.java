@@ -54,7 +54,7 @@ final class PatternMatcherImpl {
   private static PatternMatcherImpl instance = new PatternMatcherImpl();
 
   /**
-   * Private Constructor
+   * Private Constructor.
    */
   private PatternMatcherImpl() {
   }
@@ -528,7 +528,7 @@ final class PatternMatcherImpl {
   }
 
   /**
-   * Breaks a path up into a Vector of path elements, tokenizing on
+   * Breaks a path up into a Vector of path elements.  It tokenizes on
    *
    * @param path Path to tokenize. Must not be <code>null</code>.
    * @param separator the separator against which to tokenize.
@@ -661,7 +661,7 @@ final class PatternMatcherImpl {
   }
 
   /**
-   * Tests if a string contains stars or question marks
+   * Tests if a string contains stars or question marks.
    * @param input a String which one wants to test for containing wildcard
    * @return true if the string contains at least a star or a question mark
    */

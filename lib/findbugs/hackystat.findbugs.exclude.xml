@@ -5,6 +5,9 @@
     <Bug pattern="SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING" />
   </Match>
   <Match>
+    <Bug pattern="OBL_UNSATISFIED_OBLIGATION" />
+  </Match>
+  <Match>
     <Bug pattern="MS_CANNOT_BE_FINAL" />
   </Match>
  <Match>
