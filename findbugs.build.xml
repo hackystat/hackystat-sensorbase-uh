@@ -17,7 +17,7 @@
 
     <!-- Run FindBugs. -->
     <mkdir dir="${findbugs.dir}" />
-    <findbugs home="${env.FINDBUGS_HOME}" failOnError="${findbugs.failOnError}" warningsProperty="findbugs.warningsfound" output="xml:withMessages" outputFile="${findbugs.dir}/findbugs.xml" excludeFilter="${basedir}/lib/findbugs/hackystat.findbugs.exclude.xml">
+    <findbugs jvmargs="-Xmx256M" home="${env.FINDBUGS_HOME}" failOnError="${findbugs.failOnError}" warningsProperty="findbugs.warningsfound" output="xml:withMessages" outputFile="${findbugs.dir}/findbugs.xml" excludeFilter="${basedir}/lib/findbugs/hackystat.findbugs.exclude.xml">
       <auxClasspath>
         <path refid="compile.classpath" />
       </auxClasspath>
