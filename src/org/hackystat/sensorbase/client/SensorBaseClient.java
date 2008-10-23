@@ -806,6 +806,7 @@ public class SensorBaseClient {
       String xmlData = makeSensorData(data);
       Representation representation = SensorBaseResource.getStringRepresentation(xmlData);
       String uri = sensordataUri + data.getOwner() + "/" + data.getTimestamp();
+      System.out.printf("***%n%s%n%s", representation.getText(), uri);
       Response response = makeRequest(Method.PUT, uri, representation);
       if (!response.getStatus().isSuccess()) {
         throw new SensorBaseClientException(response.getStatus());

@@ -8,6 +8,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Members;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
+import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
@@ -90,79 +91,89 @@ public class UserProjectInvitationResource extends SensorBaseResource {
    */
   @Override
   public void post(Representation entity) {
-    // Error if uriUser is not defined.
-    if (this.user == null) {
-      String msg = "Error: No user corresponding to: " + this.uriUser;
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
-      return;
-    }  
-    // Error if project is not defined.
-    Project project = super.projectManager.getProject(this.user, this.projectName);
-    if (project == null) {
-      String msg = "Error: user " + this.uriUser + " has no project: " + this.projectName;
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
-      return;
-    }
-    // Error if rsvp is not "accept" or "decline".
-    if (!ACCEPT.equals(this.rsvp) && !DECLINE.equals(this.rsvp)) {
-      String msg = "Error: this URL must end with 'accept' or 'decline'";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
-      return;
-    }
-    // Get the (possibly empty) list of members and invitees.
-    List<String> members = ((project.getMembers() == null) ? new ArrayList<String>()
-        : project.getMembers().getMember());
-    List<String> invitees = ((project.getInvitations() == null) ? 
-        new ArrayList<String>() : project.getInvitations().getInvitation());
-    
-    // Make sure that authorized user is either an invitee or a member.
-    if (!members.contains(this.authUser) && !invitees.contains(this.authUser)) {
-      String msg = "Error: the user making this request is not a member or invitee";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
-      return;
-    }
-    
-    // Cannot accept or decline the default project.
-    if (ProjectManager.DEFAULT_PROJECT_NAME.equals(this.projectName)) {
-      String msg = "Error: cannot accept or decline the default project.";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
-      return;
-    }
-    
-    // Owner cannot accept or decline their own project.
-    if (project.getOwner().equals(this.authUser)) {
-      String msg = "Error: owner cannot accept or decline their own project.";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
-      return;
-    }
-    
-     // Now update Project data structure. First make sure Members and Invitations exist.
-    if (project.getMembers() == null) {
-      project.setMembers(new Members());
-    }
-    if (project.getInvitations() == null) {
-      project.setInvitations(new Invitations());
-    }
-    
-    // If accepting, make sure it's not in invitees, and make sure it is in members.
-    if (ACCEPT.equals(this.rsvp)) {
-      // Make sure authUser is no longer in invitees.
-      project.getInvitations().getInvitation().remove(this.authUser);
-      // Make sure authUser is present in members if not there already.
-      if (!project.getMembers().getMember().contains(this.authUser)) {
-        project.getMembers().getMember().add(this.authUser);
+    try {
+      // Error if uriUser is not defined.
+      if (this.user == null) {
+        this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        return;
+      }  
+      // Error if project is not defined.
+      Project project = super.projectManager.getProject(this.user, this.projectName);
+      if (project == null) {
+        this.responseMsg = ResponseMessage.undefinedProject(this, this.user, this.projectName);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        return;
       }
+      // Error if rsvp is not "accept" or "decline".
+      if (!ACCEPT.equals(this.rsvp) && !DECLINE.equals(this.rsvp)) {
+        String msg = "URL must end with 'accept' or 'decline'";
+        this.responseMsg = ResponseMessage.miscError(this, msg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        return;
+      }
+      // Get the (possibly empty) list of members and invitees.
+      List<String> members = ((project.getMembers() == null) ? new ArrayList<String>()
+          : project.getMembers().getMember());
+      List<String> invitees = ((project.getInvitations() == null) ? 
+          new ArrayList<String>() : project.getInvitations().getInvitation());
+      
+      // Make sure that authorized user is either an invitee or a member.
+      if (!members.contains(this.authUser) && !invitees.contains(this.authUser)) {
+        String msg = String.format("User %s is not a member or invitee of Project %s", 
+            this.authUser, this.projectName);
+        this.responseMsg = ResponseMessage.miscError(this, msg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        return;
+      }
+      
+      // Cannot accept or decline the default project.
+      if (ProjectManager.DEFAULT_PROJECT_NAME.equals(this.projectName)) {
+        String msg = "Cannot accept or decline the default project.";
+        this.responseMsg = ResponseMessage.miscError(this, msg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        return;
+      }
+      
+      // Owner cannot accept or decline their own project.
+      if (project.getOwner().equals(this.authUser)) {
+        String msg = "Owner cannot accept or decline the default project.";
+        this.responseMsg = ResponseMessage.miscError(this, msg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        return;
+      }
+      
+       // Now update Project data structure. First make sure Members and Invitations exist.
+      if (project.getMembers() == null) {
+        project.setMembers(new Members());
+      }
+      if (project.getInvitations() == null) {
+        project.setInvitations(new Invitations());
+      }
+      
+      // If accepting, make sure it's not in invitees, and make sure it is in members.
+      if (ACCEPT.equals(this.rsvp)) {
+        // Make sure authUser is no longer in invitees.
+        project.getInvitations().getInvitation().remove(this.authUser);
+        // Make sure authUser is present in members if not there already.
+        if (!project.getMembers().getMember().contains(this.authUser)) {
+          project.getMembers().getMember().add(this.authUser);
+        }
+      }
+      // If declining, make sure it's nowhere.
+      if (DECLINE.equals(this.rsvp)) {
+        project.getInvitations().getInvitation().remove(this.authUser);
+        project.getMembers().getMember().remove(this.authUser);
+      }
+      
+      // Now we add it to the Manager and return success.
+      super.projectManager.putProject(project);      
+      getResponse().setStatus(Status.SUCCESS_OK);
     }
-    // If declining, make sure it's nowhere.
-    if (DECLINE.equals(this.rsvp)) {
-      project.getInvitations().getInvitation().remove(this.authUser);
-      project.getMembers().getMember().remove(this.authUser);
+    catch (RuntimeException e) {
+      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
     }
-    
-    // Now we add it to the Manager and return success.
-    super.projectManager.putProject(project);      
-    getResponse().setStatus(Status.SUCCESS_OK);
-  
   }
   
 }

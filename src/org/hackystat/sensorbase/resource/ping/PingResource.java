@@ -1,9 +1,11 @@
 package org.hackystat.sensorbase.resource.ping;
 
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
+import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
+import org.restlet.data.Status;
 import org.restlet.resource.Representation;
 import org.restlet.resource.StringRepresentation;
 import org.restlet.resource.Variant;
@@ -42,14 +44,21 @@ public class PingResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    String unauthenticated = "SensorBase";
-    String authenticated = "SensorBase authenticated";
-    // Don't try to authenticate unless the user has passed both a user and password. 
-    if ((user == null) || (password == null)) {
-      return new StringRepresentation(unauthenticated);
+    try {
+      String unauthenticated = "SensorBase";
+      String authenticated = "SensorBase authenticated";
+      // Don't try to authenticate unless the user has passed both a user and password. 
+      if ((user == null) || (password == null)) {
+        return new StringRepresentation(unauthenticated);
+      }
+      boolean OK = this.userManager.isUser(user, password);
+      return new StringRepresentation((OK ? authenticated : unauthenticated));
     }
-    boolean OK = this.userManager.isUser(user, password);
-    return new StringRepresentation((OK ? authenticated : unauthenticated));
+    catch (RuntimeException e) {
+      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      return null;
+    }
   }
   
   

@@ -1,6 +1,7 @@
 package org.hackystat.sensorbase.resource.projects;
 
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
+import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -36,8 +37,8 @@ public class ProjectsResource extends SensorBaseResource {
   @Override
   public Representation getRepresentation(Variant variant) {
     if (!super.userManager.isAdmin(this.authUser)) {
-      String msg = "Only the admin can obtain the index of all users.";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      this.responseMsg = ResponseMessage.adminOnly(this);
+      getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, this.responseMsg);
       return null;
     }   
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {

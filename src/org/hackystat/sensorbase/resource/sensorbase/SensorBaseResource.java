@@ -52,7 +52,10 @@ public abstract class SensorBaseResource extends Resource {
   protected SensorDataManager sensorDataManager = null;
   
   /** The server. */
-  protected Server server;
+  protected Server server; 
+  
+  /** Everyone generally wants to create one of these, so declare it here. */
+  protected String responseMsg;
   
   /** The standard error message returned from invalid authentication. */
   protected String badAuth = "User is not admin and authenticated user does not not match URI user";
@@ -78,6 +81,7 @@ public abstract class SensorBaseResource extends Resource {
     getVariants().clear(); // copied from BookmarksResource.java, not sure why needed.
     getVariants().add(new Variant(MediaType.TEXT_XML));
   }
+  
 
   /**
    * The Restlet getRepresentation method which must be overridden by all concrete Resources.

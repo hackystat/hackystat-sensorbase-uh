@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.resource.db;
 
 import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
+import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
@@ -10,7 +11,8 @@ import org.restlet.resource.Representation;
 import org.restlet.resource.Variant;
 
 /**
- * Implements the Resource for processing PUT {host}/db/index requests. Requires the admin user.
+ * Implements the Resource for processing PUT {host}/db/table/index requests. 
+ * Requires the admin user.
  * 
  * @author Philip Johnson
  */
@@ -34,15 +36,21 @@ public class IndexResource extends SensorBaseResource {
    */
   @Override
   public void put(Representation variant) {
-    if (!super.userManager.isAdmin(this.authUser)) {
-      String msg = "Only the admin can manipulate db resources..";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
-      return;
+    try {
+      if (!super.userManager.isAdmin(this.authUser)) {
+        this.responseMsg = ResponseMessage.adminOnly(this);
+        getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, this.responseMsg);
+        return;
+      }
+      DbManager dbManager = (DbManager) this.server.getContext().getAttributes().get("DbManager");
+      boolean success = dbManager.indexTables();
+      Status status = (success) ? Status.SUCCESS_OK : Status.SERVER_ERROR_INTERNAL;
+      getResponse().setStatus(status);
     }
-    DbManager dbManager = (DbManager) this.server.getContext().getAttributes().get("DbManager");
-    boolean success = dbManager.indexTables();
-    Status status = (success) ? Status.SUCCESS_OK : Status.SERVER_ERROR_INTERNAL;
-    getResponse().setStatus(status);
+    catch (RuntimeException e) {
+      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+    }
   }
 
   /**

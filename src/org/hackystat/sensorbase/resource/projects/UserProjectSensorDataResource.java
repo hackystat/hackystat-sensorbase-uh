@@ -5,6 +5,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
+import org.hackystat.sensorbase.server.ResponseMessage;
 import org.hackystat.utilities.tstamp.Tstamp;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
@@ -84,13 +85,15 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
   public Representation getRepresentation(Variant variant) {
     // The user (project owner) must be defined.
     if (this.user == null) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user");
+      this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return null;
     } 
     // The project must be defined.
     Project project = super.projectManager.getProject(this.user, this.projectName);
     if (project == null) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown project");
+      this.responseMsg = ResponseMessage.undefinedProject(this, this.user, this.projectName);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return null;
     }
     // The authorized user must be the admin, or project owner, member, invitee, or spectator.
@@ -98,8 +101,10 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
         !super.projectManager.isMember(this.user, this.projectName, this.authUser) &&
         !super.projectManager.isInvited(this.user, this.projectName, this.authUser) &&
         !super.projectManager.isSpectator(this.user, this.projectName, this.authUser)) {
-      String msg = "User " + this.authUser + "is not authorized to obtain data from this Project.";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      String msg = String.format("User %s not authorized to view project %s", this.authUser, 
+          this.projectName);
+      this.responseMsg = ResponseMessage.miscError(this, msg);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return null;
     }
     // If startTime is provided, then both startTime and endTime must be XMLGregorianCalendars,
@@ -112,27 +117,33 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
         endTimeXml = Tstamp.makeTimestamp(this.endTime);
       }
       catch (Exception e) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-        "startTime (or endTime) is not supplied and/or is not a timestamp");
+        String msg = "startTime (or endTime) is not supplied and/or is not a timestamp";
+        this.responseMsg = ResponseMessage.miscError(this, msg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
         return null;
       }
       // We have a start and end time. Make sure startTime is not greater than endTime.
       if (Tstamp.greaterThan(startTimeXml, endTimeXml)) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-        "startTime cannot be greater than endTime.");
+        String msg = "startTime cannot be greater than endTime.";
+        this.responseMsg = ResponseMessage.miscError(this, msg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
         return null;
       }
       // Make sure that startTime is not less than project.startTime.
       if (!ProjectUtils.isValidStartTime(project, startTimeXml)) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-        startTimeXml + " cannot be less than the project's start time: " + project.getStartTime());
+        String msg = String.format("%s cannot be less than project start time of %s", startTimeXml, 
+        project.getStartTime());
+        this.responseMsg = ResponseMessage.miscError(this, msg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
         return null;
       }
       // And that endTime is not past the project endTime (if there is a project endTime).
       if ((project.getEndTime() != null) && 
           (!ProjectUtils.isValidEndTime(project, endTimeXml))) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-        endTimeXml + " cannot be greater than the project's end time: " + project.getEndTime());
+        String msg = String.format("%s cannot be greater than project end time of %s", endTimeXml,
+            project.getEndTime());
+        this.responseMsg = ResponseMessage.miscError(this, msg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
         return null;
       }
     }
@@ -145,14 +156,16 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
         startIndexInt = Integer.parseInt(this.startIndex);
         maxInstancesInt = Integer.parseInt(this.maxInstances);
         if ((startIndexInt < 0) || (maxInstancesInt <= 0)) {
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-          "both startIndex & maxInstances must be non-negative.");
+          String msg = "both startIndex & maxInstances must be non-negative.";
+          this.responseMsg = ResponseMessage.miscError(this, msg);
+          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
           return null;
         }
       }
       catch (Exception e) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-        "startIndex (or maxInstances) is not supplied and/or is not an integer.");
+        String msg = "startIndex (or maxInstances) is not supplied and/or is not an integer.";
+        this.responseMsg = ResponseMessage.miscError(this, msg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
         return null;
       }
     }
@@ -186,7 +199,8 @@ public class UserProjectSensorDataResource extends SensorBaseResource {
         }
       }
       catch (Exception e) {
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Problem: " + e.getMessage());
+        this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+        getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
         return null;
       }
     }

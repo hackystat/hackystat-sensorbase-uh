@@ -8,6 +8,7 @@ import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
+import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -57,14 +58,14 @@ public class UserProjectResource extends SensorBaseResource {
   public Representation getRepresentation(Variant variant) {
     // The uriUser must be a defined User.
     if (this.user == null) {
-      String msg = "No user corresponding to: " + this.uriUser;
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return null;
     }
     // The named project must be defined.
     if (!super.projectManager.hasProject(this.user, this.projectName)) {
-      String msg = "No Project named " + this.projectName + " for user " + this.uriUser;
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      this.responseMsg = ResponseMessage.undefinedProject(this, this.user, this.projectName);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return null;
     }    
     // The authorized user must be an admin, or the project owner, or a member, or invitee.
@@ -72,8 +73,10 @@ public class UserProjectResource extends SensorBaseResource {
         !super.projectManager.isMember(this.user, this.projectName, this.authUser) &&
         !super.projectManager.isInvited(this.user, this.projectName, this.authUser) &&
         !super.projectManager.isSpectator(this.user, this.projectName, this.authUser)) {
-      String msg = "User " + this.authUser + "is not authorized to view this Project.";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      String msg = String.format("User %s not authorized to view project %s", this.authUser, 
+          this.projectName);
+      this.responseMsg = ResponseMessage.miscError(this, msg);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return null;
     }
     // It's all good, so return the Project representation.
@@ -83,8 +86,8 @@ public class UserProjectResource extends SensorBaseResource {
         return super.getStringRepresentation(xmlData);
       }
       catch (Exception e) {
-        String msg = "Couldn't marshall project " + this.projectName + " into XML.";
-        getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, msg);
+        this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+        getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
         return null;
       }
     }

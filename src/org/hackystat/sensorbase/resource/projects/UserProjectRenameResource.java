@@ -3,6 +3,7 @@ package org.hackystat.sensorbase.resource.projects;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
+import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
@@ -77,30 +78,31 @@ public class UserProjectRenameResource extends SensorBaseResource {
   public void post(Representation entity) {
     // Error if uriUser is not defined.
     if (this.user == null) {
-      String msg = "Error: No user corresponding to: " + this.uriUser;
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return;
     }  
     
     // Error if project is not defined.
     Project project = super.projectManager.getProject(this.user, this.projectName);
     if (project == null) {
-      String msg = "Error: user " + this.uriUser + " has no project: " + this.projectName;
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      this.responseMsg = ResponseMessage.undefinedProject(this, this.user, this.projectName);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return;
     }
     
     // Make sure that authorized user is the project owner. 
     if (!project.getOwner().equals(this.authUser)) {
-      String msg = "Error: the user making this request is not the project owner.";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      this.responseMsg = ResponseMessage.notProjectOwner(this, this.authUser);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return;
     }
     
     // Cannot rename the default project.
     if (ProjectManager.DEFAULT_PROJECT_NAME.equals(this.projectName)) {
       String msg = "Error: cannot rename the default project.";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      this.responseMsg = ResponseMessage.miscError(this, msg);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return;
     }
 
@@ -111,7 +113,8 @@ public class UserProjectRenameResource extends SensorBaseResource {
       super.projectManager.renameProject(this.user, projectName, newProjectName);
     }
     catch (Exception e) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, e.getMessage());
+      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return;
     }
     
