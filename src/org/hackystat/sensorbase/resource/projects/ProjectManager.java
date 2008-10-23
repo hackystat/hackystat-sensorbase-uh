@@ -482,7 +482,8 @@ public class ProjectManager {
   
   
   /**
-   * Returns true if user1 and user2 are members of the same Project that encompasses the given day.
+   * Returns true if user1 and user2 are members of the same Project and 
+   * that project encompasses the given day.
    * @param userEmail1 The first user.
    * @param userEmail2 The second user.
    * @param tstampString The date in question, which could be null.
@@ -524,14 +525,17 @@ public class ProjectManager {
   }
 
   /**
-   * Returns true if user is the owner or a member of Project.
+   * Returns true if user is the owner or a member or a spectator of Project.
    * @param project The project. 
    * @param user The user who's belonging is being assessed. 
    * @return True if user is the owner or a member of project.
    */
   private boolean belongs(Project project, User user) {
-    return (project.getOwner().equals(user.getEmail()) ||
-        (project.getMembers().getMember().contains(user.getEmail())));
+    return 
+    (project.getOwner().equals(user.getEmail()) ||
+     project.getMembers().getMember().contains(user.getEmail()) ||
+     project.getSpectators().getSpectator().contains(user.getEmail())
+    );
   }
   
   

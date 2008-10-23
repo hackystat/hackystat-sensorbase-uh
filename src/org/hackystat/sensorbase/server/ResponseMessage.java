@@ -26,6 +26,22 @@ public class ResponseMessage {
   }
   
   /**
+   * The error message for requests where the authorized user must be the same as the user
+   * in the URI string, or the authorized use is the admin (and then the user in the URI string
+   * can be anyone).
+   * @param resource The resource associated with this request.
+   * @param authUser The authorized user. 
+   * @param uriUser The user in the URI string.  
+   * @return A string describing the problem.
+   */
+  public static String adminOrAuthUserOnly(SensorBaseResource resource, String authUser, 
+      String uriUser) {
+    return String.format("Request requires authorized user (%s) to be the same user as the one" +
+        "in the URI string (%s), or else the admin: %s", authUser, uriUser, 
+        resource.getRequest().getResourceRef().toString());
+  }
+  
+  /**
    * The error message for requests that generate an unspecified internal error. 
    * @param resource The resource associated with this request. 
    * @return A string describing the problem.
@@ -87,6 +103,20 @@ public class ResponseMessage {
         user.getEmail(), project, 
         resource.getRequest().getMethod().getName(),
         resource.getRequest().getResourceRef().toString());
+  } 
+  
+  /**
+   * The error message for requests involving projects not owned by the specified user. 
+   * @param resource The resource associated with this request. 
+   * @param user The user. 
+   * @param project The project. 
+   * @return A string describing the problem.
+   */
+  public static String cannotViewProject(SensorBaseResource resource, String user, String project) {
+    return String.format("User %s not allowed to view project %s while processing request: %s %s", 
+        user, project, 
+        resource.getRequest().getMethod().getName(),
+        resource.getRequest().getResourceRef().toString());
   }
   
   /**
@@ -98,6 +128,30 @@ public class ResponseMessage {
   public static String notProjectOwner(SensorBaseResource resource, String user) {
     return String.format("User %s must be project owner for this request: %s %s", 
         user,
+        resource.getRequest().getMethod().getName(),
+        resource.getRequest().getResourceRef().toString());
+  }
+  
+  /**
+   * The error message for requests where a timestamp is not supplied or is not parsable.
+   * @param resource The resource associated with this request. 
+   * @return A string describing the problem.
+   */
+  public static String badTimestamp(SensorBaseResource resource) {
+    return String.format("Timestamp(s) are missing or incorrect in this request: %s %s", 
+        resource.getRequest().getMethod().getName(),
+        resource.getRequest().getResourceRef().toString());
+  }
+  
+  /**
+   * The error message for requests where a timestamp is not supplied or is not parsable.
+   * @param resource The resource associated with this request.
+   * @param timestamp The bogus timestamp. 
+   * @return A string describing the problem.
+   */
+  public static String badTimestamp(SensorBaseResource resource, String timestamp) {
+    return String.format("Timestamp %s is incorrect in this request: %s %s", 
+        timestamp,
         resource.getRequest().getMethod().getName(),
         resource.getRequest().getResourceRef().toString());
   }

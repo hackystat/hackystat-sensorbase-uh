@@ -1,8 +1,8 @@
 package org.hackystat.sensorbase.resource.sensordatatypes;
 
-import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
+import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -72,7 +72,8 @@ public class SensorDataTypeResource extends SensorBaseResource {
     String entityString = null;
     SensorDataType sdt;
     if (!super.userManager.isAdmin(this.authUser)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Only the admin can define SDTs");
+      this.responseMsg = ResponseMessage.adminOnly(this);
+      getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, this.responseMsg);
       return;
     }
 
@@ -82,18 +83,28 @@ public class SensorDataTypeResource extends SensorBaseResource {
       sdt = super.sdtManager.makeSensorDataType(entityString);
     }
     catch (Exception e) {
-      server.getLogger().warning("Bad Sdt Definition in PUT: " + StackTrace.toString(e));
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad SDT: " + entityString);
+      String msg = "Bad SensorDataType representation: " + entityString; 
+      this.responseMsg = ResponseMessage.miscError(this, msg);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return;
     }
-    // Return failure if the URI SdtName is not the same as the XML SdtName.
-    if (!(this.sdtName.equals(sdt.getName()))) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "URI/XML name mismatch");
-      return;
+    
+    try {
+      // Return failure if the URI SdtName is not the same as the XML SdtName.
+      if (!(this.sdtName.equals(sdt.getName()))) {
+        String msg = "URI sensordatatype name is not the same as the one in the representation";
+        this.responseMsg = ResponseMessage.miscError(this, msg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        return;
+      }
+      // otherwise we add it to the Manager and return success.
+      super.sdtManager.putSdt(sdt);      
+      getResponse().setStatus(Status.SUCCESS_CREATED);
     }
-    // otherwise we add it to the Manager and return success.
-    super.sdtManager.putSdt(sdt);      
-    getResponse().setStatus(Status.SUCCESS_CREATED);
+    catch (RuntimeException e) {
+      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+    }
   }
   
   /** 
@@ -110,11 +121,18 @@ public class SensorDataTypeResource extends SensorBaseResource {
    */
   @Override
   public void delete() {
-    if (!super.userManager.isAdmin(this.authUser)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Only the admin can delete SDTs");
-      return;
-    }    
-    super.sdtManager.deleteSdt(sdtName);      
-    getResponse().setStatus(Status.SUCCESS_OK);
+    try {
+      if (!super.userManager.isAdmin(this.authUser)) {
+        this.responseMsg = ResponseMessage.adminOnly(this);
+        getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, this.responseMsg);
+        return;
+      }    
+      super.sdtManager.deleteSdt(sdtName);      
+      getResponse().setStatus(Status.SUCCESS_OK);
+    }
+    catch (RuntimeException e) {
+      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+    }
   }
 }

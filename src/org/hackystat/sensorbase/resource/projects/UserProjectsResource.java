@@ -2,6 +2,7 @@ package org.hackystat.sensorbase.resource.projects;
 
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
+import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -44,19 +45,28 @@ public class UserProjectsResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    // If this User does not exist, return an error.
-    if (this.user == null) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + super.uriUser);
-      return null;
-    }  
-    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
+    try {
+      // If this User does not exist, return an error.
+      if (this.user == null) {
+        this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        return null;
+      }  
+      if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
+        this.responseMsg = ResponseMessage.adminOrAuthUserOnly(this, this.authUser, this.uriUser);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        return null;
+      }
+      if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
+        String xmlData = super.projectManager.getProjectIndex(this.user);
+        return super.getStringRepresentation(xmlData);      
+        }
+    }
+    catch (RuntimeException e) {
+      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
       return null;
     }
-    if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      String xmlData = super.projectManager.getProjectIndex(this.user);
-      return super.getStringRepresentation(xmlData);      
-      }
     return null;
   }
 }

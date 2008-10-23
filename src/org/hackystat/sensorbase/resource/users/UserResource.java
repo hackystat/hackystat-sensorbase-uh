@@ -1,9 +1,9 @@
 package org.hackystat.sensorbase.resource.users;
 
-import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
+import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -37,17 +37,24 @@ public class UserResource extends SensorBaseResource {
   @Override
   public Representation getRepresentation(Variant variant) {
     if (!super.userManager.isUser(this.uriUser)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown: " + this.uriUser);
+      this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return null;
     } 
     if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
-      String msg = "User is not admin and authenticated user does not not match user in URI";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      this.responseMsg = ResponseMessage.adminOrAuthUserOnly(this, this.authUser, this.uriUser);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return null;
     }
-    if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      String xmlData = super.userManager.getUserString(this.uriUser);
-      return super.getStringRepresentation(xmlData);
+    try {
+      if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
+        String xmlData = super.userManager.getUserString(this.uriUser);
+        return super.getStringRepresentation(xmlData);
+      }
+    }
+    catch (RuntimeException e) {
+      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
     }
     return null;
   }
@@ -69,12 +76,18 @@ public class UserResource extends SensorBaseResource {
   @Override
   public void delete() {
     if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
-      String msg = "User is not admin and authenticated user does not not match user in URI";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      this.responseMsg = ResponseMessage.adminOrAuthUserOnly(this, this.authUser, this.uriUser);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return;
     }
-    super.userManager.deleteUser(uriUser);      
-    getResponse().setStatus(Status.SUCCESS_OK);
+    try {
+      super.userManager.deleteUser(uriUser);      
+      getResponse().setStatus(Status.SUCCESS_OK);
+    }
+    catch (RuntimeException e) {
+      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+    }
   }
   
   /** 
@@ -99,12 +112,13 @@ public class UserResource extends SensorBaseResource {
   public void post(Representation entity) {
     // Return failure if the User doesn't exist.
     if (!super.userManager.isUser(this.uriUser)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown User: " + this.uriUser);
+      this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return;
     }
     if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
-      String msg = "User is not admin and authenticated user does not not match user in URI";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      this.responseMsg = ResponseMessage.adminOrAuthUserOnly(this, this.authUser, this.uriUser);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return;
     }
     // Attempt to construct a Properties object.
@@ -116,12 +130,20 @@ public class UserResource extends SensorBaseResource {
       newProperties = super.userManager.makeProperties(entityString);
     }
     catch (Exception e) {
-      server.getLogger().warning("Bad Properties Definition: " + StackTrace.toString(e));
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Bad Properties: " + entityString);
+      String msg = "Bad properties representation: " + entityString;
+      this.responseMsg = ResponseMessage.miscError(this, msg);
+      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return;
     }
-    User user = super.userManager.getUser(this.uriUser);
-    super.userManager.updateProperties(user, newProperties);
-    getResponse().setStatus(Status.SUCCESS_OK);
+    
+    try {
+      User user = super.userManager.getUser(this.uriUser);
+      super.userManager.updateProperties(user, newProperties);
+      getResponse().setStatus(Status.SUCCESS_OK);
+    }
+    catch (RuntimeException e) {
+      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+    }
   }
 }

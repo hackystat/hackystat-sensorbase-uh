@@ -92,9 +92,7 @@ public class UserProjectSnapshotResource extends SensorBaseResource {
         !super.projectManager.isMember(this.user, this.projectName, this.authUser) &&
         !super.projectManager.isInvited(this.user, this.projectName, this.authUser) &&
         !super.projectManager.isSpectator(this.user, this.projectName, this.authUser)) {
-      String msg = String.format("User %s not authorized to view project %s", this.authUser, 
-          this.projectName);
-      this.responseMsg = ResponseMessage.miscError(this, msg);
+      this.responseMsg = ResponseMessage.cannotViewProject(this, this.authUser, this.projectName);
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
       return null;
     }
@@ -108,8 +106,7 @@ public class UserProjectSnapshotResource extends SensorBaseResource {
         endTimeXml = Tstamp.makeTimestamp(this.endTime);
       }
       catch (Exception e) {
-        String msg = "startTime (or endTime) is not supplied and/or is not a timestamp";
-        this.responseMsg = ResponseMessage.miscError(this, msg);
+        this.responseMsg = ResponseMessage.badTimestamp(this);
         getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
         return null;
       }

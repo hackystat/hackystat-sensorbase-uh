@@ -1,6 +1,7 @@
 package org.hackystat.sensorbase.resource.sensordata;
 
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
+import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -34,14 +35,20 @@ public class SensorDataResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    if (!super.userManager.isAdmin(this.authUser)) {
-      String msg = "Only the admin can obtain the index of all sensor data.";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
-      return null;
-    }    
-    if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
-      String xmlData = super.sensorDataManager.getSensorDataIndex();
-      return super.getStringRepresentation(xmlData);
+    try {
+      if (!super.userManager.isAdmin(this.authUser)) {
+        this.responseMsg = ResponseMessage.adminOnly(this);
+        getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, this.responseMsg);
+        return null;
+      }    
+      if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
+        String xmlData = super.sensorDataManager.getSensorDataIndex();
+        return super.getStringRepresentation(xmlData);
+      }
+    }
+    catch (RuntimeException e) {
+      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
     }
     return null;
   }
