@@ -63,7 +63,7 @@ import org.w3c.dom.Document;
 public class SensorBaseClient {
   
   /** The possible responses to a Project invitation. */
-  public enum InvitationReply { ACCEPT, DECLINE };
+  public enum InvitationReply { ACCEPT, DECLINE }
 
   /** Holds the userEmail to be associated with this client. */
   private String userEmail;

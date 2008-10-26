@@ -5,10 +5,7 @@ import java.util.List;
 
 import org.hackystat.sensorbase.resource.projects.jaxb.Invitations;
 import org.hackystat.sensorbase.resource.projects.jaxb.Members;
-import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
-import org.hackystat.sensorbase.resource.users.jaxb.User;
-import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
@@ -23,10 +20,6 @@ import org.restlet.resource.Variant;
  */
 public class UserProjectInvitationResource extends SensorBaseResource {
   
-  /** The user, or null if the uriUser does not name a defined User. */
-  private User user; 
-  /** To be retrieved from the URL. */
-  private String projectName;
   /** To be retrieved from the URL; should be "accept" or "decline". */
   private String rsvp;
   /** The accept string. */
@@ -42,9 +35,7 @@ public class UserProjectInvitationResource extends SensorBaseResource {
    */
   public UserProjectInvitationResource(Context context, Request request, Response response) {
     super(context, request, response);
-    this.projectName = (String) request.getAttributes().get("projectname");
     this.rsvp = (String) request.getAttributes().get("rsvp");
-    this.user = super.userManager.getUser(uriUser);
   }
   
   /** 
@@ -92,24 +83,14 @@ public class UserProjectInvitationResource extends SensorBaseResource {
   @Override
   public void post(Representation entity) {
     try {
-      // Error if uriUser is not defined.
-      if (this.user == null) {
-        this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
-        return;
-      }  
-      // Error if project is not defined.
-      Project project = super.projectManager.getProject(this.user, this.projectName);
-      if (project == null) {
-        this.responseMsg = ResponseMessage.undefinedProject(this, this.user, this.projectName);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+      if (!validateUriUserIsUser() ||
+          !validateUriProjectName()) {
         return;
       }
+      
       // Error if rsvp is not "accept" or "decline".
       if (!ACCEPT.equals(this.rsvp) && !DECLINE.equals(this.rsvp)) {
-        String msg = "URL must end with 'accept' or 'decline'";
-        this.responseMsg = ResponseMessage.miscError(this, msg);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        setStatusMiscError("URL must end with 'accept' or 'decline'");
         return;
       }
       // Get the (possibly empty) list of members and invitees.
@@ -120,26 +101,20 @@ public class UserProjectInvitationResource extends SensorBaseResource {
       
       // Make sure that authorized user is either an invitee or a member.
       if (!members.contains(this.authUser) && !invitees.contains(this.authUser)) {
-        String msg = String.format("User %s is not a member or invitee of Project %s", 
-            this.authUser, this.projectName);
-        this.responseMsg = ResponseMessage.miscError(this, msg);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        setStatusMiscError(String.format("User %s is not a member or invitee of Project %s", 
+            this.authUser, this.projectName));
         return;
       }
       
       // Cannot accept or decline the default project.
       if (ProjectManager.DEFAULT_PROJECT_NAME.equals(this.projectName)) {
-        String msg = "Cannot accept or decline the default project.";
-        this.responseMsg = ResponseMessage.miscError(this, msg);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        setStatusMiscError("Cannot accept or decline the default project.");
         return;
       }
       
       // Owner cannot accept or decline their own project.
       if (project.getOwner().equals(this.authUser)) {
-        String msg = "Owner cannot accept or decline the default project.";
-        this.responseMsg = ResponseMessage.miscError(this, msg);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        setStatusMiscError("Owner cannot accept or decline their own project.");
         return;
       }
       
@@ -171,8 +146,7 @@ public class UserProjectInvitationResource extends SensorBaseResource {
       getResponse().setStatus(Status.SUCCESS_OK);
     }
     catch (RuntimeException e) {
-      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      setStatusInternalError(e);
     }
   }
   

@@ -8,8 +8,6 @@ import org.hackystat.utilities.tstamp.Tstamp;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorData;
 import org.hackystat.sensorbase.resource.sensordata.jaxb.SensorDatas;
-import org.hackystat.sensorbase.resource.users.jaxb.User;
-import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -31,8 +29,6 @@ import org.restlet.resource.Variant;
  */
 public class UserSensorDataResource extends SensorBaseResource {
 
-  /** The user, or null if not found. */
-  private User user;
   /** To be retrieved from the URL, or else null if not found. */
   private String sdtName;
   /** To be retrieved from the URL, or else null if not found. */
@@ -51,7 +47,6 @@ public class UserSensorDataResource extends SensorBaseResource {
    */
   public UserSensorDataResource(Context context, Request request, Response response) {
     super(context, request, response);
-    this.user = super.userManager.getUser(uriUser);
     this.sdtName = (String) request.getAttributes().get("sensordatatype");
     this.timestamp = (String) request.getAttributes().get("timestamp");
     this.lastModStartTime = (String) request.getAttributes().get("lastModStartTime");
@@ -78,19 +73,15 @@ public class UserSensorDataResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    // Return error if unknown user.
-    if (this.user == null) {
-      this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+    if (!validateUriUserIsUser()) {
       return null;
     }
     // Return error if authUser is not UriUser, not admin, and not in a Project with UriUser.
-    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)
-        && !super.projectManager.inProject(this.authUser, this.uriUser, this.timestamp)) {
-      String msg = String.format("Request requires authorized user %s to be in at least one "
-          + "project with the URI user %s on the specified day", this.authUser, this.uriUser);
-      this.responseMsg = ResponseMessage.miscError(this, msg);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+    if (!userManager.isAdmin(this.authUser) && 
+        !this.uriUser.equals(this.authUser) && 
+        !super.projectManager.inProject(this.authUser, this.uriUser, this.timestamp)) {
+      setStatusMiscError(String.format("Request requires authorized user %s to be in at least one "
+          + "project with the URI user %s on the specified day", this.authUser, this.uriUser));
       return null;
     }
     // Now check to make sure they want XML.
@@ -115,16 +106,14 @@ public class UserSensorDataResource extends SensorBaseResource {
           lastModStart = Tstamp.makeTimestamp(this.lastModStartTime);
         }
         catch (Exception e) {
-          this.responseMsg = ResponseMessage.badTimestamp(this, lastModStartTime);
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+          setStatusBadTimestamp(lastModStartTime);
           return null;
         }
         try {
           lastModEnd = Tstamp.makeTimestamp(this.lastModEndTime);
         }
         catch (Exception e) {
-          this.responseMsg = ResponseMessage.badTimestamp(this, lastModEndTime);
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+          setStatusBadTimestamp(lastModEndTime);
           return null;
         }
         // Now, get the data and return.
@@ -140,16 +129,13 @@ public class UserSensorDataResource extends SensorBaseResource {
           tstamp = Tstamp.makeTimestamp(this.timestamp);
         }
         catch (Exception e) {
-          this.responseMsg = ResponseMessage.badTimestamp(this, timestamp);
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+          setStatusBadTimestamp(timestamp);
           return null;
         }
         String xmlData = super.sensorDataManager.getSensorData(this.user, tstamp);
         // Now, see if we actually have the SensorData.
         if (xmlData == null) { // NOPMD (deeply nested if-then-else)
-          String msg = "Unknown sensor data";
-          this.responseMsg = ResponseMessage.miscError(this, msg);
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+          setStatusMiscError("Unknown sensor data");
           return null;
         }
         // We have the SensorData, so retrieve its xml string representation and return it.
@@ -157,16 +143,13 @@ public class UserSensorDataResource extends SensorBaseResource {
           return getStringRepresentation(xmlData);
         }
         catch (Exception e) {
-          this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-          getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+          setStatusInternalError(e);
           return null;
         }
       }
     }
     // Otherwise we don't understand the URI that they invoked us with.
-    String msg = "Request could not be understood.";
-    this.responseMsg = ResponseMessage.miscError(this, msg);
-    getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+    setStatusMiscError("Request could not be understood.");
     return null;
   }
 
@@ -197,15 +180,8 @@ public class UserSensorDataResource extends SensorBaseResource {
   @Override
   public void put(Representation entity) {
     try {
-      // If this User does not exist, return an error.
-      if (this.user == null) {
-        this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
-        return;
-      }
-      if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
-        this.responseMsg = ResponseMessage.adminOrAuthUserOnly(this, this.authUser, this.uriUser);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+      if (!validateUriUserIsUser() ||
+          !validateAuthUserIsAdminOrUriUser()) {
         return;
       }
 
@@ -215,9 +191,7 @@ public class UserSensorDataResource extends SensorBaseResource {
         entityString = entity.getText();
       }
       catch (IOException e) {
-        String msg = "Bad or missing content";
-        this.responseMsg = ResponseMessage.miscError(this, msg);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        setStatusMiscError("Bad or missing content");
         return;
       }
 
@@ -230,8 +204,7 @@ public class UserSensorDataResource extends SensorBaseResource {
       }
     }
     catch (RuntimeException e) {
-      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      setStatusInternalError(e);
       return;
     }
   }
@@ -248,25 +221,19 @@ public class UserSensorDataResource extends SensorBaseResource {
       data = this.sensorDataManager.makeSensorData(entityString);
     }
     catch (Exception e) {
-      String msg = "Invalid SensorData representation: " + entityString;
-      this.responseMsg = ResponseMessage.miscError(this, msg);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+      setStatusMiscError("Invalid SensorData representation: " + entityString);
       return;
     }
 
     try {
       // Return failure if the payload XML timestamp doesn't match the URI timestamp.
       if ((this.timestamp == null) || (!this.timestamp.equals(data.getTimestamp().toString()))) {
-        String msg = "Timestamp in URI does not match timestamp in sensor data instance.";
-        this.responseMsg = ResponseMessage.miscError(this, msg);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        setStatusMiscError("Timestamp in URI does not match timestamp in sensor data instance.");
         return;
       }
       // Return failure if the SensorData Owner doesn't match the UriUser
       if (!this.uriUser.equals(super.sensorDataManager.convertOwnerToEmail(data.getOwner()))) {
-        String msg = "SensorData payload owner field does not match user field in URI";
-        this.responseMsg = ResponseMessage.miscError(this, msg);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        setStatusMiscError("SensorData payload owner field does not match user field in URI");
         return;
       }
       // otherwise we add it to the Manager and return success.
@@ -274,8 +241,7 @@ public class UserSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.SUCCESS_CREATED);
     }
     catch (RuntimeException e) {
-      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      setStatusInternalError(e);
       return;
     }
   }
@@ -292,9 +258,7 @@ public class UserSensorDataResource extends SensorBaseResource {
       datas = this.sensorDataManager.makeSensorDatas(entityString);
     }
     catch (Exception e) {
-      String msg = "Invalid SensorDatas representation: " + entityString;
-      this.responseMsg = ResponseMessage.miscError(this, msg);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+      setStatusMiscError("Invalid SensorDatas representation: " + entityString);
       return;
     }
 
@@ -302,9 +266,7 @@ public class UserSensorDataResource extends SensorBaseResource {
       // Makes sure all SensorData matches the UriUser, otherwise fail and don't add anything.
       for (SensorData data : datas.getSensorData()) {
         if (!this.uriUser.equals(super.sensorDataManager.convertOwnerToEmail(data.getOwner()))) {
-          String msg = "At least one SensorData owner field does not match user field in URI";
-          this.responseMsg = ResponseMessage.miscError(this, msg);
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+          setStatusMiscError("At least 1 SensorData owner field does not match user field in URI");
           return;
         }
       }
@@ -315,8 +277,7 @@ public class UserSensorDataResource extends SensorBaseResource {
       getResponse().setStatus(Status.SUCCESS_CREATED);
     }
     catch (RuntimeException e) {
-      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      setStatusInternalError(e);
       return;
     }
   }
@@ -343,17 +304,11 @@ public class UserSensorDataResource extends SensorBaseResource {
    */
   @Override
   public void delete() {
-    // If this User does not exist, return an error.
-    if (this.user == null) {
-      this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+    if (!validateUriUserIsUser() ||
+        !validateAuthUserIsAdminOrUriUser()) {
       return;
     }
-    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(this.authUser)) {
-      this.responseMsg = ResponseMessage.adminOrAuthUserOnly(this, this.authUser, this.uriUser);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
-      return;
-    }
+
     // If timestamp is null, then delete all data if a test user is deleting its own data.
     if (this.timestamp == null) {
       if ((this.authUser != null) && this.authUser.equals(this.uriUser)
@@ -363,9 +318,7 @@ public class UserSensorDataResource extends SensorBaseResource {
         return;
       }
       else {
-        String msg = "Can't delete all sensor data from a non-test user.";
-        this.responseMsg = ResponseMessage.miscError(this, msg);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        setStatusMiscError("Can't delete all sensor data from a non-test user.");
         return;
       }
     }
@@ -376,9 +329,7 @@ public class UserSensorDataResource extends SensorBaseResource {
       super.sensorDataManager.deleteData(this.user, tstamp);
     }
     catch (Exception e) {
-      String msg = "Bad timestamp: " + this.timestamp;
-      this.responseMsg = ResponseMessage.miscError(this, msg);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+      setStatusMiscError("Bad timestamp: " + this.timestamp);
       return;
     }
     getResponse().setStatus(Status.SUCCESS_OK);

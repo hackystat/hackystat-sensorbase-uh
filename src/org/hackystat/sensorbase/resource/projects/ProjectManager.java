@@ -807,6 +807,9 @@ public class ProjectManager {
    * @return The project, or null if not found.
    */
   public synchronized Project getProject(User owner, String projectName) {
+    if ((owner == null) || (projectName == null)) {
+      return null;
+    }
     Project project = ((hasProject(owner, projectName)) ? 
         owner2name2project.get(owner).get(projectName) : null);
     if (project != null) {

@@ -3,12 +3,9 @@ package org.hackystat.sensorbase.resource.projects;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.projects.jaxb.UriPatterns;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
-import org.hackystat.sensorbase.resource.users.jaxb.User;
-import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -25,11 +22,6 @@ import org.restlet.resource.Variant;
  */
 public class UserProjectResource extends SensorBaseResource {
   
-  /** The user, or null if the uriUser does not name a defined User. */
-  private User user; 
-  /** To be retrieved from the URL. */
-  private String projectName;
-  
   /**
    * Provides the following representational variants: TEXT_XML.
    * @param context The context.
@@ -38,8 +30,6 @@ public class UserProjectResource extends SensorBaseResource {
    */
   public UserProjectResource(Context context, Request request, Response response) {
     super(context, request, response);
-    this.projectName = (String) request.getAttributes().get("projectname");
-    this.user = super.userManager.getUser(uriUser);
   }
   
   /**
@@ -56,29 +46,13 @@ public class UserProjectResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    // The uriUser must be a defined User.
-    if (this.user == null) {
-      this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+    // Validate
+    if (!validateUriUserIsUser() ||
+        !validateUriProjectName() || 
+        !validateProjectViewer()) {
       return null;
     }
-    // The named project must be defined.
-    if (!super.projectManager.hasProject(this.user, this.projectName)) {
-      this.responseMsg = ResponseMessage.undefinedProject(this, this.user, this.projectName);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
-      return null;
-    }    
-    // The authorized user must be an admin, or the project owner, or a member, or invitee.
-    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser) &&
-        !super.projectManager.isMember(this.user, this.projectName, this.authUser) &&
-        !super.projectManager.isInvited(this.user, this.projectName, this.authUser) &&
-        !super.projectManager.isSpectator(this.user, this.projectName, this.authUser)) {
-      String msg = String.format("User %s not authorized to view project %s", this.authUser, 
-          this.projectName);
-      this.responseMsg = ResponseMessage.miscError(this, msg);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
-      return null;
-    }
+    
     // It's all good, so return the Project representation.
     if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
       try {
@@ -86,9 +60,7 @@ public class UserProjectResource extends SensorBaseResource {
         return super.getStringRepresentation(xmlData);
       }
       catch (Exception e) {
-        this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-        getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
-        return null;
+        setStatusInternalError(e);
       }
     }
     return null;
@@ -123,17 +95,12 @@ public class UserProjectResource extends SensorBaseResource {
    */
   @Override
   public void put(Representation entity) {
-    // Error if uriUser is not defined.
-    if (this.user == null) {
-      String msg = "Bad PUT: No user corresponding to: " + this.uriUser;
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+    
+    if (!validateUriUserIsUser() ||
+        !validateAuthUserIsAdminOrUriUser()) {
       return;
     }  
-    // Error if authorized User is not the admin or the uriUser.
-    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
-      return;
-    }
+
     String entityString = null;
     Project newProject;
     // Try to make the XML payload into a Project, return failure if this fails. 
@@ -142,45 +109,34 @@ public class UserProjectResource extends SensorBaseResource {
       newProject = super.projectManager.makeProject(entityString);
     }
     catch (Exception e) {
-      String msg = "Illegal Project definition. Not all required fields are supplied and/or have" +
-      " correct values: ";
-      server.getLogger().warning(msg + StackTrace.toString(e));
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg + entityString);
+      setStatusMiscError(String.format("Illegal project definition: %s", entityString));
       return;
     }
     // Error if the Project name, owner, start date, or end date is not supplied.
     if ((newProject.getName() == null) || (newProject.getName().trim().equals(""))) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Project name must be supplied.");
+      setStatusMiscError("Project name missing.");
       return;
     }
     if ((newProject.getOwner() == null) || (newProject.getOwner().trim().equals(""))) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Project owner must be supplied.");
+      setStatusMiscError("Project owner must be supplied.");
       return;
     }
     if (newProject.getStartTime() == null) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-          "Project start time must be supplied.");
+      setStatusMiscError("Project start time must be supplied.");
       return;
     }
     if (newProject.getEndTime() == null) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, 
-          "Project end time must be supplied.");
+      setStatusMiscError("Project end time must be supplied.");
       return;
     }
     // Error if the URI ProjectName is not the same as the XML Project name.
     if (!(this.projectName.equals(newProject.getName()))) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Different URI/XML project names");
+      setStatusMiscError("Different URI/XML project names");
       return;
     }
     // Error if the project is the Default project.
     if (this.projectName.equals(ProjectManager.DEFAULT_PROJECT_NAME)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Cannot modify the Default project");
-      return;
-    }
-    // Error if the uriUser is not the Admin or the Project Owner
-    if (!super.userManager.isAdmin(this.uriUser) && !this.uriUser.equals(newProject.getOwner())) {
-      String msg = "User " + user.getEmail() + " is not the admin or Project Owner.";
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, msg);
+      setStatusMiscError("Cannot modify the Default project");
       return;
     }
     
@@ -304,21 +260,21 @@ public class UserProjectResource extends SensorBaseResource {
    */
   @Override
   public void delete() {
-    //  If this User does not exist, return an error.
-    if (this.user == null) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown user: " + this.uriUser);
-      return;
-    } 
-    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, super.badAuth);
-      return;
-    }    
-    if ("Default".equals(this.projectName)) {
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Cannot delete Default project.");
-      return;
-    }    
-    // Otherwise, delete it and return successs.
-    super.projectManager.deleteProject(this.user, this.projectName);      
-    getResponse().setStatus(Status.SUCCESS_OK);
+    try {
+      if (!validateUriUserIsUser() ||
+          !validateAuthUserIsAdminOrUriUser()) {
+        return;
+      }  
+      if ("Default".equals(this.projectName)) {
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Cannot delete Default project.");
+        return;
+      }    
+      // Otherwise, delete it and return success.
+      super.projectManager.deleteProject(this.user, this.projectName);      
+      getResponse().setStatus(Status.SUCCESS_OK);
+    }
+    catch (Exception e) {
+      setStatusInternalError(e);
+    }
   }
 }

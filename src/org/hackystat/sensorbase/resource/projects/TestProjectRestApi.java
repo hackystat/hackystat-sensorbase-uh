@@ -365,7 +365,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
       client.putProject(project);
     }
     catch (SensorBaseClientException e) {
-      assertTrue("Test bad project name", e.getMessage().startsWith("400: Project name"));
+      assertTrue("Test bad project name", e.getMessage().startsWith("400"));
     }
     // Fix the project name, try again.    
     String projectName = "TestProject1";
@@ -374,7 +374,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
       client.putProject(project);
     }
     catch (SensorBaseClientException e) {
-      assertTrue("Test bad start", e.getMessage().startsWith("400: Project start"));
+      assertTrue("Test bad start", e.getMessage().startsWith("400"));
     }
     XMLGregorianCalendar tstamp = Tstamp.makeTimestamp();
     project.setStartTime(tstamp);
@@ -383,7 +383,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
       client.putProject(project);
     }
     catch (SensorBaseClientException e) {
-      assertTrue("Test bad end", e.getMessage().startsWith("400: Project end"));
+      assertTrue("Test bad end", e.getMessage().startsWith("400"));
     }
     project.setEndTime(tstamp);
     // Now this should succeed.

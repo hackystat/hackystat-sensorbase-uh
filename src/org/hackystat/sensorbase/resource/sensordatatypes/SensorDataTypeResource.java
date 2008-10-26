@@ -2,7 +2,6 @@ package org.hackystat.sensorbase.resource.sensordatatypes;
 
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.sensordatatypes.jaxb.SensorDataType;
-import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
@@ -71,9 +70,7 @@ public class SensorDataTypeResource extends SensorBaseResource {
   public void put(Representation entity) {
     String entityString = null;
     SensorDataType sdt;
-    if (!super.userManager.isAdmin(this.authUser)) {
-      this.responseMsg = ResponseMessage.adminOnly(this);
-      getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, this.responseMsg);
+    if (!validateAuthUserIsAdmin()) {
       return;
     }
 
@@ -83,18 +80,14 @@ public class SensorDataTypeResource extends SensorBaseResource {
       sdt = super.sdtManager.makeSensorDataType(entityString);
     }
     catch (Exception e) {
-      String msg = "Bad SensorDataType representation: " + entityString; 
-      this.responseMsg = ResponseMessage.miscError(this, msg);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+      setStatusMiscError("Bad SensorDataType representation: " + entityString); 
       return;
     }
     
     try {
       // Return failure if the URI SdtName is not the same as the XML SdtName.
       if (!(this.sdtName.equals(sdt.getName()))) {
-        String msg = "URI sensordatatype name is not the same as the one in the representation";
-        this.responseMsg = ResponseMessage.miscError(this, msg);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        setStatusMiscError("URI SDT name does not equal the representation's name.");
         return;
       }
       // otherwise we add it to the Manager and return success.
@@ -102,8 +95,7 @@ public class SensorDataTypeResource extends SensorBaseResource {
       getResponse().setStatus(Status.SUCCESS_CREATED);
     }
     catch (RuntimeException e) {
-      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      setStatusInternalError(e);
     }
   }
   
@@ -122,17 +114,14 @@ public class SensorDataTypeResource extends SensorBaseResource {
   @Override
   public void delete() {
     try {
-      if (!super.userManager.isAdmin(this.authUser)) {
-        this.responseMsg = ResponseMessage.adminOnly(this);
-        getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, this.responseMsg);
+      if (!validateAuthUserIsAdmin()) {
         return;
       }    
       super.sdtManager.deleteSdt(sdtName);      
       getResponse().setStatus(Status.SUCCESS_OK);
     }
     catch (RuntimeException e) {
-      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      setStatusInternalError(e);
     }
   }
 }

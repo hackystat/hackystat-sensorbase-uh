@@ -6,7 +6,6 @@ import static org.hackystat.sensorbase.server.ServerProperties.HOSTNAME_KEY;
 import org.hackystat.sensorbase.mailer.Mailer;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
-import org.hackystat.sensorbase.server.ResponseMessage;
 import org.hackystat.utilities.email.ValidateEmailSyntax;
 import org.restlet.Context;
 import org.restlet.data.Form;
@@ -83,15 +82,11 @@ public class RegistrationResource extends SensorBaseResource {
     String email = form.getFirstValue("email");
     // Return Badness if we don't have the email attribute.
     if (email == null || "".equals(email)) {
-      String msg = "Invalid registration request: empty email";
-      this.responseMsg = ResponseMessage.miscError(this, msg);
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+      setStatusMiscError("Invalid registration request: empty email");
       return;
     }
     if (!ValidateEmailSyntax.isValid(email)) {
-      String msg = "Invalid registration request: email appears to be invalid.";
-      this.responseMsg = ResponseMessage.miscError(this, msg);
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+      setStatusMiscError("Invalid registration request: email appears to be invalid.");
       return;
     }
 
@@ -138,8 +133,7 @@ public class RegistrationResource extends SensorBaseResource {
       }
     }
     catch (RuntimeException e) {
-      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      setStatusInternalError(e);
     }
   }
 }

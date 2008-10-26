@@ -2,11 +2,9 @@ package org.hackystat.sensorbase.resource.db;
 
 import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
-import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
-import org.restlet.data.Status;
 import org.restlet.resource.Representation;
 import org.restlet.resource.StringRepresentation;
 import org.restlet.resource.Variant;
@@ -42,10 +40,7 @@ public class RowCountResource extends SensorBaseResource {
   @Override
   public Representation getRepresentation(Variant variant) {
     try {
-      // Only allow admins to get row counts. 
-      if (!super.userManager.isAdmin(this.authUser)) {
-        this.responseMsg = ResponseMessage.adminOnly(this);
-        getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, this.responseMsg);
+      if (!validateAuthUserIsAdmin()) {
         return null;
       }
       
@@ -53,17 +48,15 @@ public class RowCountResource extends SensorBaseResource {
       int rowCount = dbManager.getRowCount(table);
       // If rowCount is negative, then that means the table name was invalid.
       if (rowCount == -1) {
-        this.responseMsg = ResponseMessage.miscError(this, "Invalid Table Name");
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        setStatusMiscError("Invalid Table Name");
         return null;
       }
       // Otherwise return the row count as a string. 
       return new StringRepresentation(String.valueOf(rowCount));
     }
     catch (RuntimeException e) {
-      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
-      return null;
+      setStatusInternalError(e);
     }
+    return null;
   }
 }

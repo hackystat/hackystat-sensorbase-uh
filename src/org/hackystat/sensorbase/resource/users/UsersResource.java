@@ -1,12 +1,10 @@
 package org.hackystat.sensorbase.resource.users;
 
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
-import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.MediaType;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
-import org.restlet.data.Status;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Variant;
 
@@ -34,12 +32,9 @@ public class UsersResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    if (!super.userManager.isAdmin(this.authUser)) {
-      this.responseMsg = ResponseMessage.adminOnly(this);
-      getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, this.responseMsg);
+    if (!validateAuthUserIsAdmin()) {
       return null;
     }
-    
     try {
       if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
         String xmlData = super.userManager.getUserIndex();
@@ -47,8 +42,7 @@ public class UsersResource extends SensorBaseResource {
       }
     }
     catch (RuntimeException e) {
-      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      setStatusInternalError(e);
     }
     return null;
   }

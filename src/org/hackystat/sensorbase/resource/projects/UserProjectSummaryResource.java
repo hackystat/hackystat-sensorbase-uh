@@ -3,14 +3,10 @@ package org.hackystat.sensorbase.resource.projects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.hackystat.utilities.tstamp.Tstamp;
-import org.hackystat.sensorbase.resource.projects.jaxb.Project;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
-import org.hackystat.sensorbase.resource.users.jaxb.User;
-import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
-import org.restlet.data.Status;
 import org.restlet.resource.Representation;
 import org.restlet.resource.Variant;
 
@@ -24,10 +20,6 @@ import org.restlet.resource.Variant;
  */
 public class UserProjectSummaryResource extends SensorBaseResource {
   
-  /** The user, or null if the uriUser does not name a defined User. */
-  private User user; 
-  /** To be retrieved from the URL. */
-  private String projectName;
   /** To be retrieved from the URL. */
   private String startTime;
   /** To be retrieved from the URL. */
@@ -44,11 +36,9 @@ public class UserProjectSummaryResource extends SensorBaseResource {
    */
   public UserProjectSummaryResource(Context context, Request request, Response response) {
     super(context, request, response);
-    this.projectName = (String) request.getAttributes().get("projectname");
     this.startTime = (String) request.getAttributes().get("startTime");
     this.endTime = (String) request.getAttributes().get("endTime");
     this.numDays = (String) request.getAttributes().get("numDays");
-    this.user = super.userManager.getUser(uriUser);
   }
   
   /**
@@ -66,59 +56,46 @@ public class UserProjectSummaryResource extends SensorBaseResource {
    */
   @Override
   public Representation getRepresentation(Variant variant) {
-    // The uriUser must be a defined User.
-    if (this.user == null) {
-      this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+    if (!validateUriUserIsUser() ||
+        !validateUriProjectName() ||
+        !validateProjectViewer()) {
       return null;
-    }
-    // The named project must be defined.
-    if (!super.projectManager.hasProject(this.user, this.projectName)) {
-      this.responseMsg = ResponseMessage.undefinedProject(this, this.user, this.projectName);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
-      return null;
-    }    
-    // The authorized user must be an admin, or the project owner, or member, invitee, spectator. 
-    if (!super.userManager.isAdmin(this.authUser) && !this.uriUser.equals(this.authUser) &&
-        !super.projectManager.isMember(this.user, this.projectName, this.authUser) &&
-        !super.projectManager.isSpectator(this.user, this.projectName, this.authUser) &&
-        !super.projectManager.isInvited(this.user, this.projectName, this.authUser)) {
-      this.responseMsg = ResponseMessage.cannotViewProject(this, this.authUser, this.projectName);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
-      return null;
-    }
+    }  
+    
     XMLGregorianCalendar startTimeXml = null;
     XMLGregorianCalendar endTimeXml = null;
-    Integer numDays = null;
+    Integer numDaysInt = null;
     // Parse this.startTime, this.endTime, and this.numDays
     try {
       startTimeXml = Tstamp.makeTimestamp(this.startTime);
+    }
+    catch (Exception e) {
+      setStatusBadTimestamp(this.startTime);
+      return null;
+    }
+    try {
       if (this.endTime != null) {
         endTimeXml = Tstamp.makeTimestamp(this.endTime);
       }
-      if (this.numDays != null) {
-        numDays = Integer.valueOf(this.numDays);
+    }
+    catch (Exception e) {
+      setStatusBadTimestamp(this.endTime);
+      return null;
+    }
+    try {
+      if (this.numDays != null) {      
+        numDaysInt = Integer.valueOf(this.numDays);
       }
     }
     catch (Exception e) {
-      this.responseMsg = ResponseMessage.badTimestamp(this);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
-      return null;
+      setStatusMiscError("numDays parameter not an integer: " + this.numDays);      
     }
-    // The project must be defined.
-    Project project = super.projectManager.getProject(this.user, this.projectName);
-    if (project == null) {
-      this.responseMsg = ResponseMessage.undefinedProject(this, this.user, this.projectName);
-      getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
-      return null;
-    }
+
     // Make sure that startTime is not less than project.startTime.
     if (!ProjectUtils.isValidStartTime(project, startTimeXml)) {
-      String msg = String.format("%s cannot be less than project start time of %s", startTimeXml, 
-          project.getStartTime());
-          this.responseMsg = ResponseMessage.miscError(this, msg);
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
-          return null;
+      setStatusMiscError(String.format("%s cannot be less than project start time of %s", 
+          startTimeXml, project.getStartTime()));
+      return null;
     }
     try {
       // Result will hold the return value as a string.  
@@ -127,32 +104,27 @@ public class UserProjectSummaryResource extends SensorBaseResource {
       // In this case we have to do additional argument validation. 
       if (this.numDays == null) { 
         if (Tstamp.greaterThan(startTimeXml, endTimeXml)) {
-          String msg = "startTime cannot be greater than endTime.";
-          this.responseMsg = ResponseMessage.miscError(this, msg);
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+          setStatusMiscError("startTime cannot be greater than endTime.");
           return null;
         }
         // And that endTime is not past the project endTime (if there is a project endTime).
         if ((project.getEndTime() != null) && 
             (!ProjectUtils.isValidEndTime(project, endTimeXml))) {
-          String msg = String.format("%s cannot be greater than project end time of %s", endTimeXml,
-              project.getEndTime());
-          this.responseMsg = ResponseMessage.miscError(this, msg);
-          getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+          setStatusMiscError(String.format("%s cannot be greater than project end time of %s", 
+              endTimeXml, project.getEndTime()));
           return null;
         }
         result = super.projectManager.getProjectSummaryString(project, startTimeXml, endTimeXml);
       }
       // Otherwise, deal with the "numDays" URI string. 
       else {
-        result = projectManager.getMultiDayProjectSummaryString(project, startTimeXml, numDays);
+        result = projectManager.getMultiDayProjectSummaryString(project, startTimeXml, numDaysInt);
       }
       return super.getStringRepresentation(result);
     }
     catch (Exception e) {
-      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
-      return null;
+      setStatusInternalError(e);
     }
+    return null;
   }
 }

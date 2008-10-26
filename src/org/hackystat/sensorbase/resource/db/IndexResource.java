@@ -2,7 +2,6 @@ package org.hackystat.sensorbase.resource.db;
 
 import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.sensorbase.resource.sensorbase.SensorBaseResource;
-import org.hackystat.sensorbase.server.ResponseMessage;
 import org.restlet.Context;
 import org.restlet.data.Request;
 import org.restlet.data.Response;
@@ -37,9 +36,7 @@ public class IndexResource extends SensorBaseResource {
   @Override
   public void put(Representation variant) {
     try {
-      if (!super.userManager.isAdmin(this.authUser)) {
-        this.responseMsg = ResponseMessage.adminOnly(this);
-        getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, this.responseMsg);
+      if (!validateAuthUserIsAdmin()) {
         return;
       }
       DbManager dbManager = (DbManager) this.server.getContext().getAttributes().get("DbManager");
@@ -48,8 +45,7 @@ public class IndexResource extends SensorBaseResource {
       getResponse().setStatus(status);
     }
     catch (RuntimeException e) {
-      this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      setStatusInternalError(e);
     }
   }
 
