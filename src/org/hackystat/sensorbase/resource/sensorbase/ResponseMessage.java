@@ -20,7 +20,8 @@ public class ResponseMessage {
    * @return A string describing the problem.
    */
    static String adminOnly(SensorBaseResource resource) {
-    return String.format("Request requires administrator privileges: %s", 
+    return String.format("Request requires administrator privileges:%n  Request: %s %s",
+        resource.getRequest().getMethod().getName(),
         resource.getRequest().getResourceRef().toString());
   }
   
@@ -35,8 +36,9 @@ public class ResponseMessage {
    */
   static String adminOrAuthUserOnly(SensorBaseResource resource, String authUser, 
       String uriUser) {
-    return String.format("Request requires authorized user (%s) to be the same user as the one" +
-        "in the URI string (%s), or else the admin: %s", authUser, uriUser, 
+    return String.format("Request requires authorized user (%s) to be the same user as the " +
+        "URL user (%s):%n  Request: %s %s", authUser, uriUser, 
+        resource.getRequest().getMethod().getName(),
         resource.getRequest().getResourceRef().toString());
   }
   
@@ -48,7 +50,8 @@ public class ResponseMessage {
    * @return A string describing the problem.
    */
   static String internalError(SensorBaseResource resource, Logger logger, Exception e) {
-    String message =  String.format("Internal error while processing this request: %s %s",
+    String message =  String.format("Internal error %s:%n  Request: %s %s",
+        e.getMessage(),
         resource.getRequest().getMethod().getName(),
         resource.getRequest().getResourceRef().toString());
     logger.info(String.format("%s\n%s", message, StackTrace.toString(e)));
@@ -62,7 +65,8 @@ public class ResponseMessage {
    * @return A string describing the problem.
    */
    static String miscError(SensorBaseResource resource, String message) {
-    return String.format("Error (%s) while processing this request: %s %s", message,  
+    return String.format("Request generated error: %s:%n  Request: %s %s", 
+        message,  
         resource.getRequest().getMethod().getName(),
         resource.getRequest().getResourceRef().toString());
   }
@@ -74,7 +78,8 @@ public class ResponseMessage {
    * @return A string describing the problem.
    */
   static String undefinedUser(SensorBaseResource resource, String user) {
-    return String.format("Undefined user (%s) while processing this request: %s %s", user,
+    return String.format("Undefined user %s:%n  Request: %s %s", 
+        user,
         resource.getRequest().getMethod().getName(),
         resource.getRequest().getResourceRef().toString());
   }
@@ -87,8 +92,8 @@ public class ResponseMessage {
    * @return A string describing the problem.
    */
   static String undefinedProject(SensorBaseResource resource, User user, String project) {
-    return String.format("Undefined project %s for user %s while processing this request: %s %s", 
-        user.getEmail(), project, 
+    return String.format("Undefined project %s for user %s:%n  Request: %s %s", 
+         project, user.getEmail(),
         resource.getRequest().getMethod().getName(),
         resource.getRequest().getResourceRef().toString());
   } 
@@ -101,7 +106,7 @@ public class ResponseMessage {
    * @return A string describing the problem.
    */
   static String cannotViewProject(SensorBaseResource resource, String user, String project) {
-    return String.format("User %s not allowed to view project %s while processing request: %s %s", 
+    return String.format("User %s not allowed to view project %s:%n  Request: %s %s", 
         user, project, 
         resource.getRequest().getMethod().getName(),
         resource.getRequest().getResourceRef().toString());
@@ -115,7 +120,7 @@ public class ResponseMessage {
    * @return A string describing the problem.
    */
   static String notProjectOwner(SensorBaseResource resource, String user, String project) {
-    return String.format("Authorized user (%s) is not owner of project (%s) for request: %s %s", 
+    return String.format("Authorized user %s is not owner of project %s%n  Request: %s %s", 
         user, project,
         resource.getRequest().getMethod().getName(),
         resource.getRequest().getResourceRef().toString());
@@ -129,7 +134,7 @@ public class ResponseMessage {
    * @return A string describing the problem.
    */
   static String badTimestamp(SensorBaseResource resource, String timestamp) {
-    return String.format("Timestamp %s is incorrect in this request: %s %s", 
+    return String.format("Bad timestamp %s:%n  Request: %s %s", 
         timestamp,
         resource.getRequest().getMethod().getName(),
         resource.getRequest().getResourceRef().toString());
