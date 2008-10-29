@@ -960,6 +960,58 @@ public class SensorBaseClient {
   }
   
   /**
+   * True if the current user is the owner, member, or spectator of the specified project.
+   * If caching is enabled, then we cache project definitions for an hour when this client
+   * is an owner, member, or spectator so that subsequent retrievals don't require an
+   * http access.
+   * 
+   * @param email The email address of the project owner. 
+   * @param projectName The name of the project. 
+   * @return True if this user is now a member of the 
+   */
+  public synchronized boolean inProject(String email, String projectName) {
+    String key = email + '/' + projectName;
+    int maxLifeHours = 1;
+    if (this.isCacheEnabled && this.uriCache.get(key) != null) {
+      return true;
+    }
+    // otherwise we attempt to retrieve the project definition.
+    try {
+      Project project = getProject(email, projectName);
+      boolean success = isInProject(project);
+      if (this.isCacheEnabled && success) {
+        this.uriCache.put(key, project, maxLifeHours);
+      }
+      return success;
+    }
+    catch (Exception e) {
+      return false;
+    }
+  }
+  
+  /**
+   * Returns true if this client's user is the owner or member or spectator in the project.
+   * @param project The project.
+   * @return True if the client is an owner, member, or spectator. 
+   */
+  private boolean isInProject(Project project) {
+    if (project.getOwner().equals(this.userEmail)) {
+      return true;
+    }
+    for (String member : project.getMembers().getMember()) {
+      if (member.equals(this.userEmail)) {
+        return true;
+      }
+     }
+    for (String spectator : project.getSpectators().getSpectator()) {
+      if (spectator.equals(this.userEmail)) {
+        return true;
+      }
+     }
+    return false;
+  }
+  
+  /**
    * Invites the user indicated via their email address to the named project owned by this user.
    * Has no effect if the user is already an invited member.
    * Returns the updated project representation. 
@@ -1847,8 +1899,6 @@ public class SensorBaseClient {
       this.uriCache.clear();
     }
   }
-  
-  
   
   /**
    * Compresses the server database tables.  
