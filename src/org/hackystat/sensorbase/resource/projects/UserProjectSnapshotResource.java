@@ -66,7 +66,6 @@ public class UserProjectSnapshotResource extends SensorBaseResource {
   public Representation getRepresentation(Variant variant) {
     if (!validateUriUserIsUser() ||
         !validateUriProjectName() ||
-        !validateAuthUserIsAdminOrUriUser() ||
         !validateProjectViewer()) {
       return null;
     }  

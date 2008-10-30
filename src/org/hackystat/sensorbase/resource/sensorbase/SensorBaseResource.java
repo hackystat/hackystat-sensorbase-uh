@@ -241,6 +241,7 @@ public abstract class SensorBaseResource extends Resource {
     return false;
   }
   
+  
   /**
    * Returns true if the authorized user can view the project definition. 
    * This is true if the authorized user is the admin, the project owner, or member,
