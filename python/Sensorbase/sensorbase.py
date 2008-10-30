@@ -23,6 +23,8 @@ from restful_lib import Connection
 #These two shouldn't be needed in production environment.
 import xml.etree.ElementTree as ET
 import sys
+import time
+from datetime import datetime,timedelta
 
 class SensorBase:
 
@@ -53,30 +55,60 @@ class SensorBase:
         tree = ET.XML(xml_string)
         ET.dump(tree)
 
-    def put_sensordata(self,properties=None):
+    def put_sensordata(self, datatype="", tool="", resource="", properties=""):
         """
-        Warning: Bad code!
-        Used to put up new sensordata on the hackystat server. Just for
-        testing purposes. Should not be used in production environment.
-        If sensorbase.py becomes a python lib to interact with hackystat this
-        method needs serious refactoring or more accurately reimplementation.
+        Used to put up new sensordata on the hackystat server. Creates and
+        XML element tree according to the xml schema (hardcoded). Will probably
+        need some refactoring later on.
         """
+
+        time = self.get_timestamp()
+
+        # build a tree structure
+        e_sensordata = ET.Element("SensorData")
+
+        e_timestamp = ET.SubElement(e_sensordata, "Timestamp")
+        e_timestamp.text = time
         
-        time = '2008-10-22T16:40:00.000'
-        
-        xml_string = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><SensorData><Timestamp>"+time+"</Timestamp><Runtime>"+time+"</Runtime><Tool>GNU Mailman</Tool><SensorDataType>Mail</SensorDataType><Resource>file://home/tryggvib/Projects/Tests/email</Resource><Owner>tryggvib@hi.is</Owner>"
+        e_runtime = ET.SubElement(e_sensordata, "Runtime")
+        e_runtime.text = time
+
+        e_tool = ET.SubElement(e_sensordata, "Tool")
+        e_tool.text = tool
+
+        e_datatype = ET.SubElement(e_sensordata, "SensorDataType")
+        e_datatype.text = datatype
+
+        e_resource = ET.SubElement(e_sensordata, "Resource")
+        e_resource.text = resource
+
+        e_owner = ET.SubElement(e_sensordata, "Owner")
+        e_owner.text = self.email
+
+        e_properties = ET.SubElement(e_sensordata, "Properties")
 
         for property_key in properties.keys():
-            xml_string = xml_string+"<Property><Key>"+property_key+\
-                         "</Key><Value>"+properties[property_key]+\
-                         "</Value></Property>"
-            
-        xml_string = xml_string + "</Properties></SensorData>"
-        
+            e_property = ET.SubElement(e_properties, "Property")
+            e_key = ET.SubElement(e_property, "Key")
+            e_key.text = property_key
+            e_value = ET.SubElement(e_property, "Value")
+            e_value.text = properties[property_key]
+
         uri = "/sensordata/tryggvib@hi.is/"+time
-        #response = self.connection.request_put(uri, None, xml_string)
-        print xml_string
-        #print response
+        response = self.connection.request_put(uri, None,
+                                               ET.tostring(e_sensordata))
+        print response
+        
+
+    def get_timestamp(self,hour=0,minute=0):
+        time_current = datetime.now()
+        time_current = time_current + timedelta(hours=hour,minutes=minute)
+
+        #Time format for both oldcurrent timestamp
+        time_format = "%Y-%m-%dT%H:%M:%S.000"
+        timestamp = time.strftime(time_format, time_current.timetuple())
+
+        return timestamp
 
     def get_sensor_datatype(self,data):
         """
@@ -117,10 +149,12 @@ class SensorBase:
 
 if __name__ == "__main__":
     #For testing purposes
-    properties= {'TotalLines':'14',
-                 'Citations':'2',
-                 'Subject':'Testmail',
+    properties= {'TotalLines':'137',
+                 'LinesAdded':'10',
+                 'LinesDeleted':'12',
+                 'Repository':'svn://www.hackystat.org/',
+                 'RevisionNumber':'2345',
                  'Author':'tryggvib@hi.is'}
+    filename = 'file://home/tryggvib/Projects/Tests/file1'
     sensorbase = SensorBase(sys.argv[1], sys.argv[2], sys.argv[3])
-    sensorbase.put_sensordata(properties)
-
+    sensorbase.put_sensordata("Commit","Subversion",filename,properties)
