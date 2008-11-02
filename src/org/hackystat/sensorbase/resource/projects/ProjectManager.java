@@ -787,7 +787,6 @@ public class ProjectManager {
     project.setEndTime(Tstamp.getDefaultProjectEndTime());
     project.setName(DEFAULT_PROJECT_NAME);
     project.setOwner(owner.getEmail());
-    project.getUriPatterns().getUriPattern().add("**");
     putProject(project);
   }
   
