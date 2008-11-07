@@ -961,9 +961,9 @@ public class SensorBaseClient {
   
   /**
    * True if the current user is the owner, member, or spectator of the specified project.
-   * If caching is enabled, then we cache project definitions for an hour when this client
-   * is an owner, member, or spectator so that subsequent retrievals don't require an
-   * http access.
+   * If caching is enabled, then we cache the retrieved project definition for 
+   * 3 minutes when this client is an owner, member, or spectator so that subsequent retrievals
+   * don't require an http access.  
    * 
    * @param email The email address of the project owner. 
    * @param projectName The name of the project. 
@@ -971,7 +971,7 @@ public class SensorBaseClient {
    */
   public synchronized boolean inProject(String email, String projectName) {
     String key = email + '/' + projectName;
-    int maxLifeHours = 1;
+    double maxLifeHours = 0.05;
     if (this.isCacheEnabled && this.uriCache.get(key) != null) {
       return true;
     }
