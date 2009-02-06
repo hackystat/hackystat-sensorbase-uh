@@ -18,7 +18,6 @@ import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-
 /**
  * <p>Java class for anonymous complex type.
  * 
@@ -398,6 +397,37 @@ public class Project
 
     public boolean isSetLastMod() {
         return (this.lastMod!= null);
+    }
+    
+    // Custom methods here.  Must be manually maintained. 
+
+    /**
+     * Returns the first Property instance with the specified key, or null if not found.
+     * @param key The key for the property of interest. 
+     * @return The Property instance for the key, or null if not found. 
+     */
+    public Property findProperty(String key) {
+      for (Property property : this.getProperties().getProperty()) {
+        if ((property.getKey() != null) && (property.getKey().equals(key))) {
+          return property;
+        }
+      }
+      return null;
+    }
+    
+    /**
+     * Adds a new property to this instance with the specified key and value. 
+     * @param key The key for the new property.
+     * @param value The value for the new property.
+     */
+    public void addProperty(String key, String value) {
+      if (this.getProperties() == null) {
+        this.setProperties(new Properties());
+      }
+      Property property = new Property();
+      property.setKey(key);
+      property.setValue(value);
+      this.getProperties().getProperty().add(property);
     }
 
 }
