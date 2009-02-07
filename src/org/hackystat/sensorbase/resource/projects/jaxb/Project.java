@@ -429,5 +429,27 @@ public class Project
       property.setValue(value);
       this.getProperties().getProperty().add(property);
     }
+    
+    /**
+     * Returns true if the passed email is the owner or one of the members of this project. 
+     * @param email The email of interest. 
+     * @return True if the email matches the owner or a member of this project. 
+     */
+    public boolean isMemberOrOwner(String email) {
+      if (email == null) {
+        return false;
+      }
+      if (email.equals(this.owner)) {
+        return true;
+      }
+      if (this.getMembers() != null) {
+        for (String member : this.getMembers().getMember()) {
+          if (email.equals(member)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
 
 }

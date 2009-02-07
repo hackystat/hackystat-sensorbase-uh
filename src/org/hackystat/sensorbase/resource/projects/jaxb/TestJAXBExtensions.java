@@ -1,7 +1,9 @@
 package org.hackystat.sensorbase.resource.projects.jaxb;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -24,5 +26,10 @@ public class TestJAXBExtensions {
     assertEquals("Testing foo", "foo", property.getKey());
     assertEquals("Testing bar", "bar", property.getValue());
     assertNull("Testing unknown find", project.findProperty("bar")); 
+    
+    // isMemberOrOwner
+    project.setOwner("foo");
+    assertTrue("Testing true isOwnerOrMember", project.isMemberOrOwner("foo"));
+    assertFalse("Testing false isOwnerOrMember", project.isMemberOrOwner("bar"));
   }
 }
