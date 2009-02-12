@@ -279,10 +279,25 @@ public class SensorDataManager {
   
   
   /**
-   * Updates the Manager with this sensor data. Any old definition is overwritten.
+   * Updates the Manager with this sensor data. Any old definition is overwritten for
+   * this user and timestamp.
+   * If runtime is not specified, it is defaulted to the timestamp.
+   * If tool, resource, or SDT are not specified, they default to "".
    * @param data The sensor data. 
    */
   public void putSensorData(SensorData data) {
+    if (data.getRuntime() == null) {
+      data.setRuntime(data.getTimestamp());
+    }
+    if (data.getTool() == null) {
+      data.setTool("");
+    }
+    if (data.getResource() == null) {
+      data.setResource("");
+    }
+    if (data.getSensorDataType() == null) { 
+      data.setSensorDataType("");
+    }
     try {
       data.setLastMod(Tstamp.makeTimestamp());
       this.dbManager.storeSensorData(data, this.makeSensorData(data),
