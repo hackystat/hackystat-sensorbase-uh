@@ -21,6 +21,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.hackystat.sensorbase.db.DbManager;
 import org.hackystat.utilities.stacktrace.StackTrace;
 import org.hackystat.utilities.tstamp.Tstamp;
+import org.hackystat.sensorbase.resource.projects.ProjectManager;
 import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.Property;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
@@ -234,11 +235,17 @@ public class UserManager {
   
 
   /**
-   * Ensures that the passed User is no longer present in this Manager. 
+   * Ensures that the passed User is no longer present in this Manager, and 
+   * deletes all Projects associated with this user. 
    * @param email The email address of the User to remove if currently present.
    */
   public synchronized void deleteUser(String email) {
     User user = this.email2user.get(email);
+    // First, delete all the projects owned by this user.
+    ProjectManager projectManager =  
+      (ProjectManager)this.server.getContext().getAttributes().get("ProjectManager");
+    projectManager.deleteProjects(user);
+    // Now delete the user
     if (user != null) {
       this.email2user.remove(email);
       this.user2xml.remove(user);

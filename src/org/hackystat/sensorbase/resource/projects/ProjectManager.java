@@ -557,6 +557,25 @@ public class ProjectManager {
   }
   
   /**
+   * Deletes all projects including the default project owned by this user.
+   * Note that this method should only be called immediately before deleting
+   * the user, since the system will be left in an inconsistent state if 
+   * the Default project is deleted but the user is still around. 
+   * (Here's a place where we really should be using a transaction.)
+   * @param owner The user of interest.
+   */
+  public synchronized void deleteProjects(User owner) {
+    if (this.owner2name2project.containsKey(owner)) {
+      for (Project project : this.getProjects(owner)) {
+          this.project2ref.remove(project);
+          this.project2xml.remove(project);
+          this.owner2name2project.get(owner).remove(project.getName());
+          this.dbManager.deleteProject(owner, project.getName());
+      }
+    }
+  }
+  
+  /**
    * Returns the Project Xml String associated with this User and project name.
    * @param owner The user that owns this project.
    * @param projectName The name of the project.
@@ -581,6 +600,19 @@ public class ProjectManager {
       for (String projectName : this.owner2name2project.get(user).keySet()) {
         projectSet.add(this.owner2name2project.get(user).get(projectName));
       }
+    }
+    return projectSet;
+  }
+  
+  /**
+   * Returns all of the projects owned by this user.
+   * @param user The user whose projects are to be returned. 
+   * @return A set of the Projects owned by this user. 
+   */
+  public synchronized Set<Project> getProjects(User user) {
+    Set<Project> projectSet = new HashSet<Project>(projectSetSize);
+    for (String projectName : this.owner2name2project.get(user).keySet()) {
+      projectSet.add(this.owner2name2project.get(user).get(projectName));
     }
     return projectSet;
   }
