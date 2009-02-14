@@ -451,5 +451,27 @@ public class Project
       }
       return false;
     }
+    
+    /**
+     * Adds the specified UriPattern to the UriPatterns instance, creating it if necesssary.
+     * @param pattern The pattern to be added. 
+     */
+    public void addUriPattern(String pattern) {
+      if (this.getUriPatterns() == null) {
+        this.setUriPatterns(new UriPatterns());
+      }
+      this.getUriPatterns().getUriPattern().add(pattern);
+    }
+    
+    /**
+     * Adds the specified email to this list of invited users to this project. 
+     * @param email The email to be added to the list of invited users. 
+     */
+    public void addInvitation(String email) {
+      if (this.getInvitations() == null) {
+        this.setInvitations(new Invitations());
+      }
+      this.getInvitations().getInvitation().add(email);
+    }
 
 }

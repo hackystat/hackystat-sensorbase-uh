@@ -16,7 +16,7 @@ import org.junit.Test;
 public class TestJAXBExtensions {
   
   /**
-   * Test the property manipulation extensions to SensorData. 
+   * Test to ensure that the extensions to the Property JAXB class are present.  
    */
   @Test 
   public void testProjectExtensions() {
@@ -31,5 +31,9 @@ public class TestJAXBExtensions {
     project.setOwner("foo");
     assertTrue("Testing true isOwnerOrMember", project.isMemberOrOwner("foo"));
     assertFalse("Testing false isOwnerOrMember", project.isMemberOrOwner("bar"));
+    
+    // addUriPattern and addInvitation.
+    project.addUriPattern("*/foo/*");
+    project.addInvitation("foo@bar.com");
   }
 }
