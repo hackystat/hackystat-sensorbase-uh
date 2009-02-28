@@ -272,13 +272,23 @@ public abstract class SensorBaseResource extends Resource {
   }
   
   /**
+   * Helper function that removes any newline characters from the supplied string and 
+   * replaces them with a blank line. 
+   * @param msg The msg whose newlines are to be removed. 
+   * @return The string without newlines. 
+   */
+  private String removeNewLines(String msg) {
+    return msg.replace(System.getProperty("line.separator"), " ");
+  }
+  
+  /**
    * Called when an exception is caught while processing a request.
    * Just sets the response code.  
    * @param timestamp The timestamp that could not be parsed.
    */
   protected void setStatusBadTimestamp (String timestamp) { 
     this.responseMsg = ResponseMessage.badTimestamp(this, timestamp);
-    getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+    getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, removeNewLines(this.responseMsg)); 
   }
   
   
@@ -289,7 +299,7 @@ public abstract class SensorBaseResource extends Resource {
    */
   protected void setStatusInternalError (Exception e) { 
     this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-    getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+    getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, removeNewLines(this.responseMsg));
   }
   
   /**
@@ -298,6 +308,6 @@ public abstract class SensorBaseResource extends Resource {
    */
   protected void setStatusMiscError (String msg) { 
     this.responseMsg = ResponseMessage.miscError(this, msg);
-    getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+    getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, removeNewLines(this.responseMsg));
   }
 }
