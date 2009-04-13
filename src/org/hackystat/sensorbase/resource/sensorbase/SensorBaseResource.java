@@ -133,13 +133,13 @@ public abstract class SensorBaseResource extends Resource {
       }
       else {
         this.responseMsg = ResponseMessage.adminOnly(this);
-        getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, this.responseMsg);
+        getResponse().setStatus(Status.CLIENT_ERROR_UNAUTHORIZED, removeNewLines(this.responseMsg));
         return false;
       }
     }
     catch (RuntimeException e) {
       this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, removeNewLines(this.responseMsg));
     }
     return false;
   }
@@ -155,7 +155,7 @@ public abstract class SensorBaseResource extends Resource {
       this.user = this.userManager.getUser(this.uriUser);
       if (this.user == null) {
         this.responseMsg = ResponseMessage.undefinedUser(this, this.uriUser);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, removeNewLines(this.responseMsg));
         return false;
       }
       else {
@@ -164,7 +164,7 @@ public abstract class SensorBaseResource extends Resource {
     }
     catch (RuntimeException e) {
       this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, removeNewLines(this.responseMsg));
     }
     return false;
   }
@@ -181,7 +181,7 @@ public abstract class SensorBaseResource extends Resource {
       this.project = projectManager.getProject(this.user, this.projectName);
       if (this.project == null) {
         this.responseMsg = ResponseMessage.undefinedProject(this, this.user, this.projectName);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, removeNewLines(this.responseMsg));
         return false;
       }
       else {
@@ -190,7 +190,7 @@ public abstract class SensorBaseResource extends Resource {
     }
     catch (RuntimeException e) {
       this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, removeNewLines(this.responseMsg));
     }
     return false;
   }
@@ -207,13 +207,13 @@ public abstract class SensorBaseResource extends Resource {
       }
       else {
         this.responseMsg = ResponseMessage.notProjectOwner(this, this.authUser, this.projectName);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, removeNewLines(this.responseMsg));
         return false;
       }
     }
     catch (RuntimeException e) {
       this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, removeNewLines(this.responseMsg));
     }
     return false;
   }
@@ -230,13 +230,13 @@ public abstract class SensorBaseResource extends Resource {
       }
       else {
         this.responseMsg = ResponseMessage.adminOrAuthUserOnly(this, this.authUser, this.uriUser);
-        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, this.responseMsg);
+        getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, removeNewLines(this.responseMsg));
         return false;
       }
     }
     catch (RuntimeException e) {
       this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, removeNewLines(this.responseMsg));
     }
     return false;
   }
@@ -266,7 +266,7 @@ public abstract class SensorBaseResource extends Resource {
     }
     catch (RuntimeException e) {
       this.responseMsg = ResponseMessage.internalError(this, this.getLogger(), e);
-      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, this.responseMsg);
+      getResponse().setStatus(Status.SERVER_ERROR_INTERNAL, removeNewLines(this.responseMsg));
     }
     return false;
   }
