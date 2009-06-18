@@ -523,7 +523,7 @@ final class PatternMatcherImpl {
    *
    * @return a Vector of path elements from the tokenized path
    */
-  public static Vector<String> tokenizePath(String path) {
+  public static Vector<String> tokenizePath(String path) { //NOPMD
     return tokenizePath(path, separator);
   }
 
@@ -536,7 +536,7 @@ final class PatternMatcherImpl {
    * @return a Vector of path elements from the tokenized path
    * @since Ant 1.6
    */
-  public static Vector<String> tokenizePath(String path, String separator) {
+  public static Vector<String> tokenizePath(String path, String separator) {  //NOPMD
     Vector<String> ret = new Vector<String>();
     StringTokenizer st = new StringTokenizer(path, separator);
     while (st.hasMoreTokens()) {

@@ -22,32 +22,6 @@
   <!-- make the jar target available so you can do 'ant -f verify.build.xml verify jar' -->
   <import file="jar.build.xml"/>
   <import file="sclc.build.xml"/>
-  
-  <echo>
-    Hackystat SensorBase Verification Task
-    
-    System and Environment settings:
-      Ant version:     ${ant.version}
-      Checkstyle Home: ${env.CHECKSTYLE_HOME}
-      Emma Home:       ${env.EMMA_HOME}
-      Derby Home:      ${env.DERBY_HOME}
-      FindBugs Home:   ${env.FINDBUGS_HOME} 
-      Java version:    ${java.version}
-      JavaMail Home:   ${env.JAVAMAIL_HOME} 
-      JUnit Home:      ${env.JUNIT_HOME}
-      PMD  Home:       ${env.PMD_HOME}
-      Restlet Home:    ${env.RESTLET_HOME}
-    
-    This task fails the build unless all of the following are true:
-      * System compiles without warnings or errors.
-      * JavaDocs can be built without warnings or errors. 
-      * JUnit test cases all pass.
-      * Checkstyle of source code generates no warnings. 
-      * PMD generates no warnings. 
-      * FindBugs generates no warnings. 
-    
-    It also runs the Emma code coverage tool and prints a summary report. 
-  </echo>
       
   <target name="verify" 
      depends="clean, compile, checkstyle,  junit, javadoc, findbugs, emma, pmd, sclc, emma.echo" 
