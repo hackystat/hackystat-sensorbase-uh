@@ -106,7 +106,7 @@ public abstract class SensorBaseResource extends Resource {
    * @return The Representation. 
    */
   @Override
-  public abstract Representation getRepresentation(Variant variant);
+  public abstract Representation represent(Variant variant);
   
   /**
    * Creates and returns a new Restlet StringRepresentation built from xmlData.

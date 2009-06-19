@@ -38,7 +38,7 @@ public class RowCountResource extends SensorBaseResource {
    * @return The row count as a string. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     try {
       if (!validateAuthUserIsAdmin()) {
         return null;

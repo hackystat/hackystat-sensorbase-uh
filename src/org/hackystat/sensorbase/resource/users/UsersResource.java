@@ -31,7 +31,7 @@ public class UsersResource extends SensorBaseResource {
    * @return The representation. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     if (!validateAuthUserIsAdmin()) {
       return null;
     }

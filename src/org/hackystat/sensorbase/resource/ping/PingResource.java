@@ -38,7 +38,7 @@ public class PingResource extends SensorBaseResource {
    * @return The representation as a string.  
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     try {
       String unauthenticated = "SensorBase";
       String authenticated = "SensorBase authenticated";

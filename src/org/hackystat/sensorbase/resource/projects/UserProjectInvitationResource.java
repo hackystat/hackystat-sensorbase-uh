@@ -54,7 +54,7 @@ public class UserProjectInvitationResource extends SensorBaseResource {
    * @return The representation. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     return null;
   }
   
@@ -81,7 +81,7 @@ public class UserProjectInvitationResource extends SensorBaseResource {
    * @param entity The XML representation of the new Project.
    */
   @Override
-  public void post(Representation entity) {
+  public void acceptRepresentation(Representation entity) {
     try {
       if (!validateUriUserIsUser() ||
           !validateUriProjectName()) {

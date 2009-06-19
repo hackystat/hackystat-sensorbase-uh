@@ -34,7 +34,7 @@ public class IndexResource extends SensorBaseResource {
    * @param variant Ignored.
    */
   @Override
-  public void put(Representation variant) {
+  public void storeRepresentation(Representation variant) {
     try {
       if (!validateAuthUserIsAdmin()) {
         return;
@@ -75,7 +75,7 @@ public class IndexResource extends SensorBaseResource {
    * @return Null.
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     getResponse().setStatus(Status.CLIENT_ERROR_METHOD_NOT_ALLOWED);
     return null;
   }

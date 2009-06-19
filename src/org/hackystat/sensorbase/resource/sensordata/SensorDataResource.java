@@ -32,7 +32,7 @@ public class SensorDataResource extends SensorBaseResource {
    * @return The representation. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     try {
       if (!validateAuthUserIsAdmin()) {
         return null;

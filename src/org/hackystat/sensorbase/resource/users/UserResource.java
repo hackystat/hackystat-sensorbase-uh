@@ -34,7 +34,7 @@ public class UserResource extends SensorBaseResource {
    * @return The representation. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     if (!validateUriUserIsUser() ||
         !validateAuthUserIsAdminOrUriUser()) {
       return null;
@@ -67,7 +67,7 @@ public class UserResource extends SensorBaseResource {
    * Only the authenticated user (or the admin) can delete their User resource.
    */
   @Override
-  public void delete() {
+  public void removeRepresentations() {
     if (!validateAuthUserIsAdminOrUriUser()) {
       return;
     }  
@@ -100,7 +100,7 @@ public class UserResource extends SensorBaseResource {
    * @param entity The entity to be posted.
    */
   @Override
-  public void post(Representation entity) {
+  public void acceptRepresentation(Representation entity) {
     if (!validateUriUserIsUser() ||
         !validateAuthUserIsAdminOrUriUser()) {
       return;

@@ -30,7 +30,7 @@ public class SensorDataTypesResource extends SensorBaseResource {
    * @return The representation. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     try {
       if (variant.getMediaType().equals(MediaType.TEXT_XML)) {
         String xmlData = super.sdtManager.getSensorDataTypeIndex();

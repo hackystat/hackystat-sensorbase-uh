@@ -44,7 +44,7 @@ public class RegistrationResource extends SensorBaseResource {
    * @return The representation. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     String pageHtml = 
       "<html>" +
       "  <body>" +
@@ -77,7 +77,7 @@ public class RegistrationResource extends SensorBaseResource {
    * @param entity The email address to be registered.
    */
   @Override
-  public void post(Representation entity) {
+  public void acceptRepresentation(Representation entity) {
     Form form = new Form(entity);
     String email = form.getFirstValue("email");
     // Return Badness if we don't have the email attribute.

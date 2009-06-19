@@ -38,7 +38,7 @@ public class UserProjectsResource extends SensorBaseResource {
    * @return The representation. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     try {
       if (!validateUriUserIsUser() ||
           !validateAuthUserIsAdminOrUriUser()) {

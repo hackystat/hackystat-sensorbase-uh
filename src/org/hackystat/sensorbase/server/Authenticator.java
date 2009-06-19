@@ -4,6 +4,7 @@ import org.hackystat.sensorbase.resource.users.UserManager;
 import org.restlet.Context;
 import org.restlet.Guard;
 import org.restlet.data.ChallengeScheme;
+import org.restlet.data.Request;
 
 /**
  * Performs authentication of each HTTP request using HTTP Basic authentication. 
@@ -23,11 +24,12 @@ public class Authenticator extends Guard {
   
   /**
    * Returns true if the passed credentials are OK.
+   * @param request The request. 
    * @param identifier The account name.
    * @param secret The password. 
    * @return If the credentials are valid.
    */
-  @Override protected boolean checkSecret(String identifier, char[] secret) {
+  @Override public boolean checkSecret(Request request, String identifier, char[] secret) {
     UserManager manager = (UserManager)getContext().getAttributes().get("UserManager");
     //SensorBaseLogger.getLogger().info("Authenticating: " + identifier + " " + new String(secret));
     return manager.isUser(identifier, new String(secret));

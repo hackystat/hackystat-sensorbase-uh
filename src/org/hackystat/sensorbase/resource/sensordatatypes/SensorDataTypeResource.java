@@ -36,7 +36,7 @@ public class SensorDataTypeResource extends SensorBaseResource {
    * @return The representation. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     if (!super.sdtManager.hasSdt(this.sdtName)) {
       getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST, "Unknown SDT: " + this.sdtName);
       return null;
@@ -67,7 +67,7 @@ public class SensorDataTypeResource extends SensorBaseResource {
    * @param entity The XML representation of the new SDT. 
    */
   @Override
-  public void put(Representation entity) {
+  public void storeRepresentation(Representation entity) {
     String entityString = null;
     SensorDataType sdt;
     if (!validateAuthUserIsAdmin()) {
@@ -112,7 +112,7 @@ public class SensorDataTypeResource extends SensorBaseResource {
    * Implement the DELETE method that deletes an existing SDT given its name.
    */
   @Override
-  public void delete() {
+  public void removeRepresentations() {
     try {
       if (!validateAuthUserIsAdmin()) {
         return;

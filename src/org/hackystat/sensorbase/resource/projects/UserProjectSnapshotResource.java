@@ -63,7 +63,7 @@ public class UserProjectSnapshotResource extends SensorBaseResource {
    * @return The representation. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     if (!validateUriUserIsUser() ||
         !validateUriProjectName() ||
         !validateProjectViewer()) {

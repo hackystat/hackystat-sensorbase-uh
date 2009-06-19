@@ -45,7 +45,7 @@ public class UserProjectResource extends SensorBaseResource {
    * @return The representation. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     // Validate
     if (!validateUriUserIsUser() ||
         !validateUriProjectName() || 
@@ -94,7 +94,7 @@ public class UserProjectResource extends SensorBaseResource {
    * @param entity The XML representation of the new Project.
    */
   @Override
-  public void put(Representation entity) {
+  public void storeRepresentation(Representation entity) {
     
     if (!validateUriUserIsUser() ||
         !validateAuthUserIsAdminOrUriUser()) {
@@ -259,7 +259,7 @@ public class UserProjectResource extends SensorBaseResource {
    * If the Project doesn't exist, that's fine, it's still "deleted".
    */
   @Override
-  public void delete() {
+  public void removeRepresentations() {
     try {
       if (!validateUriUserIsUser() ||
           !validateAuthUserIsAdminOrUriUser()) {

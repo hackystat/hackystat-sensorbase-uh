@@ -72,7 +72,7 @@ public class UserSensorDataResource extends SensorBaseResource {
    * @return The representation.
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     if (!validateUriUserIsUser()) {
       return null;
     }
@@ -178,7 +178,7 @@ public class UserSensorDataResource extends SensorBaseResource {
    * @param entity The XML representation of the new sensor data instance..
    */
   @Override
-  public void put(Representation entity) {
+  public void storeRepresentation(Representation entity) {
     try {
       if (!validateUriUserIsUser() ||
           !validateAuthUserIsAdminOrUriUser()) {
@@ -303,7 +303,7 @@ public class UserSensorDataResource extends SensorBaseResource {
    * user.
    */
   @Override
-  public void delete() {
+  public void removeRepresentations() {
     if (!validateUriUserIsUser() ||
         !validateAuthUserIsAdminOrUriUser()) {
       return;

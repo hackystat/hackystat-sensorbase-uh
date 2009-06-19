@@ -45,7 +45,7 @@ public class UserProjectRenameResource extends SensorBaseResource {
    * @return The representation. 
    */
   @Override
-  public Representation getRepresentation(Variant variant) {
+  public Representation represent(Variant variant) {
     return null;
   }
   
@@ -67,7 +67,7 @@ public class UserProjectRenameResource extends SensorBaseResource {
    * @param entity ignored.
    */
   @Override
-  public void post(Representation entity) {
+  public void acceptRepresentation(Representation entity) {
    
     if (!validateUriUserIsUser() ||
         !validateUriProjectName() ||
