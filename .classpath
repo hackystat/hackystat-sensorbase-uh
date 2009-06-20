@@ -16,5 +16,6 @@
 	<classpathentry kind="lib" path="lib/restlet/com.noelios.restlet.ext.simple_3.1.jar"/>
 	<classpathentry kind="lib" path="lib/restlet/com.noelios.restlet.jar"/>
 	<classpathentry kind="lib" path="lib/restlet/org.restlet.jar"/>
+	<classpathentry kind="lib" path="lib/restlet/org.simpleframework.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -40,6 +40,7 @@ import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
 import org.hackystat.utilities.tstamp.Tstamp;
 import org.hackystat.utilities.uricache.UriCache;
 import org.restlet.Client;
+import org.restlet.Context;
 import org.restlet.data.ChallengeResponse;
 import org.restlet.data.ChallengeScheme;
 import org.restlet.data.Form;
@@ -1863,14 +1864,15 @@ public class SensorBaseClient {
    * @param milliseconds The timeout value. 
    */
   private static void setClientTimeout(Client client, int milliseconds) {
-    client.getContext().getParameters().removeAll("connectTimeout");
-    client.getContext().getParameters().add("connectTimeout", String.valueOf(milliseconds));
-    // For the Apache Commons client.
-    client.getContext().getParameters().removeAll("readTimeout");
-    client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
-    client.getContext().getParameters().removeAll("connectionManagerTimeout");
-    client.getContext().getParameters().add("connectionManagerTimeout", 
-        String.valueOf(milliseconds));
+    client.setConnectTimeout(milliseconds);
+//    client.getContext().getParameters().removeAll("connectTimeout");
+//    client.getContext().getParameters().add("connectTimeout", String.valueOf(milliseconds));
+//    // For the Apache Commons client.
+//    client.getContext().getParameters().removeAll("readTimeout");
+//    client.getContext().getParameters().add("readTimeout", String.valueOf(milliseconds));
+//    client.getContext().getParameters().removeAll("connectionManagerTimeout");
+//    client.getContext().getParameters().add("connectionManagerTimeout", 
+//        String.valueOf(milliseconds));
   }
   
   /**

@@ -131,7 +131,8 @@ public class Server extends Application {
     //   before the resource managers add data to them.
     // - UserManager must be initialized before ProjectManager, since ProjectManager needs
     //   to know about the Users. 
-    Map<String, Object> attributes = server.getContext().getAttributes();
+    Map<String, Object> attributes = 
+      server.getContext().getAttributes();
     DbManager dbManager = new DbManager(server);  // we need this later in this method.
     attributes.put("DbManager", dbManager);
     attributes.put("SdtManager", new SdtManager(server));
