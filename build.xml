@@ -5,6 +5,11 @@
 
   <!-- Always make environment variables available with the "env." prefix. -->
   <property environment="env" />
+  
+  <!-- Basic directory structure. -->
+  <property name="src.dir" location="${basedir}/src" />
+  <property name="lib.dir" location="${basedir}/lib" />
+  <property name="build.dir" location="${basedir}/build" />
 
   <!-- Make sure we're running a Java 5 or better. -->
   <condition property="java.5.available">
@@ -23,7 +28,7 @@
   
   <!-- Make sure Ivy is installed. -->
   <import file="ivy.build.xml"/>
-  <available file="${ivy.install.dir}/${ivy.jar.file}" type="file" property="ivy.available" />
+  <available file="${lib.dir}/ivy/ivy.jar" type="file" property="ivy.available" />
   <fail message="This package requires Ivy.  To install, invoke 'ant -f ivy.build.xml'." unless="ivy.available" />
   <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
 
@@ -50,10 +55,12 @@
     </fileset>
   </path>
 
-
-  <!-- Make sure that Restlet is installed . -->
-  <available file="${env.RESTLET_HOME}/lib/org.restlet.jar" type="file" property="restlet.available" />
-  <fail message="This package requires the Restlet Framework to be downloaded and RESTLET_HOME defined" unless="restlet.available" />
+  <ivy:retrieve organisation="org.apache.derby" module="derby" revision="${derby.version}" pattern="${lib.dir}/derby/[artifact].[ext]" sync="true" inline="true" conf="default,locale" log="download-only" transitive="false" type="jar"/>
+  <path id="derby.path">
+    <fileset dir="${lib.dir}/derby">
+      <include name="*.jar"/>
+    </fileset>
+  </path>
 
   <!-- Make sure that JavaMail is installed . -->
   <available file="${env.JAVAMAIL_HOME}/mail.jar" type="file" property="javamail.available" />
@@ -62,11 +69,6 @@
   <!-- Make sure that the JAXB library is available (by default in Java 6, through manual installation in Java 5. -->
   <available classname="javax.xml.bind.JAXBContext" property="jaxb.available" />
   <fail message="This package requires JAXB to be installed" unless="jaxb.available" />
-
-  <!-- Make sure that Derby is available .. -->
-  <!-- Needed even under Java 6 so that a Java 5-compatible dist can be created. -->
-  <available file="${env.DERBY_HOME}/lib/derby.jar" type="file" property="derby.available" />
-  <fail message="This package requires Derby to be installed and DERBY_HOME defined" unless="derby.available" />
 
   <!-- Make sure that Hackystat Utilities are is available . -->
   <available file="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar" type="file" property="hackystat.utilities.available" />
@@ -99,6 +101,7 @@
   <path id="compile.classpath">
     <path refid="junit.path"/>
     <path refid="restlet.path"/>
+    <path refid="derby.path"/>
     <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/hackystatlogger.lib.jar" />
     <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar" />
     <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/tstamp.lib.jar" />
@@ -106,15 +109,7 @@
     <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/time.lib.jar" />
     <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/hackystatuserhome.lib.jar" />
     <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/validate.email.lib.jar" />
-    <!--
-    <fileset file="${env.RESTLET_HOME}/lib/org.restlet.jar" />
-    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" />
-    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar" />
-    <fileset file="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar" />
-    <fileset file="${env.RESTLET_HOME}/lib/org.simpleframework_3.1/org.simpleframework.jar" />
-    --> 
     <fileset file="${env.JAVAMAIL_HOME}/mail.jar" />
-    <fileset file="${env.DERBY_HOME}/lib/derby.jar" />
     <fileset file="${env.FINDBUGS_HOME}/lib/annotations.jar" />
   </path>
 

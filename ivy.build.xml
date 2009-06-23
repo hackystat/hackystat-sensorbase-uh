@@ -6,11 +6,8 @@
   </description> 
     
   <!-- Provide Ivy version and installation details. -->
-  <property name="lib.dir" location="${basedir}/lib"/>
-  <property name="ivy.install.dir" location="${lib.dir}/ivy"/>
-  <property name="ivy.jar.file" value="ivy.jar"/>
   <path id="ivy.lib.path">
-    <fileset dir="${ivy.install.dir}" includes="*.jar"/>
+    <fileset dir="${basedir}/lib/ivy" includes="*.jar"/>
   </path>
 
   <property name="library.versions.path" location="${user.home}/.hackystat/library.versions.properties"/>
@@ -27,9 +24,9 @@
     
   
   <target name="install.ivy" description="Downloads Ivy into lib directory.">
-    <mkdir dir="${ivy.install.dir}"/>
+    <mkdir dir="${basedir}/lib/ivy"/>
     <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.version}/ivy-${ivy.version}.jar"
-         dest="${ivy.install.dir}/${ivy.jar.file}" usetimestamp="true"/>
+         dest="${basedir}/lib/ivy/ivy.jar" usetimestamp="true"/>
   </target>
 
   <target name="install.library.versions.properties" description="Downloads library.versions.properties into .hackystat directory.">

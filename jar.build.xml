@@ -26,11 +26,11 @@
     <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/time.lib.jar" dest="${tmp.dir}"/>
     <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/hackystatuserhome.lib.jar" dest="${tmp.dir}"/>
     <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/validate.email.lib.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.RESTLET_HOME}/lib/org.simpleframework_3.1/org.simpleframework.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.RESTLET_HOME}/lib/org.restlet.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.net.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.RESTLET_HOME}/lib/com.noelios.restlet.ext.simple_3.1.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/restlet/lib/org.simpleframework.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/restlet/lib/org.restlet.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/restlet/lib/com.noelios.restlet.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/restlet/lib/com.noelios.restlet.ext.net.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/restlet/lib/com.noelios.restlet.ext.simple_3.1.jar" dest="${tmp.dir}"/>
 
     <!-- No main class, this jar file is a library and cannot be run from the command line. -->
     <jar destfile="${basedir}/sensorbaseclient.jar" basedir="${tmp.dir}">
@@ -42,7 +42,7 @@
     </jar>
     
     <!-- Now add derby and jar up sensorbase.jar. -->
-    <unjar src="${env.DERBY_HOME}/lib/derby.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/derby.jar" dest="${tmp.dir}"/>
     <jar destfile="${basedir}/sensorbase.jar" basedir="${tmp.dir}">
        <manifest>
          <attribute name="Main-Class" value="org.hackystat.sensorbase.server.Server"/>

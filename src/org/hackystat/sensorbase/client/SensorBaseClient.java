@@ -40,7 +40,6 @@ import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
 import org.hackystat.utilities.tstamp.Tstamp;
 import org.hackystat.utilities.uricache.UriCache;
 import org.restlet.Client;
-import org.restlet.Context;
 import org.restlet.data.ChallengeResponse;
 import org.restlet.data.ChallengeScheme;
 import org.restlet.data.Form;
