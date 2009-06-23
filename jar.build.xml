@@ -1,4 +1,4 @@
-<project name="jar" default="jar" xmlns:ivy="antlib:org.apache.ivy.ant">
+<project name="jar" default="publish" xmlns:ivy="antlib:org.apache.ivy.ant">
   <description>
   Provides the target for building a jar file of the SensorBase.
   </description>
