@@ -61,6 +61,13 @@
       <include name="*.jar"/>
     </fileset>
   </path>
+  
+  <ivy:retrieve organisation="org.hackystat" module="hackystat-utilities" revision="latest.integration" pattern="${lib.dir}/hackystat-utilities/[artifact].[ext]" sync="true" inline="true" conf="default" log="download-only" transitive="false" type="jar"/>
+  <path id="hackystat-utilities.path">
+    <fileset dir="${lib.dir}/hackystat-utilities">
+      <include name="*.jar"/>
+    </fileset>
+  </path>  
 
   <!-- Make sure that JavaMail is installed . -->
   <available file="${env.JAVAMAIL_HOME}/mail.jar" type="file" property="javamail.available" />
@@ -69,10 +76,6 @@
   <!-- Make sure that the JAXB library is available (by default in Java 6, through manual installation in Java 5. -->
   <available classname="javax.xml.bind.JAXBContext" property="jaxb.available" />
   <fail message="This package requires JAXB to be installed" unless="jaxb.available" />
-
-  <!-- Make sure that Hackystat Utilities are is available . -->
-  <available file="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar" type="file" property="hackystat.utilities.available" />
-  <fail message="This package requires the Hackystat Utilities to be installed and HACKYSTAT_UTILITIES_HOME defined" unless="hackystat.utilities.available" />
 
   <!-- Basic properties for this system. -->
   <property name="system.name" value="hackystat-sensorbase-uh" />
@@ -102,15 +105,9 @@
     <path refid="junit.path"/>
     <path refid="restlet.path"/>
     <path refid="derby.path"/>
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/hackystatlogger.lib.jar" />
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar" />
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/tstamp.lib.jar" />
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/uricache.lib.jar" />
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/time.lib.jar" />
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/hackystatuserhome.lib.jar" />
-    <fileset file="${env.HACKYSTAT_UTILITIES_HOME}/validate.email.lib.jar" />
+    <path refid="hackystat-utilities.path"/>
     <fileset file="${env.JAVAMAIL_HOME}/mail.jar" />
-    <fileset file="${env.FINDBUGS_HOME}/lib/annotations.jar" />
+    <fileset file="${lib.dir}/findbugs/annotations.jar" />
   </path>
 
   <target name="compile" description="Compiles the code.">

@@ -6,6 +6,10 @@
         <ivy pattern="http://ivyroundup.googlecode.com/svn/trunk/repo/modules/[organisation]/[module]/[revision]/ivy.xml"/>
         <artifact pattern="http://ivyroundup.googlecode.com/svn/trunk/repo/modules/[organisation]/[module]/[revision]/packager.xml"/>
       </packager>
+      <filesystem name="local-repository">
+        <artifact pattern="${user.home}/.ivy2/local-repository/[artifact]-[revision].[ext]" />
+        <ivy pattern="${user.home}/.ivy2/local-repository/[module]-[revision].xml" />
+      </filesystem>
     </chain>
   </resolvers>
 </ivysettings>

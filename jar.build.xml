@@ -1,4 +1,4 @@
-<project name="jar" default="jar">
+<project name="jar" default="jar" xmlns:ivy="antlib:org.apache.ivy.ant">
   <description>
   Provides the target for building a jar file of the SensorBase.
   </description>
@@ -6,6 +6,7 @@
   <import file="build.xml"/>
   <property name="tmp.dir" location="${basedir}/tmp" />
   <property name="tmp.lib.dir" location="${basedir}/tmp-lib" />
+  <property name="build.jar.dir" location="${build.dir}/jar" />
  
   <target name="jar" depends="jar-standalone, jar-lib"/>   
 
@@ -14,18 +15,19 @@
     <!-- Define the directories and distribution name -->
     <delete dir="${tmp.dir}" quiet="yes"/>
     <mkdir dir="${tmp.dir}" />
+    <mkdir dir="${build.jar.dir}"/>
     <copy todir="${tmp.dir}">
       <fileset dir="${basedir}/build/classes"/>
     </copy>
   
     <!-- First build sensorbaseclient.jar, which is everything but derby. --> 
-    <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/hackystatlogger.lib.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/stacktrace.lib.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/tstamp.lib.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/uricache.lib.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/time.lib.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/hackystatuserhome.lib.jar" dest="${tmp.dir}"/>
-    <unjar src="${env.HACKYSTAT_UTILITIES_HOME}/validate.email.lib.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/hackystat-utilities/hackystatlogger.lib.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/hackystat-utilities/stacktrace.lib.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/hackystat-utilities/tstamp.lib.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/hackystat-utilities/uricache.lib.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/hackystat-utilities/time.lib.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/hackystat-utilities/hackystatuserhome.lib.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/hackystat-utilities/validate.email.lib.jar" dest="${tmp.dir}"/>
     <unjar src="${lib.dir}/restlet/org.simpleframework.jar" dest="${tmp.dir}"/>
     <unjar src="${lib.dir}/restlet/org.restlet.jar" dest="${tmp.dir}"/>
     <unjar src="${lib.dir}/restlet/com.noelios.restlet.jar" dest="${tmp.dir}"/>
@@ -33,7 +35,7 @@
     <unjar src="${lib.dir}/restlet/com.noelios.restlet.ext.simple_3.1.jar" dest="${tmp.dir}"/>
 
     <!-- No main class, this jar file is a library and cannot be run from the command line. -->
-    <jar destfile="${basedir}/sensorbaseclient.jar" basedir="${tmp.dir}">
+    <jar destfile="${build.jar.dir}/sensorbaseclient.jar" basedir="${tmp.dir}">
       <manifest>
         <attribute name="Implementation-Title" value="Hackystat SensorBaseClient"/>
         <attribute name="Implementation-Version" value="${version}"/>
@@ -43,7 +45,7 @@
     
     <!-- Now add derby and jar up sensorbase.jar. -->
     <unjar src="${lib.dir}/derby/derby.jar" dest="${tmp.dir}"/>
-    <jar destfile="${basedir}/sensorbase.jar" basedir="${tmp.dir}">
+    <jar destfile="${build.jar.dir}/sensorbase.jar" basedir="${tmp.dir}">
        <manifest>
          <attribute name="Main-Class" value="org.hackystat.sensorbase.server.Server"/>
          <attribute name="Implementation-Title" value="Hackystat SensorBase-UH"/>
@@ -58,12 +60,13 @@
   <target name="jar-lib" depends="compile" 
      description="Create sensorbase.lib.jar, containing just org.hackystat.sensorbase code.">
      <!-- Define the directories and distribution name -->
+     <mkdir dir="${build.jar.dir}"/>
      <mkdir dir="${tmp.lib.dir}" />
      <copy todir="${tmp.lib.dir}">
        <fileset dir="${basedir}/build/classes"/>
      </copy>
    
-     <jar destfile="${basedir}/sensorbase.lib.jar" basedir="${tmp.lib.dir}">
+     <jar destfile="${build.jar.dir}/sensorbase.lib.jar" basedir="${tmp.lib.dir}">
        <manifest>
          <attribute name="Implementation-Title" value="Hackystat SensorBase-UH"/>
          <attribute name="Implementation-Version" value="${version}"/>
@@ -71,6 +74,20 @@
        </manifest>
      </jar>
      <delete dir="${tmp.lib.dir}" />
-   </target>    
+   </target>   
+  
+  <target name="publish" depends="jar" description="Publish this project in the local ivy repository">
+    <ivy:resolve />
+    <!-- Put all jar files in build.dir, so that ivy.xml file can be made there as well. -->
+    <copy todir="${build.dir}">
+      <fileset dir="${basedir}">
+        <include name="*.jar"/>
+      </fileset>
+    </copy>
+    <tstamp>
+      <format property="publication-revision" pattern="yyyy.MM.dd.hh.mm.ss" />
+    </tstamp>
+    <ivy:publish artifactspattern="${build.jar.dir}/[artifact].[ext]" resolver="local-repository" pubrevision="${publication-revision}" update="true"/>
+  </target>   
 </project>
 
