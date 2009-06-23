@@ -40,7 +40,7 @@
     <!-- Run JUnit with the instrumented class files. -->
     <mkdir dir="${junit.dir}" />
     <junit maxmemory="512M" printsummary="withOutAndErr" fork="yes">
-      <classpath path="${build.dir}/classes;${java.class.path}">
+      <classpath path="${build.dir}/classes">
         <path refid="emma.lib.dir" />
         <path refid="compile.classpath" />
       </classpath>
