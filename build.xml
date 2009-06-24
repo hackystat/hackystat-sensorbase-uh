@@ -1,11 +1,8 @@
 <project name="build" default="compile" xmlns:ivy="antlib:org.apache.ivy.ant">
   <description>
-  The basic build file for the StackyHack system.
+  The basic build file for the Sensorbase system.
   </description>
 
-  <!-- Always make environment variables available with the "env." prefix. -->
-  <property environment="env" />
-  
   <!-- Basic directory structure. -->
   <property name="src.dir" location="${basedir}/src" />
   <property name="lib.dir" location="${basedir}/lib" />
@@ -69,7 +66,8 @@
     </fileset>
   </path>  
 
-  <!-- Make sure that JavaMail is installed . -->
+  <!-- Make sure that JavaMail is accessible. -->
+  <property environment="env" />
   <available file="${env.JAVAMAIL_HOME}/mail.jar" type="file" property="javamail.available" />
   <fail message="This package requires JavaMail 1.4 to be downloaded and JAVAMAIL_HOME defined" unless="javamail.available" />
 

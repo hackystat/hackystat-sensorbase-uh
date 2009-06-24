@@ -78,12 +78,6 @@
   
   <target name="publish" depends="jar" description="Publish this project in the local ivy repository">
     <ivy:resolve />
-    <!-- Put all jar files in build.dir, so that ivy.xml file can be made there as well. -->
-    <copy todir="${build.dir}">
-      <fileset dir="${basedir}">
-        <include name="*.jar"/>
-      </fileset>
-    </copy>
     <tstamp>
       <format property="publication-revision" pattern="yyyy.MM.dd.hh.mm.ss" />
     </tstamp>
