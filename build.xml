@@ -92,11 +92,6 @@
   <condition property="hackystat.enabled">
     <istrue value="${hackystat.enable}" />
   </condition>
-  
-  <!-- Basic directory structure. -->
-  <property name="src.dir" location="${basedir}/src" />
-  <property name="lib.dir" location="${basedir}/lib" />
-  <property name="build.dir" location="${basedir}/build" />
 
   <!-- The compile classpath is useful to many tools. -->
   <path id="compile.classpath">
