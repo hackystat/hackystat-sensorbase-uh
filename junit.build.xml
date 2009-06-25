@@ -18,6 +18,7 @@
         <pathelement location="${build.dir}/classes" />
         <path refid="compile.classpath"/>
       </classpath>
+      <sysproperty key="user.dir" value="${basedir}" />
       <formatter type="xml" />
       <batchtest todir="${junit.build.dir}">
         <fileset dir="${src.dir}" includes="**/Test*.java"/>
