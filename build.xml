@@ -105,7 +105,6 @@
     <path refid="derby.path"/>
     <path refid="hackystat-utilities.path"/>
     <fileset file="${env.JAVAMAIL_HOME}/mail.jar" />
-    <fileset file="${lib.dir}/findbugs/annotations.jar" />
   </path>
 
   <target name="compile" description="Compiles the code.">
