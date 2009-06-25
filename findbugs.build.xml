@@ -23,7 +23,6 @@
     <fileset dir="${findbugs.install.dir}">
        <include name = "*.jar" />
     </fileset> 
-    <pathelement path="${java.ext.dirs}"/>
   </path>
   <pathconvert property="findbugs.classpath" refid="findbugs.classpath"/>
 
