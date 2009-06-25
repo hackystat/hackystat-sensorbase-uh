@@ -10,7 +10,7 @@
   
   <!-- Make sure that the JAXB compiler is available. -->
   <available file="${env.JAXB_HOME}/lib/jaxb-xjc.jar" property="jaxb.xjc.available" />
-  <fail message="Could not find ${env.JAXB_HOME}/lib/jaxb-xjc.jar" unless="jaxb.xjc.available" />
+  <fail message="Could not find ${env.JAXB_HOME}/lib/jaxb-xjc.jar. See Section 3.0 of http://code.google.com/p/hackystat/wiki/InstallingJAXBinJava5" unless="jaxb.xjc.available" />
 
   <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask">
     <classpath> 

@@ -67,13 +67,12 @@
   </path>  
 
   <!-- Make sure that JavaMail is accessible. -->
-  <property environment="env" />
-  <available file="${env.JAVAMAIL_HOME}/mail.jar" type="file" property="javamail.available" />
-  <fail message="This package requires JavaMail 1.4 to be downloaded and JAVAMAIL_HOME defined" unless="javamail.available" />
+  <available classname="javax.mail.Message" property="javamail.available" />
+  <fail message="This package requires JavaMail. See http://code.google.com/p/hackystat/wiki/InstallingJavaMail." unless="javamail.available" />
 
   <!-- Make sure that the JAXB library is available (by default in Java 6, through manual installation in Java 5. -->
   <available classname="javax.xml.bind.JAXBContext" property="jaxb.available" />
-  <fail message="This package requires JAXB to be installed" unless="jaxb.available" />
+  <fail message="This package requires JAXB.  See http://code.google.com/p/hackystat/wiki/InstallingJAXBinJava5." unless="jaxb.available" />
 
   <!-- Basic properties for this system. -->
   <property name="system.name" value="hackystat-sensorbase-uh" />
@@ -99,7 +98,6 @@
     <path refid="restlet.path"/>
     <path refid="derby.path"/>
     <path refid="hackystat-utilities.path"/>
-    <fileset file="${env.JAVAMAIL_HOME}/mail.jar" />
   </path>
 
   <target name="compile" description="Compiles the code.">

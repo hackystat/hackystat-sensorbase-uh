@@ -23,6 +23,7 @@
     <fileset dir="${findbugs.install.dir}">
        <include name = "*.jar" />
     </fileset> 
+    <pathelement path="${java.ext.dirs}"/>
   </path>
   <pathconvert property="findbugs.classpath" refid="findbugs.classpath"/>
 
@@ -34,7 +35,6 @@
 
   <target name="findbugs.tool" depends="compile, findbugs.install.filter.file" description="Runs FindBugs over the byte code to check for problems.">
     <taskdef name="findbugs" classname="edu.umd.cs.findbugs.anttask.FindBugsTask" classpath="${findbugs.install.dir}/findbugs-ant.jar" />
-
     <!-- Run FindBugs -->
     <mkdir dir="${findbugs.dir}" />
     <findbugs jvmargs="-Xmx256M" classpath="${findbugs.classpath}" pluginList="" failOnError="${findbugs.failOnError}" warningsProperty="findbugs.warningsfound" output="xml:withMessages" outputFile="${findbugs.dir}/findbugs.xml" excludeFilter="${findbugs.filter.file}">
