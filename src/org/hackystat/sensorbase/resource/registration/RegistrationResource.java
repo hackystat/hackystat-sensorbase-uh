@@ -77,57 +77,55 @@ public class RegistrationResource extends SensorBaseResource {
   @Override
   public void acceptRepresentation(Representation entity) {
     server.getLogger().info("Beginning registration.");
-    if (entity.getMediaType().equals(MediaType.APPLICATION_WWW_FORM, true)) {
-      Form form = new Form(entity);
-      String email = form.getFirstValue("email");
-      // Return Badness if we don't have the email attribute.
-      if (email == null || "".equals(email)) {
-        setStatusMiscError("Invalid registration request: empty email");
-        return;
-      }
-      if (!ValidateEmailSyntax.isValid(email)) {
-        setStatusMiscError("Invalid registration request: email appears to be invalid.");
-        return;
-      }
-      try {
-        // Now try to register.
-        User user = super.userManager.registerUser(email);
-        super.projectManager.addDefaultProject(user);
-        // Now send the email to the (non-test) user and the hackystat admin.
-        Mailer mailer = Mailer.getInstance();
-        String adminEmail = server.getServerProperties().get(ADMIN_EMAIL_KEY);
-        String emailSubject = "Hackystat Version 8 Registration";
-        String emailBody = "Welcome to Hackystat. " + "\nYou are registered with: "
-            + server.getServerProperties().getFullHost() + "\nYour user name is:       "
-            + user.getEmail() + "\nYour password is:        " + user.getPassword()
-            + "\nNote that both user name and password are case-sensitive."
-            + "\n\nFor questions, email:  " + adminEmail
-            + "\nYou can also see documentation at http://www.hackystat.org/"
-            + "\nWe hope you enjoy using Hackystat!";
+    Form form = new Form(entity);
+    String email = form.getFirstValue("email");
+    // Return Badness if we don't have the email attribute.
+    if (email == null || "".equals(email)) {
+      setStatusMiscError("Invalid registration request: empty email");
+      return;
+    }
+    if (!ValidateEmailSyntax.isValid(email)) {
+      setStatusMiscError("Invalid registration request: email appears to be invalid.");
+      return;
+    }
+    try {
+      // Now try to register.
+      User user = super.userManager.registerUser(email);
+      super.projectManager.addDefaultProject(user);
+      // Now send the email to the (non-test) user and the hackystat admin.
+      Mailer mailer = Mailer.getInstance();
+      String adminEmail = server.getServerProperties().get(ADMIN_EMAIL_KEY);
+      String emailSubject = "Hackystat Version 8 Registration";
+      String emailBody = "Welcome to Hackystat. " + "\nYou are registered with: "
+          + server.getServerProperties().getFullHost() + "\nYour user name is:       "
+          + user.getEmail() + "\nYour password is:        " + user.getPassword()
+          + "\nNote that both user name and password are case-sensitive."
+          + "\n\nFor questions, email:  " + adminEmail
+          + "\nYou can also see documentation at http://www.hackystat.org/"
+          + "\nWe hope you enjoy using Hackystat!";
 
-        boolean success = mailer.send(email, emailSubject, emailBody);
-        server.getLogger().info("Email sent " + (success ? "successfully." : "unsuccessfully."));
-        if (success) {
-          // Don't send the administrator emails about test user registration.
-          if (!userManager.isTestUser(user)) {
-            mailer.send(adminEmail, "Hackystat 8 Admin Registration", "User " + email
-                + " registered and received password: " + user.getPassword() + "\n" + "for host: "
-                + server.getServerProperties().get(HOSTNAME_KEY));
-          }
-
-          String responseHtml = "<html>" + "  <body>"
-              + "    Thank you for registering with this SensorBase. " + "    <p>"
-              + "    Your password has been sent to: " + email + "  </body>" + "</html>";
-          server.getLogger().info("Registered: " + email + " " + user.getPassword());
-          getResponse().setStatus(Status.SUCCESS_OK);
-          Representation representation = new StringRepresentation(responseHtml);
-          representation.setMediaType(MediaType.TEXT_HTML);
-          getResponse().setEntity(representation);
+      boolean success = mailer.send(email, emailSubject, emailBody);
+      server.getLogger().info("Email sent " + (success ? "successfully." : "unsuccessfully."));
+      if (success) {
+        // Don't send the administrator emails about test user registration.
+        if (!userManager.isTestUser(user)) {
+          mailer.send(adminEmail, "Hackystat 8 Admin Registration", "User " + email
+              + " registered and received password: " + user.getPassword() + "\n" + "for host: "
+              + server.getServerProperties().get(HOSTNAME_KEY));
         }
+
+        String responseHtml = "<html>" + "  <body>"
+            + "    Thank you for registering with this SensorBase. " + "    <p>"
+            + "    Your password has been sent to: " + email + "  </body>" + "</html>";
+        server.getLogger().info("Registered: " + email + " " + user.getPassword());
+        getResponse().setStatus(Status.SUCCESS_OK);
+        Representation representation = new StringRepresentation(responseHtml);
+        representation.setMediaType(MediaType.TEXT_HTML);
+        getResponse().setEntity(representation);
       }
-      catch (RuntimeException e) {
-        setStatusInternalError(e);
-      }
+    }
+    catch (RuntimeException e) {
+      setStatusInternalError(e);
     }
   }
 }
