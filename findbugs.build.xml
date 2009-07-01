@@ -27,7 +27,7 @@
   <pathconvert property="findbugs.classpath" refid="findbugs.classpath"/>
 
   <property name="findbugs.dir" location="${build.dir}/findbugs" />
-  <property name="findbugs.failOnError" value="true" />
+  <property name="findbugs.failOnError" value="false" />
 
   <target name="findbugs" depends="findbugs.tool, findbugs.report, findbugs.sensor" 
     description="Runs the FindBugs tool, report, and sensor." />
