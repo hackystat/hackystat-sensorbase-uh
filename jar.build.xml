@@ -7,6 +7,7 @@
   <property name="tmp.dir" location="${basedir}/tmp" />
   <property name="tmp.lib.dir" location="${basedir}/tmp-lib" />
   <property name="build.jar.dir" location="${build.dir}/jar" />
+  <delete dir="${build.jar.dir}" quiet="true"/>
  
   <target name="jar" depends="jar-standalone, jar-lib">
     <!-- Temporary copy to ${basedir} to support packages still using HACKYSTAT_SENSORBASE_HOME. -->
