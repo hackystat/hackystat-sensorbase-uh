@@ -77,9 +77,9 @@ public class SensorBaseClient {
   private static final JAXBContext sdtJAXB;
   /** Users JAXBContext. */
   private static final JAXBContext userJAXB;
-  /** SDT JAXBContext. */
+  /** SensorData JAXBContext. */
   private static final JAXBContext sensordataJAXB;
-  /** SDT JAXBContext. */
+  /** Project JAXBContext. */
   private static final JAXBContext projectJAXB;
   /** The http authentication approach. */
   private ChallengeScheme scheme = ChallengeScheme.HTTP_BASIC;
