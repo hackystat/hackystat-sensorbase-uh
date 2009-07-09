@@ -84,7 +84,11 @@
      <delete dir="${tmp.lib.dir}" />
    </target>   
   
-  <target name="publish" depends="jar" description="Publish this project in the local ivy repository">
+  <!--
+     Ivy publication targets.
+   -->
+  <import file="javadoc.build.xml"/>
+  <target name="publish" depends="jar, javadoc.zip" description="Publish this project in the local ivy repository">
     <ivy:resolve />
     <tstamp>
       <format property="publication-revision" pattern="yyyy.MM.dd.HH.mm.ss" />

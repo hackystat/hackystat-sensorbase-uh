@@ -4,6 +4,8 @@
     <artifact name="sensorbase" />
     <artifact name="sensorbaseclient" />
     <artifact name="sensorbase.lib" />
+    <artifact name="hackystat-sensorbase-uh-javadoc" ext="zip" type="javadoc"/>
+    <artifact name="hackystat-sensorbase-uh-source" ext="zip" type="source"/>
   </publications>
   <dependencies>
     <dependency org="org.junit" name="junit" rev="${junit.version}" />
