@@ -18,7 +18,7 @@
   <!-- make the jar target available so you can do 'ant -f verify.build.xml verify jar' -->
   <import file="jar.build.xml" />
 
-  <target name="verify" depends="clean, compile, checkstyle, junit, findbugs, pmd" description="Invoke analyzers, fail if any errors found.">
+  <target name="verify" depends="clean, compile, checkstyle.tool, junit.tool, pmd.tool, findbugs.tool" description="Invoke analyzers, fail if any errors found.">
     <fail message="FindBugs reported warnings." if="findbugs.warningsfound" />
   </target>
 
