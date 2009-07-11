@@ -37,6 +37,7 @@ import org.hackystat.sensorbase.resource.users.jaxb.Properties;
 import org.hackystat.sensorbase.resource.users.jaxb.User;
 import org.hackystat.sensorbase.resource.users.jaxb.UserIndex;
 import org.hackystat.sensorbase.resource.users.jaxb.UserRef;
+import org.hackystat.utilities.logger.RestletLoggerUtil;
 import org.hackystat.utilities.tstamp.Tstamp;
 import org.hackystat.utilities.uricache.UriCache;
 import org.restlet.Client;
@@ -136,6 +137,7 @@ public class SensorBaseClient {
     validateArg(host);
     validateArg(email);
     validateArg(password);
+    RestletLoggerUtil.useFileHandler("sensorbaseclient");
     this.userEmail = email;
     this.password = password;
     this.sensorBaseHost = host;
