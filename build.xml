@@ -8,6 +8,9 @@
   <target name="install-libraries" description="Install libraries needed for compilation">
     <ivy:retrieve organisation="org.junit" module="junit" revision="${junit.version}" pattern="${lib.dir}/junit/[artifact].[ext]" sync="true" inline="true" conf="default" log="download-only" transitive="false" type="jar" />
     <path id="junit.path" location="${lib.dir}/junit/junit.jar" />
+    
+    <ivy:retrieve organisation="javax" module="mail" revision="${javamail.version}" pattern="${lib.dir}/javamail/[artifact].[ext]" sync="true" inline="true" conf="default" log="download-only" transitive="false" type="jar" />
+    <path id="javamail.path" location="${lib.dir}/javamail/mail.jar" />
 
     <ivy:retrieve organisation="org.restlet" module="restlet" revision="${restlet.version}" pattern="${lib.dir}/restlet/[artifact].[ext]" sync="false" inline="true" conf="core,net,simple" log="download-only" transitive="false" type="jar" />
     <path id="restlet.path">
@@ -30,14 +33,6 @@
       </fileset>
     </path>
   </target>
-
-  <!-- Make sure that JavaMail is accessible. -->
-  <available classname="javax.mail.Message" property="javamail.available" />
-  <fail message="This package requires JavaMail. See http://code.google.com/p/hackystat/wiki/InstallingJavaMail." unless="javamail.available" />
-
-  <!-- Make sure that the JAXB library is available (by default in Java 6, through manual installation in Java 5. -->
-  <available classname="javax.xml.bind.JAXBContext" property="jaxb.available" />
-  <fail message="This package requires JAXB.  See http://code.google.com/p/hackystat/wiki/InstallingJAXBinJava5." unless="jaxb.available" />
 
   <!-- Basic properties for this system. -->
   <property name="system.name" value="hackystat-sensorbase-uh" />

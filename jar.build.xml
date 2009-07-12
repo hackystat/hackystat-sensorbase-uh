@@ -22,7 +22,7 @@
       <fileset dir="${basedir}/build/classes"/>
     </copy>
   
-    <!-- First build sensorbaseclient.jar, which is everything but derby. --> 
+    <!-- First build sensorbaseclient.jar, which is everything but derby and javamail. --> 
     <unjar src="${lib.dir}/hackystat-utilities/hackystatlogger.lib.jar" dest="${tmp.dir}"/>
     <unjar src="${lib.dir}/hackystat-utilities/stacktrace.lib.jar" dest="${tmp.dir}"/>
     <unjar src="${lib.dir}/hackystat-utilities/tstamp.lib.jar" dest="${tmp.dir}"/>
@@ -45,8 +45,9 @@
       </manifest>
     </jar>
     
-    <!-- Now add derby and jar up sensorbase.jar. -->
+    <!-- Now add derby and javamail and jar up sensorbase.jar. -->
     <unjar src="${lib.dir}/derby/derby.jar" dest="${tmp.dir}"/>
+    <unjar src="${lib.dir}/javamail/mail.jar" dest="${tmp.dir}"/>
     <jar destfile="${build.jar.dir}/sensorbase.jar" basedir="${tmp.dir}">
        <manifest>
          <attribute name="Main-Class" value="org.hackystat.sensorbase.server.Server"/>
