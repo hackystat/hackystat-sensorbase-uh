@@ -44,5 +44,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/derby/derby.jar"/>
+	<classpathentry kind="lib" path="lib/javamail/mail.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

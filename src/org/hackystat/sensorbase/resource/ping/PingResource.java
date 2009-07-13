@@ -31,7 +31,7 @@ public class PingResource extends SensorBaseResource {
   }
   
   /**
-   * Returns the string "DailyProjectData" or "DailyProjectData authenticated", 
+   * Returns the string "SensorBase" or "SensorBase authenticated", 
    * depending upon whether credentials are passed as form parameters and whether
    * they are valid. 
    * @param variant The representational variant requested.
