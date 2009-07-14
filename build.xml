@@ -39,6 +39,7 @@
  
   <!-- The compile classpath is useful to many tools. -->
   <path id="compile.classpath">
+    <path refid="javamail.path" />
     <path refid="junit.path" />
     <path refid="restlet.path" />
     <path refid="derby.path" />
