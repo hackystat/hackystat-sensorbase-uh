@@ -33,6 +33,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
   private String testSdt = "TestSdt";
   private String defaultProject = "Default";
   private static final String nineAm = "2007-04-30T09:00:00.000";
+  private String fourHundred = "400";
 
   /**
    * Test that GET host/sensorbase/projects returns an index containing at least one Project. This
@@ -365,7 +366,7 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
       client.putProject(project);
     }
     catch (SensorBaseClientException e) {
-      assertTrue("Test bad project name", e.getMessage().startsWith("400"));
+      assertTrue("Test bad project name", e.getMessage().startsWith(fourHundred));
     }
     // Fix the project name, try again.    
     String projectName = "TestProject1";
@@ -374,10 +375,10 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
       client.putProject(project);
     }
     catch (SensorBaseClientException e) {
-      if (!e.getMessage().startsWith("400")) {
+      if (!e.getMessage().startsWith(fourHundred)) {
         System.out.println("About to fail test since error is: " + e.getMessage());
       }
-      assertTrue("Test bad start", e.getMessage().startsWith("400"));
+      assertTrue("Test bad start", e.getMessage().startsWith(fourHundred));
     }
     XMLGregorianCalendar tstamp = Tstamp.makeTimestamp();
     project.setStartTime(tstamp);
@@ -386,10 +387,10 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
       client.putProject(project);
     }
     catch (SensorBaseClientException e) {
-      if (!e.getMessage().startsWith("400")) {
+      if (!e.getMessage().startsWith(fourHundred)) {
         System.out.println("About to fail test since error is: " + e.getMessage());
       }
-      assertTrue("Test bad end", e.getMessage().startsWith("400"));
+      assertTrue("Test bad end", e.getMessage().startsWith(fourHundred));
     }
     project.setEndTime(tstamp);
     // Now this should succeed.
