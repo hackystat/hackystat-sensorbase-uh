@@ -858,7 +858,9 @@ public class ProjectManager {
    * @throws Exception If problems occur during unmarshalling.
    */
   public final synchronized Project makeProject(String xmlString) throws Exception {
+    //System.out.println("Got here mp.1");
     Unmarshaller unmarshaller = this.jaxbContext.createUnmarshaller();
+    //System.out.println("Got here mp.2");
     return (Project)unmarshaller.unmarshal(new StringReader(xmlString));
   }
   

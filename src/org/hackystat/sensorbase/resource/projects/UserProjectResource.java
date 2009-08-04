@@ -95,7 +95,6 @@ public class UserProjectResource extends SensorBaseResource {
    */
   @Override
   public void storeRepresentation(Representation entity) {
-    
     if (!validateUriUserIsUser() ||
         !validateAuthUserIsAdminOrUriUser()) {
       return;
@@ -143,6 +142,7 @@ public class UserProjectResource extends SensorBaseResource {
     // Get or create a list of new members (possibly empty).
     List<String> newMembers = ((newProject.getMembers() == null) ? new ArrayList<String>()
         : newProject.getMembers().getMember());
+
 
     // Error if oldProject exists and new one contains a member not in old one.
     for (String newMember : newMembers) {

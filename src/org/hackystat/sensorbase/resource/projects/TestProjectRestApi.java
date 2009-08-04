@@ -374,6 +374,9 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
       client.putProject(project);
     }
     catch (SensorBaseClientException e) {
+      if (!e.getMessage().startsWith("400")) {
+        System.out.println("About to fail test since error is: " + e.getMessage());
+      }
       assertTrue("Test bad start", e.getMessage().startsWith("400"));
     }
     XMLGregorianCalendar tstamp = Tstamp.makeTimestamp();
@@ -383,6 +386,9 @@ public class TestProjectRestApi extends SensorBaseRestApiHelper {
       client.putProject(project);
     }
     catch (SensorBaseClientException e) {
+      if (!e.getMessage().startsWith("400")) {
+        System.out.println("About to fail test since error is: " + e.getMessage());
+      }
       assertTrue("Test bad end", e.getMessage().startsWith("400"));
     }
     project.setEndTime(tstamp);
