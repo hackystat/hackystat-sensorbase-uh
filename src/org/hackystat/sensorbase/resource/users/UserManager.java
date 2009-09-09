@@ -52,7 +52,7 @@ public class UserManager {
   /** Holds the class-wide JAXBContext, which is thread-safe. */
   private JAXBContext jaxbContext;
   
-  /** The Server associated with this SdtManager. */
+  /** The Server associated with this UserManager. */
   Server server; 
   
   /** The DbManager associated with this server. */
@@ -190,7 +190,7 @@ public class UserManager {
   
   /**
    * Checks ServerProperties for the XML_DIR property.
-   * If this property is null, returns the File for ./xml/defaults/sensordatatypes.defaults.xml.
+   * If this property is null, returns the File for ./xml/defaults/users.defaults.xml.
    * @return The File instance (which might not point to an existing file.)
    */
   private File findDefaultsFile() {
