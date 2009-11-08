@@ -139,7 +139,8 @@ public class SensorBaseClient {
     validateArg(host);
     validateArg(email);
     validateArg(password);
-    RestletLoggerUtil.useFileHandler(sensorbaseclient);
+    // Restlet logger leaves too many .lck files around, so disable it until we figure it out.
+    RestletLoggerUtil.disableLogging();
     this.userEmail = email;
     this.password = password;
     this.sensorBaseHost = host;
