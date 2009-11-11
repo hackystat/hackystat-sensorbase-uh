@@ -93,7 +93,7 @@ public class SensorBaseClient {
   /** For PMD. */
   private String andEndTime = "&endTime=";
   /** For PMD. */
-  private static final String sensorbaseclient = "sensorbaseclient";
+  //private static final String sensorbaseclient = "sensorbaseclient";
   
   /** To facilitate debugging of problems using this system. */
   private boolean isTraceEnabled = false;
