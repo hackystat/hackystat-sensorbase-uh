@@ -1461,7 +1461,7 @@ public class SensorBaseClient {
    * @throws SensorBaseClientException If problems occur during registration.
    */
   public static void registerUser(String host, String email) throws SensorBaseClientException {
-    RestletLoggerUtil.useFileHandler(sensorbaseclient);
+    RestletLoggerUtil.disableLogging();
     String registerUri = host.endsWith("/") ? host + "register" : host + "/register";
     Request request = new Request();
     request.setResourceRef(registerUri);
@@ -1508,7 +1508,7 @@ public class SensorBaseClient {
    * @return True if this URL responds as a SensorBase host.
    */
   public static boolean isHost(String host) {
-    RestletLoggerUtil.useFileHandler(sensorbaseclient);
+    RestletLoggerUtil.disableLogging();
     // We return false immediately if we failed to contact the host within the last two seconds. 
     long currTime = (new Date()).getTime();
     if ((currTime - getLastHostNotAvailable(host)) < 2 * 1000) {
@@ -1551,7 +1551,7 @@ public class SensorBaseClient {
    * @return True if this user is registered with this host.
    */
   public static boolean isRegistered(String host, String email, String password) {
-    RestletLoggerUtil.useFileHandler(sensorbaseclient);
+    RestletLoggerUtil.disableLogging();
     // Make sure the host is OK, which captures bogus hosts like "foo".
     if (!isHost(host)) {
       return false;

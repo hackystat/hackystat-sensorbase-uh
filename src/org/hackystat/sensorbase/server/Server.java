@@ -111,7 +111,7 @@ public class Server extends Application {
       .attach("/" + server.serverProperties.get(CONTEXT_ROOT_KEY), server);
 
     // Set up logging.
-    RestletLoggerUtil.useFileHandler("sensorbase");
+    RestletLoggerUtil.disableLogging();
     HackystatLogger.setLoggingLevel(server.logger, server.serverProperties.get(LOGGING_LEVEL_KEY));
     server.logger.warning("Starting sensorbase.");
     server.logger.warning("Host: " + server.hostName);
