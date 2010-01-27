@@ -169,13 +169,14 @@ public class ProjectManager {
   
   /**
    * Updates the in-memory cache with information about this Project. 
+   * Fixes the Default project dates to always be valid.
    * @param project The project to be added to the cache.
    * @throws Exception If problems occur updating the cache. 
    */
   private final void updateCache(Project project) throws Exception {
     provideDefaults(project);
     // Fix bogus default project start/end dates. 
-    if (project.getName().equals("Default") && Tstamp.isBogusStartTime(project.getStartTime())) {
+    if (project.getName().equals("Default")) {
         project.setStartTime(Tstamp.getDefaultProjectStartTime());
         project.setEndTime(Tstamp.getDefaultProjectEndTime());
     }
