@@ -23,7 +23,10 @@
   <!-- Make sure we're running Ant 1.7.1 or better. Ant 1.7.0 has a bug that we must avoid.  -->
   <condition property="ant.1.7.available">
     <and>
-      <contains string="${ant.version}" substring="1.7" />
+      <or>
+        <contains string="${ant.version}" substring="1.8" />
+        <contains string="${ant.version}" substring="1.7" />
+      </or>
       <not>
         <contains string="${ant.version}" substring="1.7.0" />
       </not>

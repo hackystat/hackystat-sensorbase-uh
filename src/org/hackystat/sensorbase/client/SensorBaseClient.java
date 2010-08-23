@@ -443,7 +443,9 @@ public class SensorBaseClient {
    *         that cannot be marshalled into Java User instance.
    */
   public synchronized User getUser(String email) throws SensorBaseClientException {
-    Response response = makeRequest(Method.GET, "users/" + userEmail, null);
+    // Bugfix Martin Imme: use email rather than userEmail in order to retrieve the correct user data 
+	Response response = makeRequest(Method.GET, "users/" + email, null);
+
     User user;
     if (!response.getStatus().isSuccess()) {
       throw new SensorBaseClientException(response.getStatus());

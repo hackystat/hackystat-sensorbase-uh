@@ -53,6 +53,12 @@ public class ServerProperties {
   public static final String COMPRESS_ON_STARTUP_KEY =   "sensorbase.db.startup.compress";  
   /** Whether to re-index on startup. */
   public static final String REINDEX_ON_STARTUP_KEY =   "sensorbase.db.startup.reindex";  
+  /** SMTP Server User name */
+  public static final String SMTP_SERVER_USER =     "sensorbase.smtp.user";
+  /** The admin email key. */
+  public static final String SMTP_SERVER_PASS =     "sensorbase.smtp.pass";
+
+  
   /** Where we store the properties. */
   private Properties properties; 
   
