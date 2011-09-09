@@ -846,7 +846,7 @@ public class DerbyImplementation extends DbImplementation {
       s.setString(5, xmlUserRef);
       s.setTimestamp(6, new Timestamp(new Date().getTime()));
       s.executeUpdate();
-      this.logger.fine("Derby: Inserted User" + user.getEmail());
+      this.logger.fine("Derby: Inserted User " + user.getEmail());
     }
     catch (SQLException e) {
       if (DUPLICATE_KEY.equals(e.getSQLState())) {
